@@ -1,0 +1,195 @@
+"""
+app/services/contribution_service.py
+──────────────────────────────────────
+Handles the full contribution lifecycle:
+  submit → AI review (background) → admin decision → publish as Material
+"""
+
+from typing import Optional
+
+from fastapi import BackgroundTasks, HTTPException, UploadFile, status
+from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from datetime import datetime
+from app.models.contribution import Contribution, ContributionStatus, ProcessingStatus, FinalRecommendation
+from app.models.material import Category, Material
+from app.models.user import User
+from app.models.base import generate_uuid
+from app.schemas.contribution import ContributionCreate, PaginatedContributions, ReviewDecision
+from app.utils.file_handler import get_storage
+
+
+async def submit_contribution(
+    payload: ContributionCreate,
+    file: UploadFile,
+    contributor: User,
+    db: AsyncSession,
+    background_tasks: BackgroundTasks,
+) -> Contribution:
+    """
+    Accept a student file upload, persist it, and queue the AI review.
+    Returns immediately — AI processing happens asynchronously.
+    """
+    storage = get_storage()
+    try:
+        stored = await storage.upload_file(file, folder="contributions")
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Storage failed: {e}. Falling back to LocalStorage.")
+        from app.utils.file_handler import LocalStorage
+        from app.core.config import settings
+        storage = LocalStorage(base_dir=settings.UPLOAD_DIR)
+        stored = await storage.upload_file(file, folder="contributions")
+
+    contribution = Contribution(
+        id=generate_uuid(),
+        title=payload.title,
+        description=payload.description,
+        subject=payload.subject,
+        course=payload.course,
+        semester=payload.semester,
+        category=payload.category,
+        file_path=stored.get("path"),
+        file_key=stored.get("file_key"),
+        file_url=stored.get("file_url"),
+        file_name=stored.get("file_name"),
+        file_size=stored.get("size"),
+        file_type=stored.get("content_type"),
+        contributor_id=contributor.id,
+        status=ContributionStatus.PENDING,
+        processing_status=ProcessingStatus.UPLOAD_RECEIVED,
+    )
+    db.add(contribution)
+    await db.flush()  # get ID before commit
+
+    # ── Enqueue background AI review ──────────────────────────────────────────
+    # Import here to avoid circular imports
+    from app.background.ai_tasks import run_validation_pipeline_task
+    background_tasks.add_task(run_validation_pipeline_task, contribution.id)
+
+    return contribution
+
+
+async def get_contributions_by_user(
+    user: User,
+    db: AsyncSession,
+    page: int = 1,
+    page_size: int = 20,
+) -> PaginatedContributions:
+    """Return a student's own contribution history."""
+    query = select(Contribution).where(Contribution.contributor_id == user.id)
+
+    count_result = await db.execute(
+        select(func.count()).select_from(query.subquery())
+    )
+    total = count_result.scalar_one()
+
+    offset = (page - 1) * page_size
+    result = await db.execute(
+        query.order_by(Contribution.created_at.desc()).offset(offset).limit(page_size)
+    )
+    items = result.scalars().all()
+    storage = get_storage()
+    for item in items:
+        item.file_url = storage.get_url(item.file_key or item.file_url or item.file_path)
+
+    return PaginatedContributions(
+        total=total, page=page, page_size=page_size, items=list(items)
+    )
+
+
+async def get_pending_contributions(
+    db: AsyncSession,
+    page: int = 1,
+    page_size: int = 20,
+) -> PaginatedContributions:
+    """Admin: list contributions awaiting review (PENDING or AI_REVIEWED)."""
+    query = select(Contribution).where(
+        Contribution.status.in_(
+            [ContributionStatus.PENDING, ContributionStatus.AI_REVIEWED]
+        )
+    )
+    count_result = await db.execute(
+        select(func.count()).select_from(query.subquery())
+    )
+    total = count_result.scalar_one()
+
+    offset = (page - 1) * page_size
+    result = await db.execute(
+        query.order_by(Contribution.created_at.asc()).offset(offset).limit(page_size)
+    )
+    items = result.scalars().all()
+    storage = get_storage()
+    for item in items:
+        item.file_url = storage.get_url(item.file_key or item.file_url or item.file_path)
+
+    return PaginatedContributions(
+        total=total, page=page, page_size=page_size, items=list(items)
+    )
+
+
+async def review_contribution(
+    contribution_id: str,
+    decision: ReviewDecision,
+    admin: User,
+    db: AsyncSession,
+    background_tasks: BackgroundTasks,
+) -> Contribution:
+    """
+    Admin approves or rejects a contribution.
+    On approval, a new Material record is automatically created.
+    """
+    result = await db.execute(
+        select(Contribution).where(Contribution.id == contribution_id)
+    )
+    contribution = result.scalar_one_or_none()
+    if not contribution:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contribution not found.")
+
+    if contribution.status == ContributionStatus.APPROVED:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already approved.")
+    if contribution.status == ContributionStatus.REJECTED:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already rejected.")
+
+    contribution.admin_notes = decision.admin_notes
+    contribution.status_updated_at = datetime.utcnow()
+
+    if decision.approved:
+        contribution.status = ContributionStatus.APPROVED
+        contribution.processing_status = ProcessingStatus.APPROVED
+        contribution.final_recommendation = FinalRecommendation.APPROVED_FOR_REVIEW
+        contribution.student_feedback_message = "Your contribution has been approved by the admin and added to the study materials library."
+
+        # ── Promote to Material ───────────────────────────────────────────────
+        material = Material(
+            id=generate_uuid(),
+            title=contribution.title,
+            description=contribution.description,
+            subject=contribution.subject,
+            course=contribution.course,
+            semester=contribution.semester,
+            file_path=contribution.file_path,
+            file_key=contribution.file_key,
+            file_url=contribution.file_url,
+            file_name=contribution.file_name,
+            file_size=contribution.file_size,
+            file_type=contribution.file_type,
+            uploader_id=contribution.contributor_id,
+            category=contribution.category,
+            is_approved=True,
+        )
+        db.add(material)
+        await db.flush()
+
+        # ── Trigger indexing ────────────────────────────────────────────────
+        from app.background.ai_tasks import run_index_update_task
+        background_tasks.add_task(run_index_update_task, material.id)
+    else:
+        contribution.status = ContributionStatus.REJECTED
+        contribution.processing_status = ProcessingStatus.REJECTED
+        contribution.final_recommendation = FinalRecommendation.REJECTED
+        contribution.student_feedback_message = "Your contribution was reviewed by the admin and was not approved for publication."
+
+    await db.flush()
+    return contribution

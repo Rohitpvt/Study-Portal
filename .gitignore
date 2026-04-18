@@ -1,0 +1,93 @@
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+venv/
+.venv/
+auth.db
+
+# ── Frontend (Node/Vite) ──────────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+.vercel
+.output
+.nuxt
+coverage/
+
+# ── Secrets & Config ─────────────────────────────────────────────────────────
+.env
+.env.*
+*.pem
+*.key
+secrets.json
+
+# ── Database & Local Data ─────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+app.db
+christ_ai.db
+christ_uni_dev.db
+christ_uni_dev_backup.db
+christ_university.db
+test_christ_uni.db
+uploads/
+uploads_archive/
+faiss_index/
+index.faiss
+metadata.pkl
+
+# ── Logs & Reports ────────────────────────────────────────────────────────────
+logs/
+*.log
+debug_chat.log
+debug_rag.log
+server_stdout*
+server_stderr*
+stress_test_results.json
+test_results.json
+test_out.txt
+
+# ── OS & IDE ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Temporary ─────────────────────────────────────────────────────────────────
+tmp/
+temp/
+Temp Notes/
+dummy_subagent_upload.pdf
+Verification_Test_Content.txt
+verification_test.txt
+debug_ask_summary.txt
+debug_rag_summary.txt
+attribution_verify.txt

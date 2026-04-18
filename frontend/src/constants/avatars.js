@@ -1,0 +1,33 @@
+export const AVATARS = [
+  // Presets (Static)
+  { id: 'avatar_1', label: 'Hacker', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=hacker', type: 'preset' },
+  { id: 'avatar_2', label: 'Genius', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=genius', type: 'preset' },
+  { id: 'avatar_3', label: 'Panda Student', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=panda', type: 'preset' },
+  { id: 'avatar_4', label: 'Robot Face', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=robot', type: 'preset' },
+  { id: 'avatar_5', label: 'Student', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=student', type: 'preset' },
+  { id: 'avatar_6', label: 'Scientist', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=scientist', type: 'preset' },
+  { id: 'avatar_7', label: 'Graduate', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=grad', type: 'preset' },
+  { id: 'avatar_8', label: 'Gamer', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=gamer', type: 'preset' },
+  { id: 'avatar_9', label: 'Nerd', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=nerd', type: 'preset' },
+  { id: 'avatar_10', label: 'Ninja', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=ninja', type: 'preset' },
+  { id: 'avatar_bot', label: 'AI Bot', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=ai', type: 'preset' },
+  { id: 'avatar_cool', label: 'Cool Kid', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=cool', type: 'preset' },
+  { id: 'avatar_star', label: 'Star Student', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=star', type: 'preset' },
+  { id: 'avatar_retro', label: 'Retro Coder', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=retro', type: 'preset' },
+  { id: 'avatar_cat', label: 'Cyber Cat', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=cat', type: 'preset' },
+  
+  // Animated
+  { id: 'avatar_17', label: 'Wizard', url: '/assets/avatars/wizard_animated.png', type: 'animated' },
+  { id: 'avatar_11', label: 'Dancing Bot', url: '/assets/avatars/robot_dancing.png', type: 'animated' },
+  { id: 'avatar_15', label: 'Fire Dev', url: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f525/512.gif', type: 'animated' },
+  { id: 'avatar_16', label: 'Ghost Runner', url: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f47b/512.gif', type: 'animated' },
+  { id: 'avatar_18', label: 'Rocket', url: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f680/512.gif', type: 'animated' },
+  { id: 'avatar_19', label: 'Unicorn', url: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f984/512.gif', type: 'animated' },
+  { id: 'avatar_20', label: 'Sparkles', url: 'https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.gif', type: 'animated' },
+  { id: 'avatar_pixel', label: 'Pixel Hero', url: '/assets/avatars/pixel_hero.png', type: 'animated' },
+  { id: 'avatar_12', label: 'Neon Brain', url: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f9e0/512.gif', type: 'animated' },
+  { id: 'avatar_lava', label: 'Lava Face', url: '/assets/avatars/lava_face.png', type: 'animated' },
+  { id: 'avatar_glitch', label: 'Glitch Bot', url: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f916/512.gif', type: 'animated' },
+  { id: 'avatar_orb', label: 'Magic Orb', url: '/assets/avatars/magic_orb.png', type: 'animated' },
+  { id: 'avatar_wand', label: 'Magic Wand', url: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1fa84/512.gif', type: 'animated' },
+];
