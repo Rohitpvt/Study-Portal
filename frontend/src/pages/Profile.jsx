@@ -4,9 +4,11 @@ import { AVATARS } from '../constants/avatars';
 import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../utils/avatarUtils';
 import { Check, Mail, User, ShieldCheck, Upload, Book, Info } from 'lucide-react';
 import api from '../services/api';
+import { useNotification } from '../context/NotificationContext';
 
 export default function Profile() {
   const { userProfile, updateProfile } = useAuth();
+  const { success, error: toastError, info, warn } = useNotification();
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   
@@ -39,7 +41,7 @@ export default function Profile() {
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      setFeedback({ type: 'error', message: 'File is too large. Max 2MB allowed.' });
+      toastError('File is too large. Max 2MB allowed.');
       return;
     }
 
@@ -87,13 +89,13 @@ export default function Profile() {
       const result = await updateProfile(updates);
       
       if (result.success) {
-        setFeedback({ type: 'success', message: 'Profile updated successfully!' });
+        success('Profile updated successfully!');
       } else {
-        setFeedback({ type: 'error', message: result.error });
+        toastError(result.error);
       }
     } catch (err) {
       const errorMsg = err.response?.data?.detail || err.message || 'Failed saving updates.';
-      setFeedback({ type: 'error', message: errorMsg });
+      toastError(errorMsg);
       console.error('Profile save error:', err);
     }
     

@@ -12,6 +12,8 @@ import Admin from './pages/Admin';
 import DocumentViewer from './pages/Viewer';
 import Profile from './pages/Profile';
 import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
+import { ToastContainer } from './components/common/Toast';
 
 const AppLayout = () => (
   <AuthProvider>
@@ -26,39 +28,42 @@ const AppLayout = () => (
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        
-        {/* Public Routes - No Navbar */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        
-        {/* Protected Routes - With Navbar and Layout */}
-        <Route element={<AuthGuard />}>
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/materials" element={<Materials />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/viewer/:materialId" element={<DocumentViewer />} />
-            <Route path="/viewer" element={<DocumentViewer />} />
-            <Route path="/profile" element={<Profile />} />
-            
-            {/* Restricted Route: Students Only */}
-            <Route element={<AuthGuard allowedRoles={['student']} />}>
-              <Route path="/contributions" element={<Contributions />} />
-            </Route>
+    <NotificationProvider>
+      <ToastContainer />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          
+          {/* Public Routes - No Navbar */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          {/* Protected Routes - With Navbar and Layout */}
+          <Route element={<AuthGuard />}>
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/materials" element={<Materials />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/viewer/:materialId" element={<DocumentViewer />} />
+              <Route path="/viewer" element={<DocumentViewer />} />
+              <Route path="/profile" element={<Profile />} />
+              
+              {/* Restricted Route: Students Only */}
+              <Route element={<AuthGuard allowedRoles={['student']} />}>
+                <Route path="/contributions" element={<Contributions />} />
+              </Route>
 
-            {/* Restricted Route: Admins Only */}
-            <Route element={<AuthGuard allowedRoles={['admin']} />}>
-              <Route path="/admin" element={<Admin />} />
+              {/* Restricted Route: Admins Only */}
+              <Route element={<AuthGuard allowedRoles={['admin']} />}>
+                <Route path="/admin" element={<Admin />} />
+              </Route>
             </Route>
           </Route>
-        </Route>
 
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </NotificationProvider>
   );
 }
 

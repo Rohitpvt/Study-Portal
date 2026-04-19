@@ -23,11 +23,21 @@ class Settings(BaseSettings):
     APP_NAME: str = "Christ University Study Platform"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
-    ALLOWED_ORIGINS: List[str] = [
+    ALLOWED_ORIGINS: Any = [
         "http://localhost:3000",
         "http://localhost:5173",
         "http://127.0.0.1:5173"
     ]
+
+    @field_validator("ALLOWED_ORIGINS", mode="before")
+    @classmethod
+    def assemble_allowed_origins(cls, v) -> List[str]:
+        if isinstance(v, str):
+            # Handle bracketed strings like "['a', 'b']" by cleaning them first
+            clean_str = v.strip().strip("[]")
+            # Split by comma and clean up individual origins
+            return [origin.strip().strip("'\" ") for origin in clean_str.split(",") if origin.strip()]
+        return v or []
 
     # ── Database ──────────────────────────────────────────────────────────────
     DATABASE_URL: str

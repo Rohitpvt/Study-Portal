@@ -7,6 +7,7 @@ Study materials library endpoints.
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, File, Form, Query, UploadFile
+from fastapi.responses import FileResponse, RedirectResponse
 
 from app.core.dependencies import AdminUser, CurrentUser, DBSession
 from app.models.material import Category
@@ -94,6 +95,52 @@ async def delete_material(
     await db.commit()
 
 
+@router.get("/{material_id}/file", summary="Serve the actual material file")
+async def serve_material_file(
+    material_id: str, 
+    db: DBSession, 
+    _: CurrentUser,
+    download: bool = Query(False, description="Force download if True")
+):
+    """
+    Serves the material file directly.
+    If download=True, sets Content-Disposition to attachment.
+    Supports both local and S3 backends transparently.
+    """
+    material = await material_service.get_material_by_id(material_id, db)
+    
+    from app.utils.file_handler import get_storage
+    storage = get_storage()
+    
+    # Identify extension and generate friendly filename
+    ext = ".pdf" if material.file_type == "application/pdf" else ".docx"
+    filename = f"{material.title}{ext}"
+    
+    # If using Local storage, return FileResponse directly (avoids StaticFiles limitations)
+    from app.core.config import settings
+    if settings.STORAGE_BACKEND == "local":
+        clean_key = (material.file_key or material.file_path or material.file_url).replace("/api/v1/uploads/", "").lstrip("/")
+        full_path = os.path.join(settings.UPLOAD_DIR, clean_key).replace('\\', '/')
+        
+        if not os.path.exists(full_path):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="File not found on disk.")
+            
+        return FileResponse(
+            path=full_path,
+            filename=filename if download else None,
+            content_disposition_type="attachment" if download else "inline"
+        )
+    
+    # If using S3, generate a presigned URL and redirect
+    download_url = storage.get_url(
+        material.file_key or material.file_url or material.file_path,
+        is_download=download,
+        filename=filename if download else None
+    )
+    return RedirectResponse(url=download_url)
+
+
 @router.get("/{material_id}/download", summary="Get a secure download URL for a material")
 async def get_material_download_url(
     material_id: str, 
@@ -101,23 +148,25 @@ async def get_material_download_url(
     _: CurrentUser
 ):
     """
-    Returns a secure, attachment-configured presigned URL for the material.
-    Forces browser download instead of inline viewing.
+    Returns a URL that points to the internal /file endpoint with download=1.
+    This ensures that the browser triggers a download even for local files.
     """
     material = await material_service.get_material_by_id(material_id, db)
     
-    from app.utils.file_handler import get_storage
-    storage = get_storage()
+    from app.core.config import settings
+    if settings.STORAGE_BACKEND == "s3":
+        # For S3, we can still use the direct presigned URL as it supports headers
+        from app.utils.file_handler import get_storage
+        storage = get_storage()
+        ext = ".pdf" if material.file_type == "application/pdf" else ".docx"
+        filename = f"{material.title}{ext}"
+        url = storage.get_url(
+            material.file_key or material.file_url or material.file_path,
+            is_download=True,
+            filename=filename
+        )
+    else:
+        # For Local, we point to our proxy route which forces attachment
+        url = f"/api/v1/materials/{material_id}/file?download=1"
     
-    # Generate URL with is_download=True
-    # Use material title + extension for a cleaner download filename
-    ext = ".pdf" if material.file_type == "application/pdf" else ".docx"
-    filename = f"{material.title}{ext}"
-    
-    download_url = storage.get_url(
-        material.file_key or material.file_url or material.file_path,
-        is_download=True,
-        filename=filename
-    )
-    
-    return {"download_url": download_url}
+    return {"download_url": url}

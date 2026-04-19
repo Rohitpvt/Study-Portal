@@ -1,41 +1,50 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, LogOut, ShieldCheck, Upload, MessageSquare, Star, Menu, X, User as UserIcon } from 'lucide-react';
-import { jwtDecode } from 'jwt-decode';
+import { 
+  BookOpen, 
+  LogOut, 
+  ShieldCheck, 
+  Star, 
+  Menu, 
+  X, 
+  User as UserIcon, 
+  LayoutDashboard, 
+  Bot, 
+  UploadCloud 
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
 import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../../utils/avatarUtils';
 
 export default function Navbar() {
+  const { userProfile } = useAuth();
+  const { info } = useNotification();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const token = localStorage.getItem('access_token');
-  const { userProfile } = useAuth();
-  let role = null;
 
-  if (token) {
-    try {
-      role = jwtDecode(token).role?.toLowerCase();
-    } catch {}
-  }
+  const baseLinks = [
+    { to: '/dashboard', label: 'Terminal', icon: LayoutDashboard },
+    { to: '/materials', label: 'Library', icon: BookOpen },
+    { to: '/favorites', label: 'Favorites', icon: Star },
+    { to: '/chat', label: 'Research AI', icon: Bot },
+    { to: '/contributions', label: 'Contribute', icon: UploadCloud },
+    { to: '/admin', label: 'Admin Panel', icon: ShieldCheck, adminOnly: true },
+  ];
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
+    info("Cloud session synchronized and terminated.");
     navigate('/login');
     setIsMobileMenuOpen(false);
   };
 
-  // Hide navbar on auth pages and when not logged in
+  // Skip rendering on auth pages or if unauthenticated
   const authPages = ['/login', '/register'];
   if (!token || authPages.includes(location.pathname)) return null;
 
-  const navLinks = [
-    { to: "/materials", label: "Materials", icon: BookOpen, color: "slate" },
-    { to: "/favorites", label: "Favorites", icon: Star, color: "amber" },
-    ...(role === 'student' ? [{ to: "/contributions", label: "Contribute", icon: Upload, color: "slate" }] : []),
-    { to: "/chat", label: "AI Chat", icon: MessageSquare, color: "slate" },
-    ...(role === 'admin' ? [{ to: "/admin", label: "Admin Review", icon: ShieldCheck, color: "blue" }] : []),
-  ];
+  const navLinks = baseLinks.filter(link => !link.adminOnly || (userProfile && userProfile.role?.toLowerCase() === 'admin'));
 
   return (
     <nav className="glass sticky top-0 z-50 transition-all duration-500">
@@ -43,7 +52,7 @@ export default function Navbar() {
         <div className="flex justify-between h-18 py-1">
           <div className="flex items-center">
             <Link to="/dashboard" className="flex items-center text-2xl font-black text-slate-900 tracking-tighter gap-1.5 interactive-scale">
-              <span className="premium-gradient rounded-xl pb-1 px-2.5 shadow-lg shadow-indigo-200">CU</span>
+              <span className="premium-gradient rounded-xl pb-1 px-2.5 shadow-lg shadow-indigo-200 text-white">CU</span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">Portal</span>
             </Link>
             
@@ -113,7 +122,7 @@ export default function Navbar() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`flex items-center px-5 py-4 rounded-2xl text-base font-bold transition-all ${
                   location.pathname === link.to
-                    ? 'premium-gradient shadow-xl shadow-indigo-100'
+                    ? 'premium-gradient shadow-xl shadow-indigo-100 text-white'
                     : 'text-slate-600 hover:bg-white/50 hover:text-indigo-600'
                 }`}
               >

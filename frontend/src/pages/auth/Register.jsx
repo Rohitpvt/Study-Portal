@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../services/api';
 import { UserPlus, Mail, Lock, User, ShieldPlus } from 'lucide-react';
+import { useNotification } from '../../context/NotificationContext';
 
 export default function Register() {
+  const { success, error: toastError, info } = useNotification();
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -29,34 +31,44 @@ export default function Register() {
 
     // Frontend Validation: Password confirmation
     if (!confirmPassword) {
-      setError("Please re-enter your password to confirm.");
+      const msg = "Please re-enter your password to confirm.";
+      setError(msg);
+      toastError(msg);
       return;
     }
     if (formData.password !== confirmPassword) {
-      setError("Passwords do not match.");
+      const msg = "Passwords do not match.";
+      setError(msg);
+      toastError(msg);
       return;
     }
 
     setLoading(true);
 
     try {
-      await axios.post('http://localhost:8000/api/v1/auth/register', formData);
+      await api.post('/auth/register', formData);
+      info("Account established. Initiating session...");
+      
       const loginParams = new URLSearchParams();
       loginParams.append('username', formData.email);
       loginParams.append('password', formData.password);
       
-      const response = await axios.post('http://localhost:8000/api/v1/auth/login', loginParams, {
+      const response = await api.post('/auth/login', loginParams, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       });
       
       localStorage.setItem('access_token', response.data.access_token);
+      success("Welcome to the platform!");
       navigate('/dashboard');
     } catch (err) {
+      let msg = "Registration rejected. System mismatch detected.";
       if(err.response?.data?.detail?.[0]?.msg) {
-         setError(err.response.data.detail[0].msg);
+         msg = err.response.data.detail[0].msg;
       } else {
-         setError(err.response?.data?.detail || "Registration rejected. System mismatch detected.");
+         msg = err.response?.data?.detail || msg;
       }
+      setError(msg);
+      toastError(msg);
     } finally {
       setLoading(false);
     }

@@ -24,6 +24,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import api from '../services/api';
+import { useNotification } from '../context/NotificationContext';
 
 // Set up the worker for react-pdf using a reliable CDN and fixed version matching react-pdf's dependency
 // pdfjs-dist version 5.4.296 is required by react-pdf@10.4.1
@@ -107,6 +108,7 @@ export default function DocumentViewer() {
   const { materialId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { success, error: toastError, info } = useNotification();
   const containerRef = useRef(null);
   const pdfDocRef = useRef(null);
   const pageTextCache = useRef({});
@@ -158,6 +160,7 @@ export default function DocumentViewer() {
         .then(res => {
           if (isMounted) {
             setMaterial(res.data);
+            info("Opening document...");
             setLoading(false);
           }
         })
@@ -414,20 +417,31 @@ export default function DocumentViewer() {
     if (materialId) {
       try {
         const res = await api.get(`/materials/${materialId}/download`);
-        const url = res.data.download_url;
+        let url = res.data.download_url;
+        
+        info("Download initiated...");
+        
+        // If the URL is relative (internal proxy), resolve it against the backend base
+        if (url && !url.startsWith('http')) {
+          const backendBase = api.defaults.baseURL.replace('/api/v1', '');
+          url = `${backendBase}${url}`;
+        }
+        
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('target', '_blank');
+        link.setAttribute('download', '');
         document.body.appendChild(link);
         link.click();
         link.remove();
       } catch (err) {
         console.error("Download failed:", err);
+        // Fallback to direct URL if preferred, but usually /download handles it
         const link = document.createElement('a');
         link.href = fileUrl;
-        link.setAttribute('target', '_blank');
+        link.setAttribute('download', '');
         document.body.appendChild(link);
         link.click();
+        link.remove();
         link.remove();
       }
     } else {

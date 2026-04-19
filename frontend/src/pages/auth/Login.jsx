@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../services/api';
 import { Mail, Lock, LogIn, ShieldCheck } from 'lucide-react';
+import { useNotification } from '../../context/NotificationContext';
 
 export default function Login() {
+  const { success, error: toastError } = useNotification();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
@@ -28,15 +30,18 @@ export default function Login() {
     formData.append('password', password);
 
     try {
-      const response = await axios.post('http://localhost:8000/api/v1/auth/login', formData, {
+      const response = await api.post('/auth/login', formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       });
       localStorage.setItem('access_token', response.data.access_token);
+      success("Access Granted. Welcome back!");
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.detail || "Access denied. Strategic credentials mismatch.");
+      const msg = err.response?.data?.detail || "Access denied. Strategic credentials mismatch.";
+      setError(msg);
+      toastError(msg);
     } finally {
       setLoading(false);
     }

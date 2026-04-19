@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { Send, Bot, User, BookOpen, FileText, Info, ExternalLink, Plus, MessageSquare, Menu, X, Trash2, Clock, Search, Edit3, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../utils/avatarUtils';
 
 const INITIAL_GREETING = { 
@@ -14,6 +15,7 @@ const INITIAL_GREETING = {
 
 export default function Chat() {
   const navigate = useNavigate();
+  const { success, error: toastError, info, warn } = useNotification();
   const [messages, setMessages] = useState([INITIAL_GREETING]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -72,6 +74,7 @@ export default function Chat() {
     setActiveSessionId(null);
     setMessages([INITIAL_GREETING]);
     setIsSidebarOpen(false);
+    info("New chat session started");
   };
 
   const deleteSession = async (e, sessionId) => {
@@ -82,12 +85,14 @@ export default function Chat() {
     try {
       await api.delete(`/chat/sessions/${sessionId}`);
       setSessions(prev => prev.filter(s => s.id !== sessionId));
+      success("Conversation deleted.");
       
       if (activeSessionId === sessionId) {
         startNewChat();
       }
     } catch (err) {
       console.error("Error deleting session:", err);
+      toastError("Failed to delete session.");
     }
   };
 
@@ -107,8 +112,10 @@ export default function Chat() {
     try {
       await api.patch(`/chat/sessions/${sessionId}`, { title: trimmedTitle });
       setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, title: trimmedTitle } : s));
+      success("Chat renamed.");
     } catch (err) {
       console.error("Error renaming session:", err);
+      toastError("Failed to rename session.");
     } finally {
       setEditingId(null);
     }
@@ -151,7 +158,9 @@ export default function Chat() {
       // Always refresh sidebar to update title, preview, and timestamps
       fetchSessions();
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'assistant', text: "Error connecting to AI: " + (err.response?.data?.detail || "") }]);
+      const msg = err.response?.data?.detail || "Connection lost. Please check your network.";
+      setMessages(prev => [...prev, { role: 'assistant', text: "Error connecting to AI: " + msg }]);
+      toastError("AI response failed.");
     } finally {
       setLoading(false);
     }

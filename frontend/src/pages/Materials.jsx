@@ -4,9 +4,11 @@ import { Download, UploadIcon, Search, Filter, X, Star, Lock, SlidersHorizontal,
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { ACADEMIC_DATA, CATEGORIES, SEMESTERS } from '../constants/academicData';
+import { useNotification } from '../context/NotificationContext';
 
 export default function Materials() {
   const navigate = useNavigate();
+  const { success, error: toastError, info } = useNotification();
   const [materials, setMaterials] = useState([]);
 
   // Filter & Search states
@@ -89,21 +91,29 @@ export default function Materials() {
       } else {
         await api.post(`/favorites/${id}`);
         setFavoriteIds(prev => new Set(prev).add(id));
+        info("Added to favorites");
       }
     } catch (err) {
       console.error('Failed to toggle favorite:', err);
+      toastError("Failed to update favorites");
     }
   };
 
   const handleDownload = async (materialId) => {
     try {
       const res = await api.get(`/materials/${materialId}/download`);
-      const url = res.data.download_url;
+      let url = res.data.download_url;
+      
+      // If the URL is relative (internal proxy), resolve it against the backend base
+      if (url && !url.startsWith('http')) {
+        const backendBase = api.defaults.baseURL.replace('/api/v1', '');
+        url = `${backendBase}${url}`;
+      }
       
       // Robust programmatic download trigger
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('target', '_blank');
+      link.setAttribute('download', ''); // Compatibility for local downloads
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -119,15 +129,12 @@ export default function Materials() {
 
     try {
       await api.delete(`/materials/${materialId}`);
-      alert(`Deletion Successful: "${title}" has been removed from the platform.`);
+      success(`Deletion Successful: "${title}" removed.`);
       fetchMaterials(); // Refresh list
     } catch (err) {
       console.error("Delete failed:", err);
-      if (!err.response) {
-        alert("Network Error: Cannot reach the server. Please ensure the backend is running.");
-      } else {
-        alert(err.response?.data?.detail || "Authorization Failed: Only administrators can purge library assets.");
-      }
+      const msg = err.response?.data?.detail || "Authorization Failed: Only administrators can purge library assets.";
+      toastError(msg);
     }
   };
 

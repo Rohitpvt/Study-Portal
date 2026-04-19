@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { UploadIcon, Activity, CheckCircle2, XCircle, Clock, FileText, Info } from 'lucide-react';
 import { ACADEMIC_DATA, CATEGORIES, SEMESTERS } from '../constants/academicData';
+import { useNotification } from '../context/NotificationContext';
 
 export default function Contributions() {
+  const { success, error: toastError, info } = useNotification();
   const [contributions, setContributions] = useState([]);
   
   // Upload State
@@ -95,7 +97,7 @@ export default function Contributions() {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!file) return alert("Select a file first");
+    if (!file) return toastError("Please select a file to submit.");
     
     setUploading(true);
     const formData = new FormData();
@@ -113,13 +115,13 @@ export default function Contributions() {
       await api.post('/contributions', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      alert("Contribution submitted successfully! Initializing processing pipeline...");
+      success("Contribution submitted successfully! AI Pipeline initialized.");
       setFile(null);
       // Trigger immediate refresh and start polling
       await fetchMine();
       setIsPolling(true);
     } catch (err) {
-       alert(err.response?.data?.detail || "Upload failed. Please try again.");
+       toastError(err.response?.data?.detail || "Upload failed. Please try again.");
     } finally {
       setUploading(false);
     }

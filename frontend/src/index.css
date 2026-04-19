@@ -66,3 +66,9 @@ mark.pdf-search-highlight.pdf-search-active {
   border-radius: 3px;
   box-shadow: 0 0 8px rgba(79, 70, 229, 0.4);
 }
+
+/* ── Toast Progress Animation ────────────────────────────────────────────── */
+@keyframes toast-progress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
