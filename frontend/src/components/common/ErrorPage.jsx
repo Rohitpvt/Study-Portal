@@ -1,13 +1,14 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, RefreshCw, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Home, RefreshCw, ArrowLeft, AlertTriangle, Loader2 } from 'lucide-react';
 
 export default function ErrorPage({ 
   type = '404', 
   title, 
   message, 
   fullScreen = true, 
-  onRetry 
+  onRetry,
+  isRetrying = false
 }) {
   const navigate = useNavigate();
   
@@ -33,6 +34,20 @@ export default function ErrorPage({
       defaultSubtitle: "Connection Failed",
       showRetry: true,
       showHome: !!fullScreen 
+    },
+    'server': {
+      defaultTitle: "Server Unreachable",
+      defaultMessage: "We are unable to connect to the backend server. Please try again shortly.",
+      defaultSubtitle: "Connection Refused",
+      showRetry: true,
+      showHome: false
+    },
+    'offline': {
+      defaultTitle: "You are offline",
+      defaultMessage: "Please check your internet connection and try again.",
+      defaultSubtitle: "No Internet Connection",
+      showRetry: true,
+      showHome: false
     }
   };
 
@@ -49,16 +64,16 @@ export default function ErrorPage({
             
             {/* Background GIF container exactly like .four_zero_four_bg */}
             <div 
-              className="h-[500px] bg-center bg-no-repeat flex items-start justify-center"
+              className="h-[400px] bg-center bg-no-repeat flex items-start justify-center"
               style={{ backgroundImage: "url('/images/bg.gif')" }}
             >
-              <h1 className="text-[80px] font-medium m-0 pt-8" style={{ fontSize: '80px' }}>
+              <h1 className="text-[60px] sm:text-[80px] font-medium m-0 pt-0" style={{ fontSize: '70px' }}>
                 {displayTitle}
               </h1>
             </div>
             
             {/* Content Box exactly like .contant_box_404 */}
-            <div className="-mt-[50px] relative z-10 bg-white inline-block px-4">
+            <div className="-mt-[120px] relative z-10 bg-white inline-block px-4">
               <h3 className="font-medium m-0 mb-2 text-3xl">
                 {displaySubtitle}
               </h3>
@@ -81,10 +96,18 @@ export default function ErrorPage({
                 {currentConfig.showRetry && onRetry && (
                   <button 
                     onClick={onRetry} 
-                    className="text-white !text-white px-5 py-2.5 bg-[#39ac31] my-5 inline-block cursor-pointer border-none"
+                    disabled={isRetrying}
+                    className="text-white !text-white px-5 py-2.5 bg-[#39ac31] my-5 inline-flex items-center justify-center gap-2 cursor-pointer border-none disabled:opacity-70 disabled:cursor-not-allowed"
                     style={{ background: '#39ac31' }}
                   >
-                    Retry Connection
+                    {isRetrying ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Trying to reconnect...
+                      </>
+                    ) : (
+                      "Retry Connection"
+                    )}
                   </button>
                 )}
 

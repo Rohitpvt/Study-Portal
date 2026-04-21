@@ -16,13 +16,20 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Handle specific standard HTTP failures globally
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // 1. Connection Refused / Network Error / Timeout Detection
+    const isNetworkError = !error.response && error.code === 'ERR_NETWORK';
+    const isTimeout = error.code === 'ECONNABORTED';
+    
+    if (isNetworkError || isTimeout) {
+      window.dispatchEvent(new CustomEvent('server-error'));
+    }
+
+    // 2. Authentication Revocation Guard
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('access_token');
-      // Redirect out to prevent locking users inside guarded pages with invalid session
       if (!['/login', '/register'].includes(window.location.pathname)) {
         window.location.href = '/login';
       }

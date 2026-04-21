@@ -17,8 +17,63 @@ import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ToastContainer } from './components/common/Toast';
 import { ThemeProvider } from './context/ThemeContext';
+import { SystemProvider, useSystem } from './context/SystemContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ErrorPage from './components/common/ErrorPage';
+
+const AppContent = () => {
+  const { isOffline, isServerDown, isRetrying, checkHealth } = useSystem();
+
+  if (isOffline) {
+    return <ErrorPage type="offline" onRetry={checkHealth} isRetrying={isRetrying} />;
+  }
+  
+  if (isServerDown) {
+    return <ErrorPage type="server" onRetry={checkHealth} isRetrying={isRetrying} />;
+  }
+
+  return (
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          
+          {/* Public Routes - No Navbar */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        
+        {/* Protected Routes - With Navbar and Layout */}
+        <Route element={<AuthGuard />}>
+          <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/materials" element={<Materials />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/viewer/:materialId" element={<DocumentViewer />} />
+            <Route path="/viewer" element={<DocumentViewer />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            
+            {/* Restricted Route: Students Only */}
+            <Route element={<AuthGuard allowedRoles={['student']} />}>
+              <Route path="/contributions" element={<Contributions />} />
+            </Route>
+
+            {/* Restricted Route: Admins Only */}
+            <Route element={<AuthGuard allowedRoles={['admin']} />}>
+              <Route path="/admin" element={<Admin />} />
+            </Route>
+          </Route>
+        </Route>
+
+        {/* Fallback 404 Route */}
+        <Route path="*" element={<ErrorPage type="404" />} />
+
+        </Routes>
+      </ErrorBoundary>
+  );
+};
+
 
 const AppLayout = () => (
   <AuthProvider>
@@ -34,49 +89,14 @@ const AppLayout = () => (
 function App() {
   return (
     <ThemeProvider>
-      <NotificationProvider>
-        <ToastContainer />
-      <BrowserRouter>
-        <ErrorBoundary>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            
-            {/* Public Routes - No Navbar */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          
-          {/* Protected Routes - With Navbar and Layout */}
-          <Route element={<AuthGuard />}>
-            <Route element={<AppLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/materials" element={<Materials />} />
-              <Route path="/favorites" element={<Favorites />} />
-              <Route path="/chat" element={<Chat />} />
-              <Route path="/viewer/:materialId" element={<DocumentViewer />} />
-              <Route path="/viewer" element={<DocumentViewer />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              
-              {/* Restricted Route: Students Only */}
-              <Route element={<AuthGuard allowedRoles={['student']} />}>
-                <Route path="/contributions" element={<Contributions />} />
-              </Route>
-
-              {/* Restricted Route: Admins Only */}
-              <Route element={<AuthGuard allowedRoles={['admin']} />}>
-                <Route path="/admin" element={<Admin />} />
-              </Route>
-            </Route>
-          </Route>
-
-          {/* Fallback 404 Route */}
-          <Route path="*" element={<ErrorPage type="404" />} />
-
-        </Routes>
-        </ErrorBoundary>
-      </BrowserRouter>
-    </NotificationProvider>
+      <SystemProvider>
+        <NotificationProvider>
+          <ToastContainer />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </NotificationProvider>
+      </SystemProvider>
     </ThemeProvider>
   );
 }
