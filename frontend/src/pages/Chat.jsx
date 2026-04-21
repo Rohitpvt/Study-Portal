@@ -182,7 +182,7 @@ export default function Chat() {
           />
         )}
 
-        <div className="relative h-full glass rounded-[40px] flex flex-col overflow-hidden border-white/40 shadow-2xl">
+        <div className="relative h-full glass dark:bg-slate-900 border-white/40 dark:border-slate-800 rounded-[40px] flex flex-col overflow-hidden shadow-2xl">
           <div className="p-6">
             <button
               onClick={startNewChat}
@@ -201,7 +201,7 @@ export default function Chat() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search history..."
-                className="w-full pl-11 pr-4 py-3 bg-white/50 border border-white/60 rounded-2xl text-[12px] font-bold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-200 transition-all"
+                className="w-full pl-11 pr-4 py-3 bg-white/50 dark:bg-slate-800/50 border border-white/60 dark:border-slate-700/50 rounded-2xl text-[12px] font-bold text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 focus:border-indigo-200 dark:focus:border-indigo-800 transition-all"
               />
             </div>
           </div>
@@ -231,8 +231,8 @@ export default function Chat() {
                   className={`
                     group relative p-4 rounded-3xl cursor-pointer transition-all duration-300
                     ${activeSessionId === s.id 
-                      ? 'bg-indigo-50 border-indigo-100 ring-1 ring-indigo-100 shadow-md' 
-                      : 'hover:bg-white/60 border border-transparent hover:border-white/80'}
+                      ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-100 dark:border-indigo-900/60 ring-1 ring-indigo-100 dark:ring-indigo-900/50 shadow-md' 
+                      : 'hover:bg-white/60 dark:hover:bg-slate-800/60 border border-transparent hover:border-white/80 dark:hover:border-slate-700'}
                   `}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -248,7 +248,7 @@ export default function Chat() {
                               if (e.key === 'Escape') setEditingId(null);
                             }}
                             onBlur={() => handleRename(s.id)}
-                            className="w-full bg-white border border-indigo-300 rounded-lg px-2 py-1 text-[13px] font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                            className="w-full bg-white dark:bg-slate-800 border border-indigo-300 dark:border-indigo-800 rounded-lg px-2 py-1 text-[13px] font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900"
                             onClick={(e) => e.stopPropagation()}
                           />
                           <button onClick={() => handleRename(s.id)} className="text-emerald-500">
@@ -257,10 +257,10 @@ export default function Chat() {
                         </div>
                       ) : (
                         <>
-                          <h4 className={`text-[13px] font-black truncate pr-12 ${activeSessionId === s.id ? 'text-indigo-600' : 'text-slate-800'}`}>
+                          <h4 className={`text-[13px] font-black truncate pr-12 ${activeSessionId === s.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>
                             {s.title || 'New Chat'}
                           </h4>
-                          <p className="text-[10px] text-slate-400 font-bold mt-1 line-clamp-1 group-hover:text-slate-500 transition-colors">
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-1 line-clamp-1 group-hover:text-slate-500 dark:group-hover:text-slate-400 transition-colors">
                             {s.latest_message_preview || 'No messages yet'}
                           </p>
                         </>
@@ -277,14 +277,14 @@ export default function Chat() {
                       <div className="absolute right-3 top-3 flex items-center gap-1">
                         <button
                           onClick={(e) => startRename(e, s)}
-                          className="lg:opacity-0 group-hover:opacity-100 p-2 hover:bg-indigo-100 hover:text-indigo-600 text-slate-300 rounded-xl transition-all"
+                          className="lg:opacity-0 group-hover:opacity-100 p-2 hover:bg-indigo-100 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-300 dark:text-slate-600 rounded-xl transition-all"
                           title="Rename"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={(e) => deleteSession(e, s.id)}
-                          className="lg:opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 hover:text-red-500 text-slate-300 rounded-xl transition-all"
+                          className="lg:opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500 dark:hover:text-red-400 text-slate-300 dark:text-slate-600 rounded-xl transition-all"
                           title="Delete"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -300,7 +300,7 @@ export default function Chat() {
       </aside>
 
       {/* ── MAIN CHAT AREA ──────────────────────────────────────────────────── */}
-      <main className="flex-1 flex flex-col glass rounded-[40px] shadow-2xl border-0 overflow-hidden relative">
+      <main className="flex-1 flex flex-col glass dark:bg-slate-900 rounded-[40px] shadow-2xl border-0 overflow-hidden relative">
         <div className="p-8 premium-gradient flex items-center gap-6 relative z-10 shadow-lg">
           {/* Mobile Menu Toggle */}
           <button 
@@ -310,8 +310,8 @@ export default function Chat() {
             <Menu className="w-6 h-6" />
           </button>
 
-          <div className="bg-white/20 backdrop-blur-xl p-4 rounded-3xl border border-white/30 shadow-xl interactive-scale">
-             <Bot className="text-white w-10 h-10" />
+          <div className="bg-white/20 dark:bg-slate-800/40 backdrop-blur-xl p-4 rounded-3xl border border-white/30 dark:border-slate-700/50 shadow-xl interactive-scale">
+             <Bot className="text-white dark:text-indigo-400 w-10 h-10" />
           </div>
           <div className="flex-1">
             <h2 className="text-3xl font-black text-white tracking-tight leading-none">AI Study Assistant</h2>
@@ -324,10 +324,10 @@ export default function Chat() {
 
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-10 space-y-10 relative bg-white/30 backdrop-blur-sm scroll-smooth"
+          className="flex-1 overflow-y-auto p-10 space-y-10 relative bg-white/30 dark:bg-slate-950/20 backdrop-blur-sm scroll-smooth"
         >
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none">
-             <Bot className="w-96 h-96" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-[0.03] dark:opacity-[0.05] pointer-events-none">
+             <Bot className="w-96 h-96 dark:text-indigo-400" />
           </div>
           
           {(isFetchingHistory) ? (
@@ -342,16 +342,16 @@ export default function Chat() {
                   <div className={`flex gap-6 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                     <div className={`relative w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center shadow-xl interactive-scale ${
                       msg.role === 'user' 
-                        ? 'p-0 bg-white ring-2 ring-indigo-200 overflow-visible' 
-                        : 'glass text-indigo-600 overflow-hidden'
+                        ? 'p-0 bg-white dark:bg-slate-800 ring-2 ring-indigo-200 dark:ring-indigo-900/50 overflow-visible' 
+                        : 'glass dark:bg-slate-900 dark:border-slate-800 text-indigo-600 dark:text-indigo-400 overflow-hidden'
                     }`}>
                       {msg.role === 'user' ? (
                          userProfile ? (
                            <>
                              <div className="w-full h-full rounded-2xl overflow-hidden">
-                               <img src={resolveUserAvatar(userProfile)} alt="User" className="w-full h-full object-contain bg-white" onError={handleAvatarError} />
+                               <img src={resolveUserAvatar(userProfile)} alt="User" className="w-full h-full object-contain bg-white dark:bg-slate-800" onError={handleAvatarError} />
                              </div>
-                             <div className={`absolute -bottom-1 -right-1 w-4 h-4 border-[3px] border-white rounded-full ${getOnlineStatus(userProfile.last_seen) ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
+                             <div className={`absolute -bottom-1 -right-1 w-4 h-4 border-[3px] border-white dark:border-slate-800 rounded-full ${getOnlineStatus(userProfile.last_seen) ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
                            </>
                          ) : (
                            <div className="w-full h-full premium-gradient flex items-center justify-center text-white"><User className="w-7 h-7"/></div>
@@ -360,8 +360,8 @@ export default function Chat() {
                     </div>
                     <div className={`p-8 rounded-[2.5rem] text-[15px] font-semibold leading-relaxed shadow-xl ${
                       msg.role === 'user' 
-                        ? 'premium-gradient text-white rounded-tr-none border-0 shadow-indigo-200' 
-                        : 'glass text-slate-700 rounded-tl-none border-white/60'
+                        ? 'premium-gradient text-white rounded-tr-none border-0 shadow-indigo-200 dark:shadow-none' 
+                        : 'glass dark:bg-slate-900 text-slate-700 dark:text-slate-200 rounded-tl-none border-white/60 dark:border-slate-800'
                     }`}>
                       {msg.text}
                     </div>
@@ -372,10 +372,10 @@ export default function Chat() {
                       {msg.mode && (
                         <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border backdrop-blur-md shadow-sm transition-all ${
                           msg.mode === 'document'
-                            ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                            ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
                             : msg.mode === 'library'
-                            ? 'bg-teal-50 text-teal-600 border-teal-200'
-                            : 'bg-indigo-50 text-indigo-600 border-indigo-200'
+                            ? 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-800'
+                            : 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800'
                         }`}>
                           {msg.mode === 'document' ? (
                             <>
@@ -398,7 +398,7 @@ export default function Chat() {
 
                       {msg.mode === 'document' && msg.sources && msg.sources.length > 0 && (
                         <div className="mt-4 animate-in fade-in slide-in-from-left-4 duration-700 delay-300">
-                          <div className="flex items-center gap-2 mb-3 px-1 text-slate-400">
+                          <div className="flex items-center gap-2 mb-3 px-1 text-slate-400 dark:text-slate-500">
                             <FileText className="w-4 h-4" />
                             <span className="text-[11px] font-black uppercase tracking-[0.15em]">Verified Sources</span>
                           </div>
@@ -416,23 +416,23 @@ export default function Chat() {
                                   key={sIdx}
                                   onClick={handleSourceClick}
                                   title={canNavigate ? `Open ${src.title}${src.page_number ? ` — Page ${src.page_number}` : ''}` : 'Source link unavailable'}
-                                  className={`glass group transition-all p-4 rounded-3xl border-white/80 shadow-lg flex flex-col gap-1 min-w-[160px] max-w-[280px] interactive-scale pointer-events-auto ${
+                                  className={`glass dark:bg-slate-900 group transition-all p-4 rounded-3xl border-white/80 dark:border-slate-800 shadow-lg flex flex-col gap-1 min-w-[160px] max-w-[280px] interactive-scale pointer-events-auto ${
                                     canNavigate
-                                      ? 'cursor-pointer hover:bg-indigo-50/60 hover:border-indigo-200 hover:shadow-indigo-100 hover:ring-2 hover:ring-indigo-100'
+                                      ? 'cursor-pointer hover:bg-indigo-50/60 dark:hover:bg-indigo-950/40 hover:border-indigo-200 dark:hover:border-indigo-900 hover:shadow-indigo-100 dark:hover:shadow-none hover:ring-2 hover:ring-indigo-100 dark:hover:ring-indigo-900/50'
                                       : 'cursor-not-allowed opacity-60'
                                   }`}
                                 >
                                   <div className="flex items-center justify-between gap-2">
-                                    <span className="text-xs font-black text-slate-800 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+                                    <span className="text-xs font-black text-slate-800 dark:text-slate-200 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                       {src.title}
                                     </span>
                                     {canNavigate && (
-                                      <ExternalLink className="w-3 h-3 text-slate-300 group-hover:text-indigo-500 transition-colors flex-shrink-0" />
+                                      <ExternalLink className="w-3 h-3 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors flex-shrink-0" />
                                     )}
                                   </div>
                                   <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold">
                                     {src.page_number && (
-                                      <span className="bg-indigo-50 px-2 py-0.5 rounded-lg text-indigo-600 border border-indigo-100 uppercase tracking-tighter">
+                                      <span className="bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-lg text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 uppercase tracking-tighter">
                                          PG {src.page_number}
                                       </span>
                                     )}
@@ -454,10 +454,10 @@ export default function Chat() {
           {loading && (
             <div className="flex justify-start relative z-10">
                <div className="flex gap-6">
-                 <div className="w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center glass">
-                    <Bot className="w-7 h-7 text-indigo-600 animate-pulse"/>
+                 <div className="w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center glass dark:bg-slate-900 dark:border-slate-800">
+                    <Bot className="w-7 h-7 text-indigo-600 dark:text-indigo-400 animate-pulse"/>
                  </div>
-                 <div className="p-8 rounded-[2.5rem] glass rounded-tl-none flex items-center gap-3">
+                 <div className="p-8 rounded-[2.5rem] glass dark:bg-slate-900 dark:border-slate-800 rounded-tl-none flex items-center gap-3">
                    <div className="w-3 h-3 bg-indigo-400 rounded-full animate-bounce shadow-sm"></div>
                    <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce delay-75 shadow-sm"></div>
                    <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce delay-150 shadow-sm"></div>
@@ -467,25 +467,25 @@ export default function Chat() {
           )}
         </div>
 
-        <div className="p-8 bg-white/50 backdrop-blur-md border-t border-white/40 relative z-10">
+        <div className="p-8 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border-t border-white/40 dark:border-slate-800 relative z-10">
           <form onSubmit={handleSend} className="relative flex items-center w-full group">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your academic question here..."
-              className="w-full pl-8 pr-24 py-6 bg-white/80 glass rounded-[2.5rem] text-base font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-100 transition-all border-0 shadow-2xl"
+              className="w-full pl-8 pr-24 py-6 bg-white/80 dark:bg-slate-800/80 glass dark:bg-slate-900 rounded-[2.5rem] text-base font-bold text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 transition-all border-0 shadow-2xl dark:shadow-none"
               disabled={loading}
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="absolute right-4 p-5 premium-gradient rounded-3xl hover:shadow-indigo-300 disabled:opacity-50 transition-all shadow-xl active:scale-95"
+              className="absolute right-4 p-5 premium-gradient rounded-3xl hover:shadow-indigo-300 dark:hover:shadow-none disabled:opacity-50 transition-all shadow-xl dark:shadow-none active:scale-95"
             >
               <Send className="w-6 h-6 text-white" />
             </button>
           </form>
-          <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 opacity-50">
+          <p className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-4 opacity-50">
             AI generated answers should be verified with official course materials
           </p>
         </div>

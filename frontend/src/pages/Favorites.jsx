@@ -47,36 +47,36 @@ export default function Favorites() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mt-6">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2 flex items-center gap-3">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 p-8 mt-6 transition-colors">
+        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2 flex items-center gap-3 transition-colors">
           <Bookmark className="w-7 h-7 text-amber-500"/>
           My Favorites
           {isFetching && <span className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin ml-4"></span>}
         </h2>
-        <p className="text-slate-500 font-medium mb-8">Access your privately saved documents and assignments.</p>
+        <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 transition-colors">Access your privately saved documents and assignments.</p>
         
         {materials.length === 0 && !isFetching ? (
-          <div className="text-center py-20 text-slate-400 font-bold bg-slate-50 rounded-2xl border border-dashed border-slate-200 uppercase tracking-widest text-xs">
+          <div className="text-center py-20 text-slate-400 dark:text-slate-500 font-bold bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 uppercase tracking-widest text-xs transition-colors">
             You haven't favorited any materials yet.
           </div>
         ) : (
-          <div className="overflow-hidden shadow-sm border border-slate-200 rounded-2xl">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-slate-100">
+          <div className="overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 rounded-2xl transition-colors">
+            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+              <thead className="bg-slate-100 dark:bg-slate-950/40">
                 <tr>
-                  <th className="py-4 pl-4 pr-3 text-left text-xs font-black text-slate-700 uppercase tracking-wider sm:pl-6">Title</th>
-                  <th className="px-3 py-4 text-left text-xs font-black text-slate-700 uppercase tracking-wider">Category</th>
-                  <th className="px-3 py-4 text-left text-xs font-black text-slate-700 uppercase tracking-wider">Semester</th>
-                  <th className="px-3 py-4 text-left text-xs font-black text-slate-700 uppercase tracking-wider">Action</th>
+                  <th className="py-4 pl-4 pr-3 text-left text-xs font-black text-slate-700 dark:text-slate-400 uppercase tracking-wider sm:pl-6">Title</th>
+                  <th className="px-3 py-4 text-left text-xs font-black text-slate-700 dark:text-slate-400 uppercase tracking-wider">Category</th>
+                  <th className="px-3 py-4 text-left text-xs font-black text-slate-700 dark:text-slate-400 uppercase tracking-wider">Semester</th>
+                  <th className="px-3 py-4 text-left text-xs font-black text-slate-700 dark:text-slate-400 uppercase tracking-wider">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900/50">
                 {materials.map((m) => (
-                  <tr key={m.id} className="hover:bg-slate-50 transition-colors group">
-                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-extrabold text-slate-900 sm:pl-6">{m.title}</td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 font-semibold">{m.subject}</td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 font-semibold">Sem {m.semester}</td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 font-semibold flex items-center gap-4">
+                  <tr key={m.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-extrabold text-slate-900 dark:text-white sm:pl-6 transition-colors">{m.title}</td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400 font-semibold transition-colors">{m.subject}</td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400 font-semibold transition-colors">Sem {m.semester}</td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-4 transition-colors">
                         <button 
                           className="inline-flex items-center transition-colors text-amber-500 hover:text-amber-600 font-black"
                           onClick={() => removeFavorite(m.id)}

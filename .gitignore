@@ -91,3 +91,7 @@ verification_test.txt
 debug_ask_summary.txt
 debug_rag_summary.txt
 attribution_verify.txt
+
+# -- Sensitive Files -------------------------------------------------------------
+USER_CREDENTIALS.txt
+*.err

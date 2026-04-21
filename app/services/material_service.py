@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.material import Category, Material
 from app.models.base import generate_uuid
-from app.models.user import User
+from app.models.user import User, Role
 from app.schemas.material import MaterialCreate, PaginatedMaterials
 from app.utils.file_handler import get_storage
 
@@ -30,6 +30,16 @@ async def upload_material(
     the contribution workflow instead).
     """
     storage = get_storage()
+    
+    # ── Validation ────────────────────────────────────────────────────────────
+    # Reject forbidden patterns in filename/key to prevent malformed cloud records
+    forbidden = [":\\", ":/", "\\\\", "C:", "D:"]
+    if any(p in file.filename for p in forbidden):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="INVALID_FILENAME: Local file paths or device names are not permitted."
+        )
+
     try:
         stored = await storage.upload_file(file, folder=payload.category.value)
     except Exception as e:
@@ -39,6 +49,9 @@ async def upload_material(
         from app.core.config import settings
         storage = LocalStorage(base_dir=settings.UPLOAD_DIR)
         stored = await storage.upload_file(file, folder=payload.category.value)
+
+    from app.models.material import MaterialIntegrityStatus
+    from datetime import datetime
 
     material = Material(
         id=generate_uuid(),
@@ -56,6 +69,8 @@ async def upload_material(
         file_type=stored.get("content_type"),
         uploader_id=uploader.id,
         is_approved=True,
+        integrity_status=MaterialIntegrityStatus.available, # New uploads are assumed available
+        last_reconciliation_at=datetime.utcnow()
     )
     db.add(material)
     await db.flush()
@@ -64,6 +79,7 @@ async def upload_material(
 
 async def get_materials(
     db: AsyncSession,
+    current_user: User, # Required for role-based integrity filtering
     search: Optional[str] = None,
     title: Optional[str] = None,
     course: Optional[str] = None,
@@ -77,9 +93,15 @@ async def get_materials(
 ) -> PaginatedMaterials:
     """
     Return a paginated, filtered list of approved materials.
-    Supports full-text search across title + description, or AI-powered FAISS semantic search.
+    Students see ONLY available materials. Admins see everything.
     """
+    from app.models.material import MaterialIntegrityStatus
+    
     query = select(Material).where(Material.is_approved == True)  # noqa: E712
+
+    # If student, strictly only show 'available'
+    if current_user.role != Role.ADMIN:
+        query = query.where(Material.integrity_status == MaterialIntegrityStatus.available)
 
     # ── Filters ───────────────────────────────────────────────────────────────
     if search:
@@ -135,18 +157,14 @@ async def get_materials(
     result = await db.execute(query)
     items = list(result.scalars().all())
 
-    # ── Check file availability & Populate URLs ───────────────────────────────
-    import asyncio
-    storage = get_storage()
-    
-    async def process_item(item):
-        key = item.file_key or item.file_url or item.file_path
-        item.file_url = storage.get_url(key)
-        # Check if the file physically exists
-        exists = await storage.exists(key)
-        item.file_status = "available" if exists else "missing"
-
-    await asyncio.gather(*[process_item(item) for item in items])
+    # ── Populate URLs & Cached File Status ────────────────────────────────────
+    for item in items:
+        # Override file_url to point to our internal streaming proxy (/materials/{id}/file)
+        # This ensures the browser fetches content from our domain, bypassing S3 CORS blocks.
+        item.file_url = f"/api/v1/materials/{item.id}/file"
+        
+        # Rely purely on the DB's reconciled integrity status, avoiding slow S3 checks
+        item.file_status = item.integrity_status.value
 
     return PaginatedMaterials(
         total=total,
@@ -156,25 +174,38 @@ async def get_materials(
     )
 
 
-async def get_material_by_id(material_id: str, db: AsyncSession) -> Material:
-    """Fetch a single approved material or raise 404."""
-    result = await db.execute(
-        select(Material).where(
-            Material.id == material_id,
-            Material.is_approved == True,  # noqa: E712
-        )
+async def get_material_by_id(material_id: str, db: AsyncSession, current_user: User) -> Material:
+    """
+    Fetch a single approved material or raise 404.
+    If student, also strictly filter by available integrity status.
+    """
+    from app.models.material import MaterialIntegrityStatus
+    
+    query = select(Material).where(
+        Material.id == material_id,
+        Material.is_approved == True,  # noqa: E712
     )
+    
+    # If student, strictly only show 'available'
+    if current_user.role != Role.ADMIN:
+        query = query.where(Material.integrity_status == MaterialIntegrityStatus.available)
+
+    result = await db.execute(query)
     material = result.scalar_one_or_none()
     if not material:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Material not found.",
+            detail="Material not found or currently unavailable.",
         )
     
     storage = get_storage()
+    # 1. Extract actual storage key BEFORE overriding
     key = material.file_key or material.file_url or material.file_path
-    material.file_url = storage.get_url(key)
-    # Check physical existence
+    
+    # 2. Override file_url to point to our internal streaming proxy
+    material.file_url = f"/api/v1/materials/{material.id}/file"
+    
+    # 3. Check physical existence
     exists = await storage.exists(key)
     material.file_status = "available" if exists else "missing"
     

@@ -34,6 +34,41 @@ def _validate_file(file: UploadFile, allowed_types: set = None) -> None:
         )
 
 
+def _normalize_content_type(filename: str, existing_type: str = None) -> str:
+    """
+    Returns a normalized MIME type.
+    - If it's a .pdf or reported as application/pdf, force application/pdf.
+    - Fallback to provided existing_type if valid.
+    - Otherwise guess from extension or use octet-stream.
+    """
+    import mimetypes
+    
+    # Normalize inputs
+    fn_lower = filename.lower() if filename else ""
+    existing_lower = existing_type.lower() if existing_type else ""
+
+    # 1. Force PDF if extension or reported type matches
+    if fn_lower.endswith(".pdf") or existing_lower == "application/pdf":
+        return "application/pdf"
+    
+    # 2. Check existing type if it's not generic
+    if existing_type and existing_lower != "application/octet-stream":
+        return existing_type
+
+    # 3. Guess from name/extension
+    guessed, _ = mimetypes.guess_type(filename)
+    if guessed:
+        return guessed
+
+    # 4. Fallback for common types if guessing fails but extension is known
+    if fn_lower.endswith(".docx"):
+        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    if fn_lower.endswith(".doc"):
+        return "application/msword"
+
+    return "application/octet-stream"
+
+
 class StorageBackend(Protocol):
     """Interface every storage backend must implement."""
 
@@ -51,6 +86,15 @@ class StorageBackend(Protocol):
 
     async def delete_file(self, file_key: str) -> bool:
         """Physically remove the file from storage."""
+        ...
+
+    async def get_file_stream(self, file_key: str) -> dict:
+        """
+        Return a dictionary with:
+        - stream: An async iterator or file-like object for reading
+        - content_type: The MIME type
+        - content_length: Total size in bytes
+        """
         ...
 
 
@@ -122,6 +166,28 @@ class LocalStorage:
             return False
         except Exception:
             return False
+
+    async def get_file_stream(self, file_key: str) -> dict:
+        """Return a stream for a local file."""
+        clean_key = file_key.replace("/api/v1/uploads/", "").lstrip("/")
+        full_path = os.path.join(self.base_dir, clean_key).replace('\\', '/')
+        
+        if not os.path.exists(full_path):
+            raise HTTPException(status_code=404, detail="Local file not found.")
+
+        content_length = os.path.getsize(full_path)
+        content_type = _normalize_content_type(full_path)
+
+        async def _iter():
+            async with aiofiles.open(full_path, "rb") as f:
+                while chunk := await f.read(1024 * 256):
+                    yield chunk
+
+        return {
+            "stream": _iter(),
+            "content_type": content_type,
+            "content_length": content_length
+        }
 
 
 class S3Storage:
@@ -262,6 +328,55 @@ class S3Storage:
             return True
         except Exception:
             return False
+
+    async def get_file_stream(self, file_key: str) -> dict:
+        """Stream an object directly from S3."""
+        import asyncio
+        from botocore.exceptions import ClientError
+        
+        # Extract key
+        if file_key.startswith("http"):
+            if ".amazonaws.com/" in file_key:
+                key = file_key.split(".amazonaws.com/")[-1].split('?')[0]
+            else:
+                raise HTTPException(status_code=400, detail="Cannot stream from external URL.")
+        else:
+            key = file_key.lstrip("/")
+
+        def _get():
+            try:
+                return self._client.get_object(Bucket=self._bucket, Key=key)
+            except ClientError as e:
+                error_code = e.response.get('Error', {}).get('Code')
+                if error_code == 'NoSuchKey' or error_code == '404':
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND, 
+                        detail=f"FILE_NOT_FOUND: The requested material '{key}' does not exist in storage."
+                    )
+                if error_code == 'AccessDenied' or error_code == '403':
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN, 
+                        detail="ACCESS_DENIED: Access to this material is restricted by storage policy."
+                    )
+                # Log the specific error to help with diagnostics
+                print(f"DEBUG: S3 Service Error [{error_code}]: {str(e)}")
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=f"STORAGE_SERVICE_ERROR: {error_code or 'Unknown error'}"
+                )
+
+        response = await asyncio.to_thread(_get)
+        content_type = _normalize_content_type(key, response.get('ContentType'))
+
+        async def _iter():
+            for chunk in response['Body']:
+                yield chunk
+
+        return {
+            "stream": _iter(),
+            "content_type": content_type,
+            "content_length": response['ContentLength']
+        }
 
 
 def get_storage() -> StorageBackend:

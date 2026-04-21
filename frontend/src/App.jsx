@@ -11,13 +11,18 @@ import Chat from './pages/Chat';
 import Admin from './pages/Admin';
 import DocumentViewer from './pages/Viewer';
 import Profile from './pages/Profile';
+import About from './pages/About';
+import Contact from './pages/Contact';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ToastContainer } from './components/common/Toast';
+import { ThemeProvider } from './context/ThemeContext';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import ErrorPage from './components/common/ErrorPage';
 
 const AppLayout = () => (
   <AuthProvider>
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-transparent transition-colors duration-300">
       <Navbar />
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Outlet />
@@ -28,15 +33,17 @@ const AppLayout = () => (
 
 function App() {
   return (
-    <NotificationProvider>
-      <ToastContainer />
+    <ThemeProvider>
+      <NotificationProvider>
+        <ToastContainer />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          
-          {/* Public Routes - No Navbar */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            
+            {/* Public Routes - No Navbar */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
           
           {/* Protected Routes - With Navbar and Layout */}
           <Route element={<AuthGuard />}>
@@ -48,6 +55,8 @@ function App() {
               <Route path="/viewer/:materialId" element={<DocumentViewer />} />
               <Route path="/viewer" element={<DocumentViewer />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
               
               {/* Restricted Route: Students Only */}
               <Route element={<AuthGuard allowedRoles={['student']} />}>
@@ -61,9 +70,14 @@ function App() {
             </Route>
           </Route>
 
+          {/* Fallback 404 Route */}
+          <Route path="*" element={<ErrorPage type="404" />} />
+
         </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
     </NotificationProvider>
+    </ThemeProvider>
   );
 }
 

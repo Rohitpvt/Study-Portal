@@ -472,7 +472,7 @@ async def ask(
     messages.append({"role": "user", "content": formatted_query})
 
     # ── 7. LLM Invocation ──────────────────────────────────────────────────────
-    answer = llm_service.get_chat_response(messages)
+    answer = await llm_service.get_chat_response(messages)
 
     # ── 8. Persistence (Memory & Database) ────────────────────────────────────
     memory_service.add_message(session.id, "user", query)
@@ -536,7 +536,7 @@ CONTENT:
 {content_sample}
 """
 
-    summary = llm_service.get_ai_response(prompt)
+    summary = await llm_service.get_ai_response(prompt)
     
     return SummarizeResponse(material_id=material_id, title=material.title, summary=summary)
 

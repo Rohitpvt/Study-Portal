@@ -3,9 +3,10 @@ app/models/user.py — User and Role enum.
 """
 
 import enum
+from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, Enum, String
+from sqlalchemy import Boolean, Date, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -43,6 +44,8 @@ class User(Base, TimestampMixin):
     hashed_password: Mapped[str]  = mapped_column(String(255), nullable=False)
     role:            Mapped[Role] = mapped_column(Enum(Role, name="userrole"), default=Role.STUDENT, nullable=False)
     department:      Mapped[str|None] = mapped_column(String(100), nullable=True)
+    gender:          Mapped[str|None] = mapped_column(String(20), nullable=True)
+    date_of_birth:   Mapped[date|None] = mapped_column(Date, nullable=True)
     is_active:       Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     materials      = relationship("Material",     back_populates="uploader",    cascade="all, delete-orphan")

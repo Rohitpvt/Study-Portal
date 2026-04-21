@@ -3,6 +3,7 @@ app/models/material.py — Approved study materials.
 """
 
 import enum
+from datetime import datetime
 
 from sqlalchemy import Boolean, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -17,6 +18,13 @@ class Category(str, enum.Enum):
     ASSIGNMENTS     = "ASSIGNMENTS"
     REFERENCE       = "REFERENCE"
     MISC            = "MISC"
+
+
+class MaterialIntegrityStatus(str, enum.Enum):
+    available        = "available"
+    missing_file     = "missing_file"
+    invalid_metadata = "invalid_metadata"
+    pending          = "pending"
 
 
 class Material(Base, TimestampMixin):
@@ -38,6 +46,15 @@ class Material(Base, TimestampMixin):
     file_size:   Mapped[int] = mapped_column(Integer, nullable=False)
     file_type:   Mapped[str] = mapped_column(String(50), nullable=False)
 
+    # Integrity tracking
+    integrity_status: Mapped[MaterialIntegrityStatus] = mapped_column(
+        Enum(MaterialIntegrityStatus, name="materialintegritystatus"), 
+        default=MaterialIntegrityStatus.pending, 
+        nullable=False,
+        index=True
+    )
+    last_reconciliation_at: Mapped[datetime|None] = mapped_column(nullable=True)
+
     is_approved: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     view_count:  Mapped[int]  = mapped_column(Integer, default=0, nullable=False, index=True)
     uploader_id: Mapped[str]  = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -47,4 +64,4 @@ class Material(Base, TimestampMixin):
     # If file_url is not set in DB (legacy records), it can be assigned transiently
     # at the service layer via storage.get_url()
     def __repr__(self) -> str:
-        return f"<Material {self.title!r} [{self.category}]>"
+        return f"<Material {self.title!r} [{self.category}] - {self.integrity_status}>"

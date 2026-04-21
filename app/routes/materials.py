@@ -7,7 +7,7 @@ Study materials library endpoints.
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, File, Form, Query, UploadFile
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 
 from app.core.dependencies import AdminUser, CurrentUser, DBSession
 from app.models.material import Category
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/materials", tags=["Materials"])
 @router.get("", response_model=PaginatedMaterials, summary="List all approved materials")
 async def list_materials(
     db: DBSession,
-    _: CurrentUser,  # auth guard — just requires login
+    current_user: CurrentUser,  # auth guard
     search:   Optional[str]      = Query(None, description="Search in title/description"),
     title:    Optional[str]      = Query(None, description="Filter exact title"),
     course:   Optional[str]      = Query(None),
@@ -34,16 +34,23 @@ async def list_materials(
 ):
     """Paginated, filterable list of approved study materials."""
     return await material_service.get_materials(
-        db, search=search, title=title, course=course, subject=subject,
+        db, current_user=current_user, search=search, title=title, course=course, subject=subject,
         category=category, semester=semester, sort=sort,
         semantic_search=semantic_search,
         page=page, page_size=page_size,
     )
 
 
+@router.get("/categories", summary="List all material categories (legacy/sync)")
+async def get_material_categories():
+    """Returns categories for parity with metadata service."""
+    from app.data.academic_metadata import CATEGORIES
+    return CATEGORIES
+
+
 @router.get("/{material_id}", response_model=MaterialOut, summary="Get a material by ID")
-async def get_material(material_id: str, db: DBSession, _: CurrentUser):
-    return await material_service.get_material_by_id(material_id, db)
+async def get_material(material_id: str, db: DBSession, current_user: CurrentUser):
+    return await material_service.get_material_by_id(material_id, db, current_user=current_user)
 
 
 @router.post("", response_model=MaterialOut, status_code=201, summary="Upload a new material")
@@ -99,59 +106,81 @@ async def delete_material(
 async def serve_material_file(
     material_id: str, 
     db: DBSession, 
-    _: CurrentUser,
+    current_user: CurrentUser,
     download: bool = Query(False, description="Force download if True")
 ):
     """
     Serves the material file directly.
-    If download=True, sets Content-Disposition to attachment.
+    If download=True, sets Content-Disposition to attachment; filename="...".
+    If download=False, sets Content-Disposition to inline (without filename to prevent forced downloads).
     Supports both local and S3 backends transparently.
     """
-    material = await material_service.get_material_by_id(material_id, db)
+    material = await material_service.get_material_by_id(material_id, db, current_user=current_user)
     
     from app.utils.file_handler import get_storage
     storage = get_storage()
     
-    # Identify extension and generate friendly filename
-    ext = ".pdf" if material.file_type == "application/pdf" else ".docx"
-    filename = f"{material.title}{ext}"
-    
-    # If using Local storage, return FileResponse directly (avoids StaticFiles limitations)
-    from app.core.config import settings
-    if settings.STORAGE_BACKEND == "local":
-        clean_key = (material.file_key or material.file_path or material.file_url).replace("/api/v1/uploads/", "").lstrip("/")
-        full_path = os.path.join(settings.UPLOAD_DIR, clean_key).replace('\\', '/')
+    # ── Header Construction ───────────────────────────────────────────────────
+    file_info = await storage.get_file_stream(material.file_key or material.file_url or material.file_path)
+    content_type = file_info["content_type"]
+
+    # Explicitly force application/pdf if we know it's a PDF (as stored in DB) 
+    # to avoid browser confusion
+    if material.file_type == "application/pdf" or (material.file_name and material.file_name.lower().endswith(".pdf")):
+        content_type = "application/pdf"
+
+    headers = {
+        "Content-Length": str(file_info["content_length"]),
+        "Accept-Ranges": "bytes",
+        "X-Content-Type-Options": "nosniff",
+    }
+
+    if download:
+        # Sanitize filename for headers: remove quotes, backslashes and non-ascii characters
+        import re
+        import unicodedata
         
-        if not os.path.exists(full_path):
-            from fastapi import HTTPException
-            raise HTTPException(status_code=404, detail="File not found on disk.")
+        # 1. Normalize and strip accents
+        safe_name = unicodedata.normalize('NFKD', material.title).encode('ascii', 'ignore').decode('ascii')
+        
+        # 2. Replace OS-illegal characters
+        safe_name = re.sub(r'[\\/*?:"<>|]', "_", safe_name)
+        
+        # 3. Ensure extension matches type
+        ext = ".pdf" if content_type == "application/pdf" else ".docx"
+        if not safe_name.lower().endswith(ext):
+            safe_name += ext
             
-        return FileResponse(
-            path=full_path,
-            filename=filename if download else None,
-            content_disposition_type="attachment" if download else "inline"
-        )
-    
-    # If using S3, generate a presigned URL and redirect
-    download_url = storage.get_url(
-        material.file_key or material.file_url or material.file_path,
-        is_download=download,
-        filename=filename if download else None
+        # 4. Final wrap in quotes for the header
+        headers["Content-Disposition"] = f'attachment; filename="{safe_name}"'
+        # Prevent caching for forced downloads to ensure clean retries if needed
+        headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    else:
+        # Standard 'inline' for viewing. 
+        # IMPORTANT: No filename parameter here to avoid triggering browser download dialogs.
+        headers["Content-Disposition"] = "inline"
+        # Safe cache-control for inline viewing: validate with server but allow browser to keep content
+        # during the session to reduce flickering, while ensuring no stale content is stuck.
+        headers["Cache-Control"] = "private, max-age=0, must-revalidate"
+
+    return StreamingResponse(
+        file_info["stream"],
+        media_type=content_type,
+        headers=headers
     )
-    return RedirectResponse(url=download_url)
 
 
 @router.get("/{material_id}/download", summary="Get a secure download URL for a material")
 async def get_material_download_url(
     material_id: str, 
     db: DBSession, 
-    _: CurrentUser
+    current_user: CurrentUser
 ):
     """
     Returns a URL that points to the internal /file endpoint with download=1.
     This ensures that the browser triggers a download even for local files.
     """
-    material = await material_service.get_material_by_id(material_id, db)
+    material = await material_service.get_material_by_id(material_id, db, current_user=current_user)
     
     from app.core.config import settings
     if settings.STORAGE_BACKEND == "s3":

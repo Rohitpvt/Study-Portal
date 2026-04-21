@@ -4,7 +4,7 @@ app/schemas/user.py
 Pydantic schemas for user profile endpoints.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr
@@ -28,6 +28,8 @@ class UserOut(BaseModel):
     last_seen: Optional[int] = None
     role: Role
     is_active: bool
+    gender: Optional[str] = None
+    date_of_birth: Optional[date] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -42,6 +44,8 @@ class UserUpdate(BaseModel):
     avatar_type: Optional[str] = None
     avatar_url: Optional[str] = None
     bio: Optional[str] = None
+    gender: Optional[str] = None
+    date_of_birth: Optional[date] = None
 
 
 class UserListOut(BaseModel):
@@ -60,6 +64,8 @@ class UserListOut(BaseModel):
     last_seen: Optional[int] = None
     role: Role
     is_active: bool
+    gender: Optional[str] = None
+    date_of_birth: Optional[date] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

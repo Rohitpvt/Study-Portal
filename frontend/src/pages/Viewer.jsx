@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
+import ErrorPage from '../components/common/ErrorPage';
 
 // Set up the worker for react-pdf using a reliable CDN and fixed version matching react-pdf's dependency
 // pdfjs-dist version 5.4.296 is required by react-pdf@10.4.1
@@ -121,6 +122,7 @@ export default function DocumentViewer() {
   const [loading, setLoading] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [errorStatus, setErrorStatus] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
   // View Modes
@@ -145,6 +147,7 @@ export default function DocumentViewer() {
   const targetExcerpt = searchParams.get('excerpt');
   const [chatSourceBanner, setChatSourceBanner] = useState(!!searchParams.get('page'));
   const [autoHighlightDone, setAutoHighlightDone] = useState(false);
+  const [blobUrl, setBlobUrl] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -167,6 +170,7 @@ export default function DocumentViewer() {
         .catch(err => {
           if (isMounted) {
             console.error('Metadata fetch error:', err);
+            setErrorStatus(err.response?.status);
             setError(err.response?.data?.detail || 'Failed to sync document metadata. Access might be restricted.');
             setLoading(false);
           }
@@ -180,11 +184,63 @@ export default function DocumentViewer() {
   const fileUrl = (() => {
     if (!material?.file_url) return null;
     if (material.file_url.startsWith('http')) return material.file_url;
-    const apiBase = api.defaults.baseURL || window.location.origin.replace('5173', '8000') + '/api/v1';
+    
+    // Strictly use the API base URL to ensure hostname consistency (127.0.0.1 vs localhost)
+    const apiBase = api.defaults.baseURL;
     const serverRoot = apiBase.split('/api/v1')[0];
     const path = material.file_url.startsWith('/') ? material.file_url : `/${material.file_url}`;
     return `${serverRoot}${encodeURI(path)}`;
   })();
+  
+  // ── Secure Blob Fetching ──────────────────────────────────────────────────
+  // We fetch the PDF as a blob via Axios to ensure use of Auth headers + CORS interceptors
+  useEffect(() => {
+    if (!fileUrl) return;
+    
+    let isMounted = true;
+    setPdfLoading(true);
+    
+    // Revoke old blob URL if it exists
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+      setBlobUrl(null);
+    }
+
+    api.get(fileUrl, { 
+      responseType: 'blob',
+      onDownloadProgress: (progressEvent) => {
+        if (progressEvent.total) {
+          console.log(`[Viewer] Loading progress: ${Math.round((progressEvent.loaded * 100) / progressEvent.total)}%`);
+        }
+      }
+    })
+      .then(res => {
+        if (isMounted) {
+          console.log('[Viewer] Blob fetch successful, creating object URL.');
+          const url = URL.createObjectURL(res.data);
+          setBlobUrl(url);
+          setPdfLoading(false);
+        }
+      })
+      .catch(err => {
+        if (isMounted) {
+          console.error('[Viewer] Failed to fetch PDF blob:', {
+            message: err.message,
+            status: err.response?.status,
+            headers: err.response?.headers,
+            url: fileUrl,
+            isAxiosError: err.isAxiosError
+          });
+          setErrorStatus(err.response?.status);
+          setError(`Stream Error: ${err.message}. Please verify your network connection and session validity.`);
+          setPdfLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fileUrl]);
 
   const onDocumentLoadSuccess = (pdf) => {
     setNumPages(pdf.numPages);
@@ -495,12 +551,12 @@ export default function DocumentViewer() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh] gap-6">
         <div className="relative">
-          <div className="w-16 h-16 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin" />
+          <div className="w-16 h-16 border-4 border-slate-100 dark:border-slate-800 border-t-indigo-600 rounded-full animate-spin" />
           <Loader2 className="w-6 h-6 text-indigo-600 absolute inset-0 m-auto" />
         </div>
         <div className="text-center">
-          <p className="text-slate-900 font-black uppercase tracking-[0.2em] text-sm">Initializing Hub Connection</p>
-          <p className="text-slate-400 font-bold text-[10px] uppercase mt-1">Verifying Credentials & Syncing Stream...</p>
+          <p className="text-slate-900 dark:text-white font-black uppercase tracking-[0.2em] text-sm">Initializing Hub Connection</p>
+          <p className="text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase mt-1">Verifying Credentials & Syncing Stream...</p>
         </div>
       </div>
     );
@@ -508,31 +564,21 @@ export default function DocumentViewer() {
 
   // Error State
   if (error) {
+    const isNotFound = errorStatus === 404;
+    const isAuth = errorStatus === 401;
+
+    let displayMessage = error;
+    if (isNotFound) displayMessage = "This material appears to be missing from the secure server or was removed during a batch update.";
+    if (isAuth) displayMessage = "Your secure session has expired. Please log in again to continue viewing materials.";
+
     return (
-      <div className="max-w-xl mx-auto mt-32 p-12 glass-card bg-white border-red-50 text-center shadow-2xl rounded-[2.5rem]">
-        <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-8 border-2 border-red-100">
-           <AlertCircle className="w-12 h-12 text-red-500 stroke-[1.5]" />
-        </div>
-        <h2 className="text-3xl font-black text-slate-900 mb-4 uppercase tracking-tighter">Stream Error</h2>
-        <p className="text-slate-500 font-bold mb-10 text-lg leading-relaxed">
-          {error.includes('Access Denied') 
-            ? "⚠️ File not available. This material may be missing or the secure link has expired." 
-            : error}
-        </p>
-        <div className="flex flex-col gap-4">
-          <button 
-            onClick={() => window.location.reload()}
-            className="w-full py-5 premium-gradient text-white rounded-3xl font-black text-sm hover:scale-[1.02] transition-all uppercase tracking-widest active:scale-[0.98] shadow-xl"
-          >
-            Retry Connection
-          </button>
-          <button 
-            onClick={() => navigate(-1)}
-            className="w-full py-5 bg-slate-900 text-white rounded-3xl font-black text-sm hover:bg-slate-800 transition-all uppercase tracking-widest active:scale-[0.98] shadow-xl"
-          >
-            Back to Library
-          </button>
-        </div>
+      <div className="pt-24 pb-12">
+        <ErrorPage 
+          type={isNotFound ? "404" : "api"} 
+          fullScreen={false} 
+          message={displayMessage} 
+          onRetry={!isNotFound ? () => window.location.reload() : undefined}
+        />
       </div>
     );
   }
@@ -541,54 +587,54 @@ export default function DocumentViewer() {
   const currentPageMatch = searchMatches.find(m => m.page === pageNumber);
 
   return (
-    <div className={`flex flex-col h-screen max-h-screen overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50 bg-slate-900' : 'bg-slate-100/50'}`}>
+    <div className={`flex flex-col h-screen max-h-screen overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50 bg-slate-900 dark:bg-black' : 'bg-slate-100/50 dark:bg-slate-950'}`}>
       
       {/* ── Toolbar ────────────────────────────────────────────────────────── */}
-      <div className="bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 md:px-10 py-4 flex items-center justify-between gap-4 z-20 shadow-sm transition-all duration-300">
+      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 md:px-10 py-4 flex items-center justify-between gap-4 z-20 shadow-sm transition-all duration-300">
         
         {/* Left: Metadata */}
         <div className="flex items-center gap-5 min-w-0">
           <button 
             onClick={() => navigate(-1)}
-            className="p-3 hover:bg-slate-100 rounded-2xl transition-all text-slate-400 hover:text-slate-900"
+            className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white"
             title="Exit Viewer"
           >
             <X className="w-5 h-5" />
           </button>
-          <div className="h-8 w-px bg-slate-200 hidden md:block" />
+          <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 hidden md:block" />
           <div className="flex flex-col min-w-0">
-            <h1 className="text-sm md:text-base font-black text-slate-900 truncate uppercase tracking-tight">
+            <h1 className="text-sm md:text-base font-black text-slate-900 dark:text-white truncate uppercase tracking-tight">
               {material?.title || 'System Core Fragment'}
             </h1>
             <div className="flex items-center gap-2">
                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Stream Channel</p>
+               <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Active Stream Channel</p>
             </div>
           </div>
         </div>
 
         {/* Center: Search & Navigation */}
-        <div className="hidden lg:flex items-center gap-6 bg-slate-100/60 p-1.5 rounded-[2rem] border border-white">
+        <div className="hidden lg:flex items-center gap-6 bg-slate-100/60 dark:bg-slate-800/60 p-1.5 rounded-[2rem] border border-white dark:border-slate-700">
           
           {/* View Mode Toggle */}
-          <div className="flex items-center gap-1 bg-white p-1 rounded-2xl shadow-sm border border-slate-200">
+          <div className="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
             <button 
               onClick={() => setViewMode('single')}
-              className={`p-2 rounded-xl transition-all ${viewMode === 'single' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}
+              className={`p-2 rounded-xl transition-all ${viewMode === 'single' ? 'bg-slate-900 dark:bg-indigo-600 text-white shadow-md' : 'text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
               title="Matrix Mode (Single Page)"
             >
               <Layout className="w-4 h-4" />
             </button>
             <button 
               onClick={() => setViewMode('continuous')}
-              className={`p-2 rounded-xl transition-all ${viewMode === 'continuous' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}
+              className={`p-2 rounded-xl transition-all ${viewMode === 'continuous' ? 'bg-slate-900 dark:bg-indigo-600 text-white shadow-md' : 'text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
               title="Stream Mode (Continuous)"
             >
               <Layers className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="w-px h-6 bg-slate-200" />
+          <div className="w-px h-6 bg-slate-200 dark:bg-slate-800" />
 
           {/* Page nav */}
           {viewMode === 'single' && (
@@ -596,7 +642,7 @@ export default function DocumentViewer() {
               <button 
                 onClick={() => changePage(-1)} 
                 disabled={pageNumber <= 1}
-                className="p-2.5 hover:bg-white hover:shadow-md rounded-xl disabled:opacity-20 transition-all text-slate-600"
+                className="p-2.5 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md rounded-xl disabled:opacity-20 transition-all text-slate-600 dark:text-slate-400"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -608,14 +654,14 @@ export default function DocumentViewer() {
                     const val = parseInt(e.target.value);
                     if (val > 0 && val <= numPages) setPageNumber(val);
                   }}
-                  className="w-10 text-center bg-white rounded-lg border border-slate-200 py-1 font-black text-slate-900 text-xs focus:ring-2 focus:ring-indigo-400 outline-none"
+                  className="w-10 text-center bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 py-1 font-black text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-400 outline-none"
                 />
-                <span className="text-slate-400 font-bold text-[10px] uppercase tracking-tighter">/ {numPages || '--'}</span>
+                <span className="text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-tighter">/ {numPages || '--'}</span>
               </div>
               <button 
                 onClick={() => changePage(1)} 
                 disabled={pageNumber >= (numPages || 1)}
-                className="p-2.5 hover:bg-white hover:shadow-md rounded-xl disabled:opacity-20 transition-all text-slate-600"
+                className="p-2.5 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md rounded-xl disabled:opacity-20 transition-all text-slate-600 dark:text-slate-400"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -626,19 +672,19 @@ export default function DocumentViewer() {
         {/* Right: Controls */}
         <div className="flex items-center gap-3">
           
-          <div className="hidden sm:flex items-center bg-slate-100/60 p-1.5 rounded-2xl border border-white space-x-1">
-             <button onClick={() => handleZoom(-0.2)} className="p-2 hover:bg-white rounded-xl transition-all text-slate-500">
+          <div className="hidden sm:flex items-center bg-slate-100/60 dark:bg-slate-800/60 p-1.5 rounded-2xl border border-white dark:border-slate-700 space-x-1">
+             <button onClick={() => handleZoom(-0.2)} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all text-slate-500 dark:text-slate-400">
                <ZoomOut className="w-4 h-4" />
              </button>
-             <span className="w-12 text-center text-[10px] font-black text-slate-700">{Math.round(scale * 100)}%</span>
-             <button onClick={() => handleZoom(0.2)} className="p-2 hover:bg-white rounded-xl transition-all text-slate-500">
+             <span className="w-12 text-center text-[10px] font-black text-slate-700 dark:text-slate-300">{Math.round(scale * 100)}%</span>
+             <button onClick={() => handleZoom(0.2)} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all text-slate-500 dark:text-slate-400">
                <ZoomIn className="w-4 h-4" />
              </button>
           </div>
 
           <button 
             onClick={() => { setIsSearchOpen(!isSearchOpen); setSearchMessage(''); }}
-            className={`p-3 rounded-2xl transition-all shadow-sm border ${isSearchOpen ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white text-slate-400 border-slate-100 hover:text-slate-900'}`}
+            className={`p-3 rounded-2xl transition-all shadow-sm border ${isSearchOpen ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border-slate-100 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
             title="Search Document"
           >
             <Search className="w-5 h-5" />
@@ -646,14 +692,14 @@ export default function DocumentViewer() {
 
           <button 
             onClick={toggleFullscreen}
-            className="p-3 bg-white text-slate-400 border border-slate-100 hover:text-slate-900 rounded-2xl transition-all hidden sm:block shadow-sm"
+            className="p-3 bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white rounded-2xl transition-all hidden sm:block shadow-sm"
           >
             {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
           </button>
 
           <button 
             onClick={handleDownload}
-            className="p-3.5 premium-gradient text-white rounded-2xl shadow-xl shadow-indigo-100 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 px-5"
+            className="p-3.5 premium-gradient text-white rounded-2xl shadow-xl shadow-indigo-100 dark:shadow-none transition-all hover:scale-105 active:scale-95 flex items-center gap-3 px-5"
           >
             <Download className="w-5 h-5" />
             <span className="text-[10px] font-black uppercase hidden lg:block tracking-widest">Capture Local</span>
@@ -664,13 +710,13 @@ export default function DocumentViewer() {
       {/* ── Search Bar Overlay ────────────────────────────────────────────── */}
       {isSearchOpen && (
         <div className="absolute top-24 left-1/2 -translate-x-1/2 z-30 w-full max-w-lg px-4">
-          <div className="bg-slate-900/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-slate-700/50 overflow-hidden">
+          <div className="bg-slate-900/95 dark:bg-slate-900/98 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-slate-700/50 dark:border-slate-800 overflow-hidden">
             <div className="p-4 flex items-center gap-3">
               <Search className="w-5 h-5 text-indigo-400 ml-2 flex-shrink-0" />
               <input 
                 type="text" 
                 placeholder="Search document text..."
-                className="flex-1 bg-transparent border-none text-white font-bold text-sm outline-none placeholder:text-slate-500"
+                className="flex-1 bg-transparent border-none text-white font-bold text-sm outline-none placeholder:text-slate-500 dark:placeholder:text-slate-600"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
@@ -683,8 +729,8 @@ export default function DocumentViewer() {
                      {activeMatchGlobal + 1} / {totalMatchCount}
                    </span>
                    <div className="flex gap-1">
-                     <button onClick={() => navigateMatch('prev')} className="p-1.5 hover:bg-slate-800 rounded-lg text-white transition-colors"><ChevronUp className="w-3 h-3" /></button>
-                     <button onClick={() => navigateMatch('next')} className="p-1.5 hover:bg-slate-800 rounded-lg text-white transition-colors"><ChevronDown className="w-3 h-3" /></button>
+                     <button onClick={() => navigateMatch('prev')} className="p-1.5 hover:bg-slate-800 dark:hover:bg-slate-700 rounded-lg text-white transition-colors"><ChevronUp className="w-3 h-3" /></button>
+                     <button onClick={() => navigateMatch('next')} className="p-1.5 hover:bg-slate-800 dark:hover:bg-slate-700 rounded-lg text-white transition-colors"><ChevronDown className="w-3 h-3" /></button>
                    </div>
                 </div>
               )}
@@ -696,17 +742,17 @@ export default function DocumentViewer() {
               >
                 {isSearching ? `${textExtractionProgress}%` : 'Scan'}
               </button>
-              <button onClick={clearSearch} className="p-2 text-slate-500 hover:text-white transition-colors flex-shrink-0">
+              <button onClick={clearSearch} className="p-2 text-slate-500 dark:text-slate-400 hover:text-white transition-colors flex-shrink-0">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
             {/* Search feedback message */}
             {searchMessage && (
-              <div className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border-t border-slate-800 ${
+              <div className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border-t border-slate-800 dark:border-slate-700 ${
                 totalMatchCount > 0 
-                  ? 'text-emerald-400 bg-emerald-950/30' 
-                  : 'text-amber-400 bg-amber-950/30'
+                  ? 'text-emerald-400 dark:text-emerald-500 bg-emerald-950/30 dark:bg-emerald-900/20' 
+                  : 'text-amber-400 dark:text-amber-500 bg-amber-950/30 dark:bg-amber-900/20'
               }`}>
                 {totalMatchCount > 0 
                   ? <FileText className="w-3 h-3" /> 
@@ -721,7 +767,7 @@ export default function DocumentViewer() {
 
       {/* ── Chatbot Source Banner ──────────────────────────────────────────── */}
       {chatSourceBanner && chatSourcePage && (
-        <div className="bg-indigo-600 text-white px-6 py-2.5 flex items-center justify-between z-20">
+        <div className="bg-indigo-600 dark:bg-indigo-700 text-white px-6 py-2.5 flex items-center justify-between z-20">
           <div className="flex items-center gap-3">
             <FileText className="w-4 h-4" />
             <span className="text-[11px] font-black uppercase tracking-widest">
@@ -737,50 +783,52 @@ export default function DocumentViewer() {
       {/* ── Document Canvas ────────────────────────────────────────────────── */}
       <div 
         ref={containerRef}
-        className="flex-1 overflow-auto bg-slate-200/40 p-4 md:p-8 flex justify-center scrollbar-hide py-10"
+        className="flex-1 overflow-auto bg-slate-200/40 dark:bg-slate-900/20 p-4 md:p-8 flex justify-center scrollbar-hide py-10 transition-colors duration-300"
       >
         <div className="relative">
-          <Document
-            file={fileUrl}
-            onLoadSuccess={onDocumentLoadSuccess}
-            onLoadError={onDocumentLoadError}
-            loading={
-              <div className="flex flex-col items-center justify-center p-32 gap-6 bg-white rounded-[2rem] shadow-inner min-w-[60vw] border border-slate-200">
-                <div className="relative">
-                   <div className="w-12 h-12 border-2 border-slate-100 border-t-indigo-600 rounded-full animate-spin" />
-                   <Layers className="w-4 h-4 text-indigo-600 absolute inset-0 m-auto opacity-40" />
+          {!blobUrl || pdfLoading ? (
+            <div className="flex flex-col items-center justify-center p-32 gap-6 bg-white dark:bg-slate-900 rounded-[2rem] shadow-inner min-w-[60vw] border border-slate-200 dark:border-slate-800">
+              <div className="relative">
+                 <div className="w-12 h-12 border-2 border-slate-100 dark:border-slate-800 border-t-indigo-600 rounded-full animate-spin" />
+                 <Layers className="w-4 h-4 text-indigo-600 absolute inset-0 m-auto opacity-40" />
+              </div>
+              <p className="text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-[0.3em]">Fragmenting Binary Stream...</p>
+            </div>
+          ) : (
+            <Document
+              file={blobUrl}
+              onLoadSuccess={onDocumentLoadSuccess}
+              onLoadError={onDocumentLoadError}
+              loading={null}
+            >
+              {viewMode === 'single' ? (
+                <div className={`shadow-[0_40px_100px_-20px_rgba(0,0,0,0.2)] rounded-sm overflow-hidden bg-white border-2 transition-all duration-300 ${
+                  currentPageMatch 
+                    ? 'border-indigo-400 ring-4 ring-indigo-100 dark:ring-indigo-900/30' 
+                    : 'border-slate-300/50 dark:border-slate-800'
+                }`}>
+                  {currentPageMatch && (
+                    <div className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 flex items-center gap-2">
+                      <Search className="w-3 h-3" />
+                      {currentPageMatch.count} match{currentPageMatch.count > 1 ? 'es' : ''} on this page
+                    </div>
+                  )}
+                  <Page 
+                    pageNumber={pageNumber} 
+                    scale={scale} 
+                    rotate={rotate}
+                    renderTextLayer={true}
+                    renderAnnotationLayer={true}
+                    className="max-w-full"
+                  />
                 </div>
-                <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.3em]">Fragmenting Binary Stream...</p>
-              </div>
-            }
-          >
-            {viewMode === 'single' ? (
-              <div className={`shadow-[0_40px_100px_-20px_rgba(0,0,0,0.2)] rounded-sm overflow-hidden bg-white border-2 transition-all duration-300 ${
-                currentPageMatch 
-                  ? 'border-indigo-400 ring-4 ring-indigo-100' 
-                  : 'border-slate-300/50'
-              }`}>
-                {currentPageMatch && (
-                  <div className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 flex items-center gap-2">
-                    <Search className="w-3 h-3" />
-                    {currentPageMatch.count} match{currentPageMatch.count > 1 ? 'es' : ''} on this page
-                  </div>
-                )}
-                <Page 
-                  pageNumber={pageNumber} 
-                  scale={scale} 
-                  rotate={rotate}
-                  renderTextLayer={true}
-                  renderAnnotationLayer={true}
-                  className="max-w-full"
-                />
-              </div>
-            ) : (
-              <div className="flex flex-col gap-10 pb-48">
-                {renderAllPages()}
-              </div>
-            )}
-          </Document>
+              ) : (
+                <div className="flex flex-col gap-10 pb-48">
+                  {renderAllPages()}
+                </div>
+              )}
+            </Document>
+          )}
           
           {/* Quick Nav Floating (Single page mode, mobile) */}
           {viewMode === 'single' && (
@@ -788,17 +836,17 @@ export default function DocumentViewer() {
               <button 
                 onClick={() => changePage(-1)}
                 disabled={pageNumber <= 1}
-                className="bg-slate-900/95 backdrop-blur text-white p-5 rounded-[2rem] shadow-2xl disabled:opacity-40 active:scale-95 transition-all"
+                className="bg-slate-900/95 dark:bg-indigo-600/95 backdrop-blur text-white p-5 rounded-[2rem] shadow-2xl disabled:opacity-40 active:scale-95 transition-all"
               >
                 <ChevronLeft className="w-7 h-7" />
               </button>
-              <div className="bg-white/95 backdrop-blur px-8 py-4 rounded-[2rem] shadow-2xl border border-white font-black text-slate-900 text-sm flex items-center gap-2">
-                {pageNumber} <span className="text-slate-300 font-bold">/</span> {numPages}
+              <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur px-8 py-4 rounded-[2rem] shadow-2xl border border-white dark:border-slate-800 font-black text-slate-900 dark:text-white text-sm flex items-center gap-2">
+                {pageNumber} <span className="text-slate-300 dark:text-slate-700 font-bold">/</span> {numPages}
               </div>
               <button 
                 onClick={() => changePage(1)}
                 disabled={pageNumber >= (numPages || 1)}
-                className="bg-slate-900/95 backdrop-blur text-white p-5 rounded-[2rem] shadow-2xl disabled:opacity-40 active:scale-95 transition-all"
+                className="bg-slate-900/95 dark:bg-indigo-600/95 backdrop-blur text-white p-5 rounded-[2rem] shadow-2xl disabled:opacity-40 active:scale-95 transition-all"
               >
                 <ChevronRight className="w-7 h-7" />
               </button>

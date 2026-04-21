@@ -9,7 +9,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from app.models.material import Category
+from app.models.material import Category, MaterialIntegrityStatus
 
 
 class MaterialCreate(BaseModel):
@@ -37,10 +37,11 @@ class MaterialOut(BaseModel):
     file_size: int
     file_type: str
     is_approved: bool
+    integrity_status: MaterialIntegrityStatus
     view_count: int
     uploader_id: str
     file_url: Optional[str] = None
-    file_status: str = "available"  # ["available", "missing"]
+    file_status: str = "available"  # Legacy helper for UI
     created_at: datetime
     updated_at: datetime
 

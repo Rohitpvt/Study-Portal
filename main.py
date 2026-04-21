@@ -19,7 +19,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.routes import auth, users, materials, contributions, chat, admin, favorites, metadata
+from app.routes import auth, users, materials, contributions, chat, admin, favorites, metadata, support
 
 # ── Structured Production Logging ─────────────────────────────────────────────
 logging.basicConfig(
@@ -85,17 +85,16 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # ── Middlewares ─────────────────────────────────────────────────────────────
-origins = settings.ALLOWED_ORIGINS
-
+# ── Middlewares ─────────────────────────────────────────────────────────────
 app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Permissive for development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["Content-Range", "Content-Length", "Accept-Ranges"],
+    expose_headers=["Content-Range", "Content-Length", "Accept-Ranges", "Content-Disposition", "X-Content-Type-Options"],
 )
 
 # ── API Routers ───────────────────────────────────────────────────────────────
@@ -109,20 +108,13 @@ app.include_router(chat.router,          prefix=API_PREFIX)
 app.include_router(admin.router,         prefix=API_PREFIX)
 app.include_router(favorites.router,     prefix=API_PREFIX)
 app.include_router(metadata.router,      prefix=API_PREFIX)
+app.include_router(support.router,       prefix=API_PREFIX)
 
 # ── Static file serving (with isolated CORS sub-app) ───────────────────────────
 os.makedirs("uploads", exist_ok=True)
 
-# Create a sub-app for uploads to isolate CORS middleware for static files
+# Created a sub-app for uploads
 uploads_app = FastAPI()
-uploads_app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["GET", "OPTIONS", "HEAD"],
-    allow_headers=["*"],
-    expose_headers=["Content-Range", "Content-Length", "Accept-Ranges"],
-)
 uploads_app.mount("/", StaticFiles(directory="uploads"))
 
 app.mount(f"{API_PREFIX}/uploads", uploads_app, name="uploads")

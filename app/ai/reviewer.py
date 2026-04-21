@@ -33,7 +33,7 @@ Provide your response as a JSON object with strictly these keys:
 DOCUMENT CONTENT:
 {sample}
 """
-    raw_response = llm_service.get_ai_response(prompt)
+    raw_response = await llm_service.get_ai_response(prompt)
     try:
         json_str = raw_response.strip()
         if "```json" in json_str:
@@ -102,7 +102,7 @@ DOCUMENT CONTENT:
 """
 
     try:
-        raw_response = llm_service.get_ai_response(prompt)
+        raw_response = await llm_service.get_ai_response(prompt)
         
         # Robust JSON extraction
         json_str = raw_response.strip()
@@ -187,7 +187,7 @@ TEXT CONTENT:
 """
 
     try:
-        raw_response = llm_service.get_ai_response(prompt)
+        raw_response = await llm_service.get_ai_response(prompt)
         
         # Robust JSON extraction
         json_str = raw_response.strip()
@@ -285,7 +285,7 @@ TEXT SAMPLE:
 """
 
     try:
-        raw_response = llm_service.get_ai_response(prompt)
+        raw_response = await llm_service.get_ai_response(prompt)
         
         # Robust JSON extraction
         json_str = raw_response.strip()
@@ -352,7 +352,7 @@ TEXT SAMPLE:
 """
 
     try:
-        raw_response = llm_service.get_ai_response(prompt)
+        raw_response = await llm_service.get_ai_response(prompt)
         
         # Robust JSON extraction
         json_str = raw_response.strip()

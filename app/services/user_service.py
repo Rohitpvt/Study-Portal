@@ -4,6 +4,7 @@ app/services/user_service.py
 User profile management.
 """
 
+from datetime import date
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.schemas.user import UserUpdate
 from app.constants.avatars import VALID_AVATARS
+
+ALLOWED_GENDERS = ["male", "female", "other", "prefer_not_to_say"]
 
 
 async def get_user_by_id(user_id: str, db: AsyncSession) -> User:
@@ -44,6 +47,19 @@ async def update_user_profile(user: User, payload: UserUpdate, db: AsyncSession)
         if user.avatar_type != "uploaded" and payload.avatar_id not in VALID_AVATARS:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid preset/animated avatar ID selection.")
         user.avatar_id = payload.avatar_id
+
+    if payload.gender is not None:
+        if payload.gender and payload.gender.lower() not in ALLOWED_GENDERS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail=f"Invalid gender. Must be one of: {', '.join(ALLOWED_GENDERS)}"
+            )
+        user.gender = payload.gender.lower() if payload.gender else None
+
+    if payload.date_of_birth is not None:
+        if payload.date_of_birth and payload.date_of_birth > date.today():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Date of birth cannot be in the future.")
+        user.date_of_birth = payload.date_of_birth
 
     await db.flush()
     return user
