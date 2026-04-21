@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { UserPlus, Mail, Lock, User, ShieldPlus, KeyRound, CheckCircle2, RefreshCw, Send, Eye, EyeOff } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, ShieldPlus, KeyRound, CheckCircle2, RefreshCw, Send, Eye, EyeOff, Sun, Moon } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function Register() {
   const { success, error: toastError, info } = useNotification();
+  const { theme, toggleTheme } = useTheme();
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -126,6 +128,15 @@ export default function Register() {
 
       <div className="glass-card max-w-lg w-full shadow-2xl p-10 border-0 relative overflow-hidden group">
         <div className="absolute top-0 left-0 w-full h-1.5 premium-gradient opacity-80"></div>
+        
+        {/* Floating Theme Toggle */}
+        <button
+          onClick={toggleTheme}
+          className="absolute top-6 right-6 p-3 rounded-xl glass dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all z-10"
+          aria-label="Toggle Theme"
+        >
+          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
         
         <div className="text-center mb-10">
           <div className="w-16 h-16 premium-gradient rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-xl shadow-indigo-100 dark:shadow-none transform group-hover:rotate-6 transition-transform duration-500">

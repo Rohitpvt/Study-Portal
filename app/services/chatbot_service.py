@@ -127,7 +127,7 @@ async def ask(
     and metadata-aware academic filtering.
     """
     # ── 0. Thresholds & Safety Settings ───────────────────────────────────────
-    SIMILARITY_THRESHOLD = 1.0
+    SIMILARITY_THRESHOLD = 0.85
     MIN_CONTEXT_LENGTH   = 150
     MIN_VALID_HITS       = 2
 
@@ -281,8 +281,11 @@ async def ask(
         r"tell me about yourself",
         # World Knowledge Overrides (Strict Patterns)
         r"\b(who.*is.*(the.*)?prime minister)\b",
+        r"\b(prime minister.*is)\b",
         r"\b(who.*is.*(the.*)?president)\b",
+        r"\b(president.*is)\b",
         r"\b(what.*is.*(the.*)?capital of)\b",
+        r"\b(capital of.*is)\b",
         r"\b(where.*is.*(the.*)?(city|country|capital) of)\b",
         r"\b(who.*is.*(elon musk|bill gates|steve jobs|mark zuckerberg|narendra modi))\b"
     ]
@@ -473,6 +476,22 @@ async def ask(
 
     # ── 7. LLM Invocation ──────────────────────────────────────────────────────
     answer = await llm_service.get_chat_response(messages)
+
+    # ── 7.5 Quality Control: Detect Context Mismatch Post-Generation ───────────
+    # If the LLM explicitly states the context was missing/irrelevant, hide sources.
+    ignore_context_markers = [
+        "does not mention", 
+        "no information provided", 
+        "context does not contain",
+        "provided context talks about",
+        "context appears to be related to"
+    ]
+    if any(marker in answer.lower() for marker in ignore_context_markers):
+        if mode == "document":
+            logger.info(f"[CHAT] LLM indicated context mismatch. Clearing sources for query: '{query}'")
+            source_labels = []
+            # Optionally downgrade mode to general for DB consistency
+            mode = "general"
 
     # ── 8. Persistence (Memory & Database) ────────────────────────────────────
     memory_service.add_message(session.id, "user", query)

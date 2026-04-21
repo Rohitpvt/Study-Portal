@@ -1,21 +1,35 @@
-import sqlite3
+import asyncio
+import sys
+import os
 
-def run():
-    print("Connecting to local database...")
-    conn = sqlite3.connect('christ_uni_dev.db')
-    cursor = conn.cursor()
-    
-    # Reset all admins to student
-    print("Downgrading all extreme privileges...")
-    cursor.execute("UPDATE users SET role = 'student' WHERE role = 'admin'")
-    
-    # Set proper admin
-    print("Promoting rohit.ghosh@mca.christuniversity.in to Admin...")
-    cursor.execute("UPDATE users SET role = 'admin' WHERE email = 'rohit.ghosh@mca.christuniversity.in'")
-    
-    conn.commit()
-    conn.close()
-    print("Database patching complete.")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from sqlalchemy import select, update
+from app.core.database import AsyncSessionLocal
+from app.models.user import User, Role
+
+async def make_admin():
+    async with AsyncSessionLocal() as session:
+        # Demote all current admins to STUDENT securely
+        await session.execute(
+            update(User)
+            .where(User.role == Role.ADMIN)
+            .values(role=Role.STUDENT, is_active=True)
+        )
+        await session.commit()
+        print("Demoted all previous ADMINs to STUDENT.")
+        
+        # Promote the precise target
+        target_email = "rohit.ghosh@mca.christuniversity.in"
+        result = await session.execute(select(User).where(User.email == target_email))
+        target_user = result.scalar_one_or_none()
+        
+        if target_user:
+            target_user.role = Role.ADMIN
+            await session.commit()
+            print(f"Successfully elevated {target_email} to Global Admin!")
+        else:
+            print(f"FAILED: The account {target_email} does not exist in the database yet. Please register via the UI first.")
 
 if __name__ == "__main__":
-    run()
+    asyncio.run(make_admin())

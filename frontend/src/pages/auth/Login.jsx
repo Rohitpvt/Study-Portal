@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { Mail, Lock, LogIn, ShieldCheck, KeyRound, RefreshCw } from 'lucide-react';
+import { Mail, Lock, LogIn, ShieldCheck, KeyRound, RefreshCw, Eye, EyeOff, Sun, Moon } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function Login() {
   const { success, error: toastError } = useNotification();
+  const { theme, toggleTheme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState(1);
   const [otpCode, setOtpCode] = useState('');
   const [error, setError] = useState(null);
@@ -98,6 +101,15 @@ export default function Login() {
       <div className="glass-card max-w-md w-full shadow-2xl p-10 border-0 relative overflow-hidden group">
         <div className="absolute top-0 left-0 w-full h-1.5 premium-gradient opacity-80"></div>
         
+        {/* Floating Theme Toggle */}
+        <button
+          onClick={toggleTheme}
+          className="absolute top-6 right-6 p-3 rounded-xl glass dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all z-10"
+          aria-label="Toggle Theme"
+        >
+          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
+        
         <div className="text-center mb-12">
           <div className="w-20 h-20 premium-gradient rounded-3xl mx-auto flex items-center justify-center mb-8 shadow-xl shadow-indigo-200/50 dark:shadow-none transform group-hover:scale-110 transition-transform duration-500">
              <ShieldCheck className="text-white w-10 h-10" />
@@ -139,13 +151,20 @@ export default function Login() {
                   <Lock className="w-5 h-5" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-5 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
+                  className="glass dark:bg-slate-800/40 block w-full pl-14 pr-12 py-5 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
                   placeholder="••••••••"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-5 flex items-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
