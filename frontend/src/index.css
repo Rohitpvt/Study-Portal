@@ -46,7 +46,7 @@
   }
 }
 
-/* Luxury Custom Scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -57,7 +57,7 @@
   @apply bg-indigo-100 dark:bg-indigo-900/40 rounded-full border-4 border-transparent bg-clip-content hover:bg-indigo-300 dark:hover:bg-indigo-800/60 transition-colors;
 }
 
-/* ── PDF Search Highlighting ─────────────────────────────────────────────── */
+/* PDF Search Highlighting */
 mark.pdf-search-highlight {
   background-color: rgba(250, 204, 21, 0.55) !important;
   color: inherit !important;
