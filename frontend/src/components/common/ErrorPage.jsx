@@ -64,16 +64,16 @@ export default function ErrorPage({
             
             {/* Background GIF container exactly like .four_zero_four_bg */}
             <div 
-              className="h-[400px] bg-center bg-no-repeat flex items-start justify-center"
+              className="h-[500px] bg-center bg-no-repeat flex items-start justify-center"
               style={{ backgroundImage: "url('/images/bg.gif')" }}
             >
-              <h1 className="text-[60px] sm:text-[80px] font-medium m-0 pt-0" style={{ fontSize: '70px' }}>
+              <h1 className="text-[80px] font-medium m-0 pt-8" style={{ fontSize: '80px' }}>
                 {displayTitle}
               </h1>
             </div>
             
             {/* Content Box exactly like .contant_box_404 */}
-            <div className="-mt-[120px] relative z-10 bg-white inline-block px-4">
+            <div className="-mt-[50px] relative z-10 bg-white inline-block px-4">
               <h3 className="font-medium m-0 mb-2 text-3xl">
                 {displaySubtitle}
               </h3>

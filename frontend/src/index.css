@@ -44,6 +44,29 @@
   .glass-card {
     @apply glass rounded-3xl p-8 transition-all duration-500 hover:bg-white/85 dark:hover:bg-slate-800/80;
   }
+
+  /* ── Modern Navbar Utilities ── */
+  .glass-nav {
+    @apply bg-white/70 dark:bg-[#020617]/70 backdrop-blur-xl border-b border-white/20 dark:border-slate-800/50 shadow-lg shadow-indigo-500/5 transition-all duration-500;
+  }
+
+  .nav-link-underline {
+    position: relative;
+  }
+  .nav-link-underline::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: theme('colors.indigo.500');
+    transition: width 0.3s ease;
+    border-radius: 99px;
+  }
+  .nav-link-underline:hover::after {
+    width: 100%;
+  }
 }
 
 /* Custom Scrollbar */
@@ -99,4 +122,32 @@ mark.pdf-search-highlight.pdf-search-active {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
   background-size: 200% 100%;
   animation: shimmer-festive 3s infinite;
+}
+
+/* ── Active Link Indicators ── */
+@keyframes glide-in {
+  from { opacity: 0; transform: scaleX(0); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+
+.active-link-indicator {
+  @apply absolute bottom-0 left-0 w-full h-[3px] bg-indigo-500 dark:bg-indigo-400 rounded-full shadow-[0_0_10px_rgba(79,70,229,0.5)];
+  animation: glide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: left;
+}
+
+/* ── Hamburger Animations ── */
+.hamburger-line {
+  @apply block w-6 h-0.5 bg-slate-600 dark:bg-slate-300 transition-all duration-300 ease-in-out origin-center;
+}
+
+.hamburger-active .hamburger-line:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+.hamburger-active .hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+.hamburger-active .hamburger-line:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
 }
