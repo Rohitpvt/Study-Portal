@@ -10,7 +10,249 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [step, setStep] = useState(1);
   const [otpCode, setOtpCode] = useState('');
+  const [error, setError] = useState(null);// React core hooks
+import { useState, useEffect } from 'react';
+
+// Routing utilities
+import { Link, useNavigate } from 'react-router-dom';
+
+// API service for backend communication
+import api from '../../services/api';
+
+// Icons for UI
+import { Mail, Lock, LogIn, ShieldCheck, KeyRound, RefreshCw } from 'lucide-react';
+
+// Notification context (toast messages)
+import { useNotification } from '../../context/NotificationContext';
+
+export default function Login() {
+
+  // Notification handlers
+  const { success, error: toastError } = useNotification();
+
+  // Form state management
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  // Step control: 1 = login form, 2 = OTP verification
+  const [step, setStep] = useState(1);
+
+  // OTP input
+  const [otpCode, setOtpCode] = useState('');
+
+  // Error handling
   const [error, setError] = useState(null);
+
+  // Loading states
+  const [loading, setLoading] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [resending, setResending] = useState(false);
+
+  // Navigation hook
+  const navigate = useNavigate();
+
+  /**
+   * Redirect user if already authenticated
+   * Checks for token in localStorage
+   */
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate]);
+
+  /**
+   * STEP 1: Validate credentials and send OTP
+   */
+  const handleLoginInit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      // API call to validate email & password
+      await api.post('/auth/login-init', { email, password });
+
+      // Move to OTP step
+      setStep(2);
+
+      success("Credentials validated. OTP dispatched to your email.");
+    } catch (err) {
+      // Handle error from backend
+      const msg = err.response?.data?.detail || "Access denied. Strategic credentials mismatch.";
+      setError(msg);
+      toastError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Resend OTP functionality
+   */
+  const handleResend = async () => {
+    setResending(true);
+
+    try {
+      await api.post('/auth/resend-otp', { email, purpose: 'login' });
+      success("OTP resent to your email.");
+    } catch (err) {
+      toastError(err.response?.data?.detail || "Failed to resend OTP.");
+    } finally {
+      setResending(false);
+    }
+  };
+
+  /**
+   * STEP 2: Verify OTP and complete login
+   */
+  const handleVerifyAndLogin = async (e) => {
+    e.preventDefault();
+
+    // Basic validation
+    if (otpCode.length !== 6) {
+      toastError("OTP must be exactly 6 digits.");
+      return;
+    }
+
+    setError(null);
+    setVerifyingOtp(true);
+
+    try {
+      // Step 2a: Verify OTP
+      await api.post('/auth/verify-otp', {
+        email,
+        purpose: 'login',
+        otp: otpCode
+      });
+
+      // Step 2b: Perform actual login (JWT token retrieval)
+      const formData = new URLSearchParams();
+      formData.append('username', email);
+      formData.append('password', password);
+
+      const response = await api.post('/auth/login', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      });
+
+      // Store JWT token
+      localStorage.setItem('access_token', response.data.access_token);
+
+      success("Access Granted. Welcome back!");
+
+      // Redirect to dashboard
+      navigate('/dashboard');
+
+    } catch (err) {
+      const msg = err.response?.data?.detail || "Invalid OTP code or session timeout.";
+      setError(msg);
+      toastError(msg);
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
+  /**
+   * UI Rendering
+   */
+  return (
+    <div className="min-h-[85vh] flex items-center justify-center p-6 bg-transparent relative overflow-hidden">
+
+      {/* Decorative blurred background elements */}
+      <div className="absolute top-1/4 -left-20 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+      {/* Main card container */}
+      <div className="glass-card max-w-md w-full shadow-2xl p-10 border-0 relative overflow-hidden group">
+
+        {/* Top gradient bar */}
+        <div className="absolute top-0 left-0 w-full h-1.5 premium-gradient opacity-80"></div>
+
+        {/* Header section */}
+        <div className="text-center mb-12">
+          <div className="w-20 h-20 premium-gradient rounded-3xl mx-auto flex items-center justify-center mb-8 shadow-xl">
+            <ShieldCheck className="text-white w-10 h-10" />
+          </div>
+          <h2 className="text-4xl font-black">Portal Access</h2>
+          <p className="text-sm font-bold uppercase tracking-[0.2em]">
+            Intel AI Platform
+          </p>
+        </div>
+
+        {/* Error display */}
+        {error && (
+          <div className="bg-rose-50 text-rose-600 p-5 rounded-2xl text-xs font-black mb-8">
+            {error}
+          </div>
+        )}
+
+        {/* STEP 1: Login Form */}
+        {step === 1 ? (
+          <form className="space-y-6" onSubmit={handleLoginInit}>
+
+            {/* Email input */}
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="id@christuniversity.in"
+              required
+            />
+
+            {/* Password input */}
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+
+            {/* Submit button */}
+            <button type="submit" disabled={loading}>
+              {loading ? "Loading..." : "INITIATE SESSION"}
+            </button>
+          </form>
+
+        ) : (
+
+          /* STEP 2: OTP Verification */
+          <form onSubmit={handleVerifyAndLogin}>
+
+            {/* OTP input */}
+            <input
+              type="text"
+              maxLength={6}
+              value={otpCode}
+              onChange={(e) => setOtpCode(e.target.value)}
+              placeholder="123456"
+              required
+            />
+
+            {/* Resend OTP */}
+            <button type="button" onClick={handleResend} disabled={resending}>
+              {resending ? "Sending..." : "Resend"}
+            </button>
+
+            {/* Verify button */}
+            <button type="submit" disabled={verifyingOtp || otpCode.length !== 6}>
+              {verifyingOtp ? "Verifying..." : "VERIFY & ACCESS"}
+            </button>
+          </form>
+        )}
+
+        {/* Redirect to registration */}
+        <p className="mt-10 text-center text-[10px] font-black uppercase">
+          New researcher?{' '}
+          <Link to="/register">REQUEST ACCESS</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
   const [loading, setLoading] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [resending, setResending] = useState(false);
