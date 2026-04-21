@@ -53,6 +53,10 @@ class Settings(BaseSettings):
     # ── Email Domain ──────────────────────────────────────────────────────────
     ALLOWED_EMAIL_DOMAIN: str = "christuniversity.in"
 
+    # ── SMTP Configuration ────────────────────────────────────────────────────
+    SMTP_EMAIL: str = ""
+    SMTP_PASSWORD: str = ""
+
     # ── File Storage ──────────────────────────────────────────────────────────
     STORAGE_BACKEND: str = "local"   # "local" | "s3"
     UPLOAD_DIR: str = "uploads"

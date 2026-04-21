@@ -22,6 +22,9 @@ from app.models.base import generate_uuid
 from app.schemas.auth import RegisterRequest, TokenResponse
 from app.utils.email_validator import is_christ_email, is_valid_christ_email, extract_department
 
+from app.models.otp import OTPRecord
+from sqlalchemy import delete
+
 
 async def register_user(payload: RegisterRequest, db: AsyncSession) -> User:
     """
@@ -51,7 +54,17 @@ async def register_user(payload: RegisterRequest, db: AsyncSession) -> User:
             detail="Admission/Roll Number is required."
         )
 
-    # 4. Create user
+    # 4. Enforce Registration OTP Verification
+    otp_record_result = await db.execute(select(OTPRecord).where(
+        OTPRecord.email == payload.email,
+        OTPRecord.purpose == "register",
+        OTPRecord.verified == True
+    ).order_by(OTPRecord.created_at.desc()))
+    otp_record = otp_record_result.scalars().first()
+    if not otp_record:
+        raise HTTPException(status_code=403, detail="Email verification (OTP) required before registration.")
+
+    # 5. Create user
     user = User(
         id=generate_uuid(),
         email=payload.email,
@@ -64,9 +77,30 @@ async def register_user(payload: RegisterRequest, db: AsyncSession) -> User:
         is_active=True,
     )
     db.add(user)
+    
+    # 6. Delete the OTP record securely so it cannot be rebroadcasted
+    await db.execute(delete(OTPRecord).where(OTPRecord.id == otp_record.id))
+
     await db.flush()   # get the PK without committing
     return user
 
+async def validate_credentials_only(email: str, password: str, db: AsyncSession) -> User:
+    """Check user existence and password directly. Used by login-init for sending Login OTP."""
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    if not user or not verify_password(password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account is deactivated. Contact admin.",
+        )
+    return user
 
 async def authenticate_user(email: str, password: str, db: AsyncSession) -> TokenResponse:
     """
@@ -94,6 +128,20 @@ async def authenticate_user(email: str, password: str, db: AsyncSession) -> Toke
         if extracted:
             user.course = extracted
             await db.commit()
+
+    # Enforce Login OTP Verification
+    otp_record_result = await db.execute(select(OTPRecord).where(
+        OTPRecord.email == email,
+        OTPRecord.purpose == "login",
+        OTPRecord.verified == True
+    ).order_by(OTPRecord.created_at.desc()))
+    otp_record = otp_record_result.scalars().first()
+    if not otp_record:
+        raise HTTPException(status_code=403, detail="OTP verification required. Please complete authentication flow.")
+    
+    # Delete the OTP record safely
+    await db.execute(delete(OTPRecord).where(OTPRecord.id == otp_record.id))
+    await db.commit()
 
     return TokenResponse(
         access_token=create_access_token(subject=user.id, role=user.role.value),

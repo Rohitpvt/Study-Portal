@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import api from '../services/api';
 import { Download, UploadIcon, Search, Filter, X, Star, Lock, SlidersHorizontal, ChevronDown, Eye, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -149,19 +149,19 @@ export default function Materials() {
     return () => clearTimeout(h);
   }, [searchQuery]);
 
-  // Reset to page 1 whenever any filter or search changes
-  useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    } else {
-      fetchMaterials(1);
-    }
-  }, [debouncedSearch, courseFilter, subjectFilter, semesterFilter, categoryFilter, sortBy]);
+  const isFirstMount = useRef(true);
 
-  // Fetch when page changes
+  // Fetch when filters/search/page changes automatically without duplicating
   useEffect(() => {
+    if (isFirstMount.current) {
+        isFirstMount.current = false;
+        fetchMaterials(currentPage);
+        return;
+    }
+    
+    // If not first mount, just fetch
     fetchMaterials(currentPage);
-  }, [currentPage]);
+  }, [debouncedSearch, courseFilter, subjectFilter, semesterFilter, categoryFilter, sortBy, currentPage]);
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');

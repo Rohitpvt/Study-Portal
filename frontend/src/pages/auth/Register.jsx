@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { UserPlus, Mail, Lock, User, ShieldPlus } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, ShieldPlus, KeyRound, CheckCircle2, RefreshCw, Send, Eye, EyeOff } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 
 export default function Register() {
@@ -15,6 +15,15 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const navigate = useNavigate();
 
   // Redirect already-authenticated users to dashboard
@@ -25,9 +34,54 @@ export default function Register() {
     }
   }, [navigate]);
 
+  const handleSendOTP = async () => {
+    if (!formData.email) {
+      toastError("Please enter your academic email first.");
+      return;
+    }
+    // simple pre-check if christuniversity email
+    if (!formData.email.includes("christuniversity.in")) {
+      toastError("Must be a valid @christuniversity.in email address.");
+      return;
+    }
+    
+    setSendingOtp(true);
+    try {
+      await api.post('/auth/send-otp', { email: formData.email, purpose: "register" });
+      setOtpSent(true);
+      info("OTP sent to your email.");
+    } catch (err) {
+      toastError(err.response?.data?.detail || "Failed to send OTP.");
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (otpCode.length !== 6) {
+      toastError("OTP must be exactly 6 digits.");
+      return;
+    }
+    setVerifyingOtp(true);
+    try {
+      await api.post('/auth/verify-otp', { email: formData.email, purpose: "register", otp: otpCode });
+      setOtpVerified(true);
+      success("OTP Verified! You may now proceed.");
+    } catch (err) {
+      toastError(err.response?.data?.detail || "Invalid OTP.");
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
     setError(null);
+
+    if (!otpVerified) {
+      toastError("You must verify your email with an OTP first.");
+      return;
+    }
 
     // Frontend Validation: Password confirmation
     if (!confirmPassword) {
@@ -47,19 +101,8 @@ export default function Register() {
 
     try {
       await api.post('/auth/register', formData);
-      info("Account established. Initiating session...");
-      
-      const loginParams = new URLSearchParams();
-      loginParams.append('username', formData.email);
-      loginParams.append('password', formData.password);
-      
-      const response = await api.post('/auth/login', loginParams, {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-      });
-      
-      localStorage.setItem('access_token', response.data.access_token);
-      success("Welcome to the platform!");
-      navigate('/dashboard');
+      success("Account established successfully! Please verify your login credentials to enter the platform.");
+      navigate('/login');
     } catch (err) {
       let msg = "Registration rejected. System mismatch detected.";
       if(err.response?.data?.detail?.[0]?.msg) {
@@ -121,20 +164,70 @@ export default function Register() {
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Academic Email</label>
-            <div className="relative group/input">
-              <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
-                <Mail className="w-5 h-5" />
+            <div className="relative group/input flex gap-2">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <input
+                  type="email"
+                  value={formData.email}
+                  disabled={otpVerified}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm disabled:opacity-50"
+                  placeholder="name@course.christuniversity.in"
+                  required
+                />
               </div>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
-                placeholder="first.last@course.christuniversity.in"
-                required
-              />
+              {!otpVerified && (
+                <button
+                  type="button"
+                  disabled={sendingOtp || !formData.email}
+                  onClick={handleSendOTP}
+                  className="px-6 py-4 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-black text-sm border border-indigo-100 dark:border-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {sendingOtp ? <RefreshCw className="w-4 h-4 animate-spin" /> : (otpSent ? 'Resend' : 'Send OTP')}
+                </button>
+              )}
             </div>
           </div>
+
+          {otpSent && !otpVerified && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Enter OTP Code</label>
+              <div className="relative group/input flex gap-2">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-emerald-600 dark:group-focus-within/input:text-emerald-400 transition-colors">
+                    <KeyRound className="w-5 h-5" />
+                  </div>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value)}
+                    className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-emerald-200 dark:border-emerald-900/30 rounded-2xl text-sm font-black tracking-widest text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-emerald-100/50 dark:focus:ring-emerald-900/30 transition-all shadow-sm"
+                    placeholder="123456"
+                    required
+                  />
+                </div>
+                <button
+                  type="button"
+                  disabled={verifyingOtp || otpCode.length !== 6}
+                  onClick={handleVerifyOTP}
+                  className="px-6 py-4 rounded-2xl bg-emerald-500 text-white font-black text-sm hover:bg-emerald-600 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {verifyingOtp ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Verify'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {otpVerified && (
+             <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 p-4 rounded-2xl text-xs font-black flex items-center gap-3 border border-emerald-100 dark:border-emerald-900/30 animate-in fade-in">
+               <CheckCircle2 className="w-5 h-5" />
+               Email verified successfully. You may continue.
+             </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Admission / Roll Number</label>
@@ -160,13 +253,20 @@ export default function Register() {
                 <Lock className="w-5 h-5" />
               </div>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
-                className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
+                className="glass dark:bg-slate-800/40 block w-full pl-14 pr-12 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
                 placeholder="Minimum 8 characters"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
           </div>
 
@@ -177,19 +277,26 @@ export default function Register() {
                 <Lock className="w-5 h-5" />
               </div>
               <input
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
+                className="glass dark:bg-slate-800/40 block w-full pl-14 pr-12 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
                 placeholder="Re-enter your password"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !otpVerified}
             className="w-full mt-6 flex justify-center items-center gap-3 py-5 px-4 border-transparent rounded-2xl shadow-xl shadow-indigo-100 dark:shadow-none text-sm font-black text-white premium-gradient hover:opacity-90 disabled:opacity-50 transition-all active:scale-[0.98]"
           >
             {loading ? (

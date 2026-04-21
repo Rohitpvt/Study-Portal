@@ -56,3 +56,16 @@ class MessageResponse(BaseModel):
     """Generic success message."""
 
     message: str
+
+class SendOTPRequest(BaseModel):
+    email: EmailStr
+    purpose: str = Field(..., description="Must be 'login' or 'register'")
+
+class VerifyOTPRequest(BaseModel):
+    email: EmailStr
+    purpose: str
+    otp: str = Field(..., min_length=6, max_length=6)
+
+class LoginInitRequest(BaseModel):
+    email: EmailStr
+    password: str

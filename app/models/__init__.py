@@ -7,6 +7,7 @@ from app.models.validation_report import ContributionValidationReport
 from app.models.chat import ChatSession, ChatMessage
 from app.models.audit import AuditLog
 from app.models.favorite import Favorite
+from app.models.otp import OTPRecord
 
 __all__ = [
     "User",
@@ -22,4 +23,5 @@ __all__ = [
     "ChatMessage",
     "AuditLog",
     "Favorite",
+    "OTPRecord",
 ]
