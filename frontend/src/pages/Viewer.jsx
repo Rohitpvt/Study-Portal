@@ -163,7 +163,11 @@ export default function DocumentViewer() {
         .then(res => {
           if (isMounted) {
             setMaterial(res.data);
-            info("Opening document...");
+            if (res.data.conversion_status === 'failed') {
+              setError('PDF Preview Unavailable: Automatic conversion to PDF failed for this document. You can still download the original file using the button below.');
+            } else {
+              info("Opening document...");
+            }
             setLoading(false);
           }
         })
@@ -195,7 +199,7 @@ export default function DocumentViewer() {
   // ── Secure Blob Fetching ──────────────────────────────────────────────────
   // We fetch the PDF as a blob via Axios to ensure use of Auth headers + CORS interceptors
   useEffect(() => {
-    if (!fileUrl) return;
+    if (!fileUrl || (material?.conversion_status === 'failed')) return;
     
     let isMounted = true;
     setPdfLoading(true);

@@ -10,11 +10,12 @@ from fastapi import HTTPException, UploadFile, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.material import Category, Material
+from app.models.material import Category, Material, ConversionStatus, MaterialIntegrityStatus
 from app.models.base import generate_uuid
 from app.models.user import User, Role
 from app.schemas.material import MaterialCreate, PaginatedMaterials
 from app.utils.file_handler import get_storage
+from app.utils.document_converter import convert_to_pdf
 
 
 async def upload_material(
@@ -29,29 +30,54 @@ async def upload_material(
     direct uploads are trusted — student contributions go through
     the contribution workflow instead).
     """
+    # ── Non-destructive Dual-Key Storage ──────────────────────────────────────
     storage = get_storage()
-    
-    # ── Validation ────────────────────────────────────────────────────────────
-    # Reject forbidden patterns in filename/key to prevent malformed cloud records
-    forbidden = [":\\", ":/", "\\\\", "C:", "D:"]
-    if any(p in file.filename for p in forbidden):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="INVALID_FILENAME: Local file paths or device names are not permitted."
-        )
-
+    # 1. Always store the original file
     try:
-        stored = await storage.upload_file(file, folder=payload.category.value)
+        stored_original = await storage.upload_file(file, folder=payload.category.value)
     except Exception as e:
         import logging
-        logging.getLogger(__name__).warning(f"Storage failed: {e}. Falling back to LocalStorage.")
+        logging.getLogger(__name__).warning(f"Primary storage failed: {e}. Falling back to LocalStorage.")
         from app.utils.file_handler import LocalStorage
         from app.core.config import settings
         storage = LocalStorage(base_dir=settings.UPLOAD_DIR)
-        stored = await storage.upload_file(file, folder=payload.category.value)
+        stored_original = await storage.upload_file(file, folder=payload.category.value)
 
-    from app.models.material import MaterialIntegrityStatus
+    # 2. Attempt PDF conversion
+    pdf_stored = None
+    conversion_status = ConversionStatus.SUCCESS if file.filename.lower().endswith(".pdf") else ConversionStatus.PENDING
+    
+    if conversion_status == ConversionStatus.PENDING:
+        # Seek original file to beginning since upload_file might have read it
+        await file.seek(0)
+        original_bytes = await file.read()
+        
+        pdf_bytes = await convert_to_pdf(original_bytes, file.filename)
+        if pdf_bytes:
+            # Wrap bytes for storage upload
+            import io
+            from fastapi import UploadFile
+            pdf_filename = f"{file.filename.rsplit('.', 1)[0]}.pdf"
+            pdf_file = UploadFile(
+                file=io.BytesIO(pdf_bytes),
+                filename=pdf_filename
+            )
+            pdf_file.content_type = "application/pdf"
+            
+            try:
+                pdf_stored = await storage.upload_file(pdf_file, folder=f"{payload.category.value}/previews")
+                conversion_status = ConversionStatus.SUCCESS
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"Failed to store converted PDF: {e}")
+                conversion_status = ConversionStatus.FAILED
+        else:
+            conversion_status = ConversionStatus.FAILED
+
     from datetime import datetime
+
+    # The 'file_key' remains the primary access point (PDF if available, else original)
+    primary_stored = pdf_stored if pdf_stored else stored_original
 
     material = Material(
         id=generate_uuid(),
@@ -61,15 +87,23 @@ async def upload_material(
         course=payload.course,
         semester=payload.semester,
         category=payload.category,
-        file_path=stored.get("path"), # fallback
-        file_key=stored.get("file_key"),
-        file_url=stored.get("file_url"),
-        file_name=stored.get("file_name"),
-        file_size=stored.get("size"),
-        file_type=stored.get("content_type"),
+        
+        # Legacy/Primary compatibility
+        file_path=primary_stored.get("path"), 
+        file_key=primary_stored.get("file_key"),
+        file_url=primary_stored.get("file_url"),
+        file_name=primary_stored.get("file_name"),
+        file_size=primary_stored.get("size"),
+        file_type=primary_stored.get("content_type"),
+        
+        # New Non-destructive fields
+        original_file_key=stored_original.get("file_key"),
+        pdf_file_key=pdf_stored.get("file_key") if pdf_stored else None,
+        conversion_status=conversion_status,
+
         uploader_id=uploader.id,
         is_approved=True,
-        integrity_status=MaterialIntegrityStatus.available, # New uploads are assumed available
+        integrity_status=MaterialIntegrityStatus.available,
         last_reconciliation_at=datetime.utcnow()
     )
     db.add(material)

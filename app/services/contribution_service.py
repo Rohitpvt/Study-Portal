@@ -13,11 +13,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from datetime import datetime
 from app.models.contribution import Contribution, ContributionStatus, ProcessingStatus, FinalRecommendation
-from app.models.material import Category, Material
+from app.models.material import Category, Material, ConversionStatus
 from app.models.user import User
 from app.models.base import generate_uuid
 from app.schemas.contribution import ContributionCreate, PaginatedContributions, ReviewDecision
 from app.utils.file_handler import get_storage
+from app.utils.document_converter import convert_to_pdf
 
 
 async def submit_contribution(
@@ -31,16 +32,52 @@ async def submit_contribution(
     Accept a student file upload, persist it, and queue the AI review.
     Returns immediately — AI processing happens asynchronously.
     """
+    # ── Non-destructive Dual-Key Storage ──────────────────────────────────────
     storage = get_storage()
+    # 1. Always store the original file
     try:
-        stored = await storage.upload_file(file, folder="contributions")
+        stored_original = await storage.upload_file(file, folder="contributions")
     except Exception as e:
         import logging
-        logging.getLogger(__name__).warning(f"Storage failed: {e}. Falling back to LocalStorage.")
+        logging.getLogger(__name__).warning(f"Primary storage failed: {e}. Falling back to LocalStorage.")
         from app.utils.file_handler import LocalStorage
         from app.core.config import settings
         storage = LocalStorage(base_dir=settings.UPLOAD_DIR)
-        stored = await storage.upload_file(file, folder="contributions")
+        stored_original = await storage.upload_file(file, folder="contributions")
+
+    # 2. Attempt PDF conversion
+    pdf_stored = None
+    conversion_status = ConversionStatus.SUCCESS if file.filename.lower().endswith(".pdf") else ConversionStatus.PENDING
+    
+    if conversion_status == ConversionStatus.PENDING:
+        # Seek original file to beginning since upload_file might have read it
+        await file.seek(0)
+        original_bytes = await file.read()
+        
+        pdf_bytes = await convert_to_pdf(original_bytes, file.filename)
+        if pdf_bytes:
+            # Wrap bytes for storage upload
+            import io
+            from fastapi import UploadFile
+            pdf_filename = f"{file.filename.rsplit('.', 1)[0]}.pdf"
+            pdf_file = UploadFile(
+                file=io.BytesIO(pdf_bytes),
+                filename=pdf_filename
+            )
+            pdf_file.content_type = "application/pdf"
+            
+            try:
+                pdf_stored = await storage.upload_file(pdf_file, folder="contributions/previews")
+                conversion_status = ConversionStatus.SUCCESS
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"Failed to store converted PDF for contribution: {e}")
+                conversion_status = ConversionStatus.FAILED
+        else:
+            conversion_status = ConversionStatus.FAILED
+
+    # The 'file_key' remains the primary access point (PDF if available, else original)
+    primary_stored = pdf_stored if pdf_stored else stored_original
 
     contribution = Contribution(
         id=generate_uuid(),
@@ -50,12 +87,20 @@ async def submit_contribution(
         course=payload.course,
         semester=payload.semester,
         category=payload.category,
-        file_path=stored.get("path"),
-        file_key=stored.get("file_key"),
-        file_url=stored.get("file_url"),
-        file_name=stored.get("file_name"),
-        file_size=stored.get("size"),
-        file_type=stored.get("content_type"),
+        
+        # Legacy/Primary compatibility
+        file_path=primary_stored.get("path"),
+        file_key=primary_stored.get("file_key"),
+        file_url=primary_stored.get("file_url"),
+        file_name=primary_stored.get("file_name"),
+        file_size=primary_stored.get("size"),
+        file_type=primary_stored.get("content_type"),
+
+        # New Non-destructive fields
+        original_file_key=stored_original.get("file_key"),
+        pdf_file_key=pdf_stored.get("file_key") if pdf_stored else None,
+        conversion_status=conversion_status,
+
         contributor_id=contributor.id,
         status=ContributionStatus.PENDING,
         processing_status=ProcessingStatus.UPLOAD_RECEIVED,
@@ -175,6 +220,9 @@ async def review_contribution(
             file_name=contribution.file_name,
             file_size=contribution.file_size,
             file_type=contribution.file_type,
+            original_file_key=contribution.original_file_key,
+            pdf_file_key=contribution.pdf_file_key,
+            conversion_status=contribution.conversion_status,
             uploader_id=contribution.contributor_id,
             category=contribution.category,
             is_approved=True,

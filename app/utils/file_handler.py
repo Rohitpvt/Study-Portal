@@ -20,7 +20,12 @@ ALLOWED_CONTENT_TYPES = {
     "application/pdf",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # .docx
     "application/msword",  # .doc
+    "text/plain",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",  # .pptx
+    "application/vnd.ms-powerpoint",  # .ppt
 }
+
+CONVERTIBLE_EXTENSIONS = {".pdf", ".docx", ".doc", ".txt", ".pptx", ".ppt"}
 
 
 def _validate_file(file: UploadFile, allowed_types: set = None) -> None:
@@ -386,8 +391,4 @@ def get_storage() -> StorageBackend:
         except Exception as exc:
             import logging
             logging.getLogger(__name__).error(f"S3 init failed: {exc}")
-    return LocalStorage(base_dir=settings.UPLOAD_DIR)
-
-# Expose global storage instance (and the factory function per requirements)
-storage: StorageBackend = get_storage()
-
+    return LocalStora

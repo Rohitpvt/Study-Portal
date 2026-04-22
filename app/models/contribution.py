@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.models.base import TimestampMixin, generate_uuid
-from app.models.material import Category
+from app.models.material import Category, ConversionStatus
 
 
 class ContributionStatus(str, enum.Enum):
@@ -75,6 +75,15 @@ class Contribution(Base, TimestampMixin):
     file_name:   Mapped[str] = mapped_column(String(255), nullable=False)
     file_size:   Mapped[int] = mapped_column(Integer,     nullable=False)
     file_type:   Mapped[str] = mapped_column(String(50),  nullable=False)
+
+    # ── Non-destructive dual-key architecture (NEW) ──────────────────────────
+    original_file_key: Mapped[str|None] = mapped_column(String(512), nullable=True)
+    pdf_file_key:      Mapped[str|None] = mapped_column(String(512), nullable=True)
+    conversion_status: Mapped[ConversionStatus|None] = mapped_column(
+        Enum(ConversionStatus, name="conversionstatus"),
+        default=ConversionStatus.PENDING,
+        nullable=True
+    )
 
     # Review lifecycle (legacy admin workflow — DO NOT MODIFY)
     status: Mapped[ContributionStatus] = mapped_column(

@@ -216,7 +216,7 @@ export default function Materials() {
     }
     try {
       await api.post('/materials', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      alert('Material successfully uploaded to the global library.');
+      success('Material successfully uploaded and processed. Non-PDF files have been automatically converted for preview.');
       setFile(null);
       fetchMaterials();
     } catch (err) {
@@ -276,10 +276,10 @@ export default function Materials() {
             <select className="glass p-5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 outline-none border-white/60 dark:border-slate-700/50 dark:text-white dark:bg-slate-900 cursor-pointer" required value={uploadData.category} onChange={e => setUploadData({ ...uploadData, category: e.target.value })}>
               {CATEGORIES.map(cat => <option key={cat.id} value={cat.id} className="dark:bg-slate-900">{cat.name}</option>)}
             </select>
-            <input type="file" required accept=".pdf" className="glass p-5 rounded-2xl text-xs font-black file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-indigo-600 dark:file:bg-indigo-500 file:text-white hover:file:bg-indigo-700 transition-all border-white/60 dark:border-slate-700/50 cursor-pointer dark:text-slate-400" onChange={e => setFile(e.target.files[0])} />
+            <input type="file" required accept=".pdf,.docx,.doc,.txt" className="glass p-5 rounded-2xl text-xs font-black file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-indigo-600 dark:file:bg-indigo-500 file:text-white hover:file:bg-indigo-700 transition-all border-white/60 dark:border-slate-700/50 cursor-pointer dark:text-slate-400" onChange={e => setFile(e.target.files[0])} />
             <button type="submit" disabled={uploading || !file} className="premium-gradient font-black p-5 rounded-2xl hover:shadow-indigo-200 disabled:opacity-50 transition-all shadow-xl active:scale-[0.98] lg:col-span-3 flex items-center justify-center gap-3">
               <UploadIcon className="w-5 h-5" />
-              {uploading ? 'Processing & Indexing Material...' : 'Authorize Global Upload'}
+              {uploading ? 'Processing & Converting Material...' : 'Authorize Global Upload'}
             </button>
           </form>
         </div>

@@ -10,8 +10,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 from app.models.contribution import ContributionStatus
-from app.models.material import Category
-from app.models.material import Category
+from app.models.material import Category, ConversionStatus
 
 
 class ContributionCreate(BaseModel):
@@ -46,6 +45,8 @@ class ContributionOut(BaseModel):
     admin_notes: Optional[str]
     contributor_id: str
     file_url: Optional[str] = None
+    pdf_file_key: Optional[str] = None
+    conversion_status: Optional[ConversionStatus] = None
     created_at: datetime
     updated_at: datetime
     
@@ -155,6 +156,7 @@ class ContributionStatusTracker(BaseModel):
     processing_completed_at: Optional[datetime] = None
     final_recommendation: Optional[str] = None
     student_feedback_message: Optional[str] = None
+    conversion_status: Optional[ConversionStatus] = None
     completed_steps: list[str] = []
     current_step: Optional[str] = None
     progress_percentage: int = 0
@@ -205,6 +207,7 @@ class ContributionStatusTracker(BaseModel):
             processing_completed_at=contrib.processing_completed_at,
             final_recommendation=recommendation_val,
             student_feedback_message=contrib.student_feedback_message,
+            conversion_status=contrib.conversion_status,
             completed_steps=completed,
             current_step=current,
             progress_percentage=pct,
