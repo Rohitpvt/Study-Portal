@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import AuthGuard from './components/layout/AuthGuard';
 import Login from './pages/auth/Login';
@@ -13,6 +13,7 @@ import DocumentViewer from './pages/Viewer';
 import Profile from './pages/Profile';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Footer from './components/layout/Footer';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ToastContainer } from './components/common/Toast';
@@ -52,8 +53,6 @@ const AppContent = () => {
             <Route path="/viewer/:materialId" element={<DocumentViewer />} />
             <Route path="/viewer" element={<DocumentViewer />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
             
             {/* Restricted Route: Students Only */}
             <Route element={<AuthGuard allowedRoles={['student']} />}>
@@ -67,6 +66,12 @@ const AppContent = () => {
           </Route>
         </Route>
 
+        {/* Public Routes - With Navbar and Layout */}
+        <Route element={<AppLayout />}>
+           <Route path="/about" element={<About />} />
+           <Route path="/contact" element={<Contact />} />
+        </Route>
+
         {/* Fallback 404 Route */}
         <Route path="*" element={<ErrorPage type="404" />} />
 
@@ -76,16 +81,23 @@ const AppContent = () => {
 };
 
 
-const AppLayout = () => (
-  <AuthProvider>
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-transparent transition-colors duration-300">
-      <Navbar />
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-8">
-        <Outlet />
-      </main>
-    </div>
-  </AuthProvider>
-);
+const AppLayout = () => {
+  const location = useLocation();
+  const hideFooterOn = ['/viewer', '/chat'];
+  const shouldHideFooter = hideFooterOn.some(path => location.pathname.startsWith(path));
+
+  return (
+    <AuthProvider>
+      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-transparent transition-colors duration-300">
+        <Navbar />
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-8">
+          <Outlet />
+        </main>
+        {!shouldHideFooter && <Footer />}
+      </div>
+    </AuthProvider>
+  );
+};
 
 function App() {
   return (

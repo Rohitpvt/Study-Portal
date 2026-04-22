@@ -14,7 +14,8 @@ import {
   ChevronDown,
   Settings,
   Sun,
-  Moon
+  Moon,
+  LogIn
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
@@ -74,24 +75,28 @@ export default function Navbar() {
   };
 
   const authPages = ['/login', '/register'];
-  if (!token || !userProfile || authPages.includes(location.pathname)) return null;
+  if (authPages.includes(location.pathname)) return null;
+
+  const isLoggedIn = !!(token && userProfile);
 
   const isAdmin = userProfile && userProfile.role?.toLowerCase() === 'admin';
 
-  const primaryLinks = [
+  const primaryLinks = isLoggedIn ? [
     { to: '/dashboard', label: 'Terminal', icon: LayoutDashboard },
     { to: '/materials', label: 'Library', icon: BookOpen },
     { to: '/chat', label: 'Research AI', icon: Bot },
-  ];
+  ] : [];
 
-  if (!isAdmin) {
-    primaryLinks.push({ to: '/contributions', label: 'Contribute', icon: UploadCloud });
-  } else {
-    primaryLinks.push({ to: '/admin', label: 'Admin Panel', icon: ShieldCheck });
+  if (isLoggedIn) {
+    if (!isAdmin) {
+      primaryLinks.push({ to: '/contributions', label: 'Contribute', icon: UploadCloud });
+    } else {
+      primaryLinks.push({ to: '/admin', label: 'Admin Panel', icon: ShieldCheck });
+    }
   }
 
   const secondaryLinks = [
-    { to: '/favorites', label: 'Favorites', icon: Star },
+    ...(isLoggedIn ? [{ to: '/favorites', label: 'Favorites', icon: Star }] : []),
     { to: '/about', label: 'About Us', icon: Info },
     { to: '/contact', label: 'Contact Us', icon: Mail },
   ];
@@ -179,6 +184,15 @@ export default function Navbar() {
               >
                 {theme === 'dark' ? <Sun className="w-5 h-5 fill-current" /> : <Moon className="w-5 h-5 fill-current" />}
               </button>
+
+              {!isLoggedIn && (
+                <Link 
+                  to="/login"
+                  className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-black rounded-xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
+                >
+                  <LogIn className="w-4 h-4" /> Sign In
+                </Link>
+              )}
 
               {userProfile && (
                 <div className="relative" ref={profileRef}>
@@ -310,21 +324,33 @@ export default function Navbar() {
           </div>
           
           <div className="absolute bottom-0 left-0 right-0 p-8 border-t border-slate-50 dark:border-slate-800/50 bg-slate-50/50 dark:bg-black/20">
-             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0.5 shadow-sm">
-                   <img src={resolveUserAvatar(userProfile)} alt="Avatar" className="w-full h-full object-contain" />
-                </div>
-                <div className="flex flex-col min-w-0">
-                   <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{userProfile?.display_name || userProfile?.full_name}</span>
-                   <span className="text-[10px] uppercase font-black text-indigo-500 tracking-widest truncate">{userProfile?.course?.substring(0, 24) || 'Verified Student'}</span>
-                </div>
-             </div>
-             <button
-               onClick={handleLogout}
-               className="w-full h-12 flex items-center justify-center mt-6 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-black uppercase tracking-widest hover:bg-red-100 transition-all"
-             >
-               Sign Out
-             </button>
+             {isLoggedIn ? (
+               <>
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0.5 shadow-sm">
+                       <img src={resolveUserAvatar(userProfile)} alt="Avatar" className="w-full h-full object-contain" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                       <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{userProfile?.display_name || userProfile?.full_name}</span>
+                       <span className="text-[10px] uppercase font-black text-indigo-500 tracking-widest truncate">{userProfile?.course?.substring(0, 24) || 'Verified Student'}</span>
+                    </div>
+                 </div>
+                 <button
+                   onClick={handleLogout}
+                   className="w-full h-12 flex items-center justify-center mt-6 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-black uppercase tracking-widest hover:bg-red-100 transition-all"
+                 >
+                   Sign Out
+                 </button>
+               </>
+             ) : (
+               <Link
+                 to="/login"
+                 onClick={() => setIsMobileMenuOpen(false)}
+                 className="w-full h-12 flex items-center justify-center rounded-2xl bg-indigo-600 text-white text-sm font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
+               >
+                 Sign In to Portal
+               </Link>
+             )}
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { Mail, Lock, LogIn, ShieldCheck, KeyRound, RefreshCw, Eye, EyeOff, Sun, Moon } from 'lucide-react';
+import { Mail, Lock, LogIn, ShieldCheck, Eye, EyeOff, Sun, Moon } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -11,12 +11,8 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [step, setStep] = useState(1);
-  const [otpCode, setOtpCode] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [verifyingOtp, setVerifyingOtp] = useState(false);
-  const [resending, setResending] = useState(false);
   const navigate = useNavigate();
 
   // Redirect already-authenticated users to dashboard
@@ -27,49 +23,12 @@ export default function Login() {
     }
   }, [navigate]);
 
-  const handleLoginInit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     
     try {
-      await api.post('/auth/login-init', { email, password });
-      setStep(2);
-      success("Credentials validated. OTP dispatched to your email.");
-    } catch (err) {
-      const msg = err.response?.data?.detail || "Access denied. Strategic credentials mismatch.";
-      setError(msg);
-      toastError(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setResending(true);
-    try {
-      await api.post('/auth/resend-otp', { email, purpose: 'login' });
-      success("OTP resent to your email.");
-    } catch (err) {
-      toastError(err.response?.data?.detail || "Failed to resend OTP.");
-    } finally {
-      setResending(false);
-    }
-  };
-
-  const handleVerifyAndLogin = async (e) => {
-    e.preventDefault();
-    if (otpCode.length !== 6) {
-      toastError("OTP must be exactly 6 digits.");
-      return;
-    }
-    setError(null);
-    setVerifyingOtp(true);
-    try {
-      // Step 2a: Verify OTP securely in DB
-      await api.post('/auth/verify-otp', { email, purpose: 'login', otp: otpCode });
-      
-      // Step 2b: Proceed to extract formal JWT auth tokens
       const formData = new URLSearchParams();
       formData.append('username', email);
       formData.append('password', password);
@@ -79,15 +38,16 @@ export default function Login() {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       });
+      
       localStorage.setItem('access_token', response.data.access_token);
       success("Access Granted. Welcome back!");
       navigate('/dashboard');
     } catch (err) {
-      const msg = err.response?.data?.detail || "Invalid OTP code or session timeout.";
+      const msg = err.response?.data?.detail || "Access denied. Invalid credentials.";
       setError(msg);
       toastError(msg);
     } finally {
-      setVerifyingOtp(false);
+      setLoading(false);
     }
   };
 
@@ -125,127 +85,83 @@ export default function Login() {
           </div>
         )}
 
-        {step === 1 ? (
-          <form className="space-y-6" onSubmit={handleLoginInit}>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">University Credential</label>
-              <div className="relative group/input">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-5 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
-                  placeholder="id@christuniversity.in"
-                  required
-                />
+        <form className="space-y-6" onSubmit={handleLogin}>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">University Credential</label>
+            <div className="relative group/input">
+              <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
+                <Mail className="w-5 h-5" />
               </div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-5 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
+                placeholder="id@christuniversity.in"
+                required
+              />
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Security Token</label>
-              <div className="relative group/input">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
-                  <Lock className="w-5 h-5" />
-                </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="glass dark:bg-slate-800/40 block w-full pl-14 pr-12 py-5 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
-                  placeholder="••••••••"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-5 flex items-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Security Token</label>
+            <div className="relative group/input">
+              <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
+                <Lock className="w-5 h-5" />
               </div>
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="glass dark:bg-slate-800/40 block w-full pl-14 pr-12 py-5 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
+                placeholder="••••••••"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-5 flex items-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
+          </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full mt-4 flex justify-center items-center gap-3 py-5 px-4 border-transparent rounded-2xl shadow-xl shadow-indigo-100 dark:shadow-none text-sm font-black text-white premium-gradient hover:opacity-90 disabled:opacity-50 transition-all active:scale-[0.98]"
-            >
-              {loading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-.3s]"></div>
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-.5s]"></div>
-                </div>
-              ) : (
-                <>
-                  <LogIn className="w-5 h-5" />
-                  INITIATE SESSION
-                </>
-              )}
-            </button>
-          </form>
-        ) : (
-          <form className="space-y-6 animate-in fade-in slide-in-from-right-4" onSubmit={handleVerifyAndLogin}>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">2-Factor Authentication OTP</label>
-              <div className="relative group/input flex gap-2">
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
-                    <KeyRound className="w-5 h-5" />
-                  </div>
-                  <input
-                    type="text"
-                    maxLength={6}
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value)}
-                    className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-5 border-white/60 dark:border-slate-700/50 rounded-2xl text-lg tracking-widest font-black text-center text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
-                    placeholder="123456"
-                    required
-                  />
-                </div>
-                <button
-                  type="button"
-                  disabled={resending}
-                  onClick={handleResend}
-                  className="px-6 py-5 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-black text-sm border border-indigo-100 dark:border-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors disabled:opacity-50 flex items-center gap-2"
-                >
-                  {resending ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Resend'}
-                </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full mt-4 flex justify-center items-center gap-3 py-5 px-4 border-transparent rounded-2xl shadow-xl shadow-indigo-100 dark:shadow-none text-sm font-black text-white premium-gradient hover:opacity-90 disabled:opacity-50 transition-all active:scale-[0.98]"
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-.3s]"></div>
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-.5s]"></div>
               </div>
-            </div>
+            ) : (
+              <>
+                <LogIn className="w-5 h-5" />
+                ACCESS PORTAL
+              </>
+            )}
+          </button>
+        </form>
 
-            <button
-              type="submit"
-              disabled={verifyingOtp || otpCode.length !== 6}
-              className="w-full mt-4 flex justify-center items-center gap-3 py-5 px-4 rounded-2xl shadow-xl text-sm font-black text-white bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 transition-all active:scale-[0.98]"
-            >
-              {verifyingOtp ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-.3s]"></div>
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-.5s]"></div>
-                </div>
-              ) : (
-                <>
-                  <ShieldCheck className="w-5 h-5" />
-                  VERIFY & ACCESS
-                </>
-              )}
-            </button>
-          </form>
-        )}
-
-        <p className="mt-10 text-center text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-colors">
-          New researcher?{' '}
-          <Link to="/register" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors ml-1">
-            REQUEST ACCESS
-          </Link>
-        </p>
+        <div className="mt-10 flex flex-col items-center gap-4 border-t border-slate-100 dark:border-slate-800 pt-8">
+          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-colors">
+            New researcher?{' '}
+            <Link to="/register" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors ml-1">
+              REQUEST ACCESS
+            </Link>
+          </p>
+          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-colors">
+            Facing issues?{' '}
+            <Link to="/contact" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors ml-1">
+              CONTACT SUPPORT
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
 }
-

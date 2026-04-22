@@ -129,19 +129,19 @@ async def authenticate_user(email: str, password: str, db: AsyncSession) -> Toke
             user.course = extracted
             await db.commit()
 
-    # Enforce Login OTP Verification
-    otp_record_result = await db.execute(select(OTPRecord).where(
-        OTPRecord.email == email,
-        OTPRecord.purpose == "login",
-        OTPRecord.verified == True
-    ).order_by(OTPRecord.created_at.desc()))
-    otp_record = otp_record_result.scalars().first()
-    if not otp_record:
-        raise HTTPException(status_code=403, detail="OTP verification required. Please complete authentication flow.")
+    # Enforce Login OTP Verification (Rollback: Removed as per user request)
+    # otp_record_result = await db.execute(select(OTPRecord).where(
+    #     OTPRecord.email == email,
+    #     OTPRecord.purpose == "login",
+    #     OTPRecord.verified == True
+    # ).order_by(OTPRecord.created_at.desc()))
+    # otp_record = otp_record_result.scalars().first()
+    # if not otp_record:
+    #     raise HTTPException(status_code=403, detail="OTP verification required. Please complete authentication flow.")
     
     # Delete the OTP record safely
-    await db.execute(delete(OTPRecord).where(OTPRecord.id == otp_record.id))
-    await db.commit()
+    # await db.execute(delete(OTPRecord).where(OTPRecord.id == otp_record.id))
+    # await db.commit()
 
     return TokenResponse(
         access_token=create_access_token(subject=user.id, role=user.role.value),
