@@ -182,7 +182,7 @@ export default function Chat() {
           />
         )}
 
-        <div className="relative h-full glass dark:bg-slate-900 border-white/40 dark:border-slate-800 rounded-[40px] flex flex-col overflow-hidden shadow-2xl">
+        <div className="relative h-full glass dark:bg-[#050505] border-white/40 dark:border-white/5 rounded-[40px] flex flex-col overflow-hidden shadow-2xl">
           <div className="p-6">
             <button
               onClick={startNewChat}
@@ -300,7 +300,7 @@ export default function Chat() {
       </aside>
 
       {/* ── MAIN CHAT AREA ──────────────────────────────────────────────────── */}
-      <main className="flex-1 flex flex-col glass dark:bg-slate-900 rounded-[40px] shadow-2xl border-0 overflow-hidden relative">
+      <main className="flex-1 flex flex-col glass dark:bg-[#050505] rounded-[40px] shadow-2xl border-0 overflow-hidden relative">
         <div className="p-8 premium-gradient flex items-center gap-6 relative z-10 shadow-lg">
           {/* Mobile Menu Toggle */}
           <button 
@@ -343,7 +343,7 @@ export default function Chat() {
                     <div className={`relative w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center shadow-xl interactive-scale ${
                       msg.role === 'user' 
                         ? 'p-0 bg-white dark:bg-slate-800 ring-2 ring-indigo-200 dark:ring-indigo-900/50 overflow-visible' 
-                        : 'glass dark:bg-slate-900 dark:border-slate-800 text-indigo-600 dark:text-indigo-400 overflow-hidden'
+                        : 'glass dark:bg-[#0a0a0a] dark:border-white/5 text-indigo-600 dark:text-indigo-400 overflow-hidden'
                     }`}>
                       {msg.role === 'user' ? (
                          userProfile ? (
@@ -361,7 +361,7 @@ export default function Chat() {
                       <div className={`p-8 rounded-[2.5rem] text-[15px] font-semibold leading-relaxed shadow-xl ${
                         msg.role === 'user' 
                           ? 'premium-gradient text-white rounded-tr-none border-0 shadow-indigo-200 dark:shadow-none' 
-                          : 'glass dark:bg-slate-900 text-slate-700 dark:text-slate-200 rounded-tl-none border-white/60 dark:border-slate-800'
+                          : 'glass dark:bg-[#0a0a0a] text-slate-700 dark:text-slate-200 rounded-tl-none border-white/60 dark:border-white/5'
                       }`}>
                         {msg.text.split(/```/).map((part, i) => {
                           if (i % 2 === 1) {
@@ -436,7 +436,7 @@ export default function Chat() {
                                   key={sIdx}
                                   onClick={handleSourceClick}
                                   title={canNavigate ? `Open ${src.title}${src.page_number ? ` — Page ${src.page_number}` : ''}` : 'Source link unavailable'}
-                                  className={`glass dark:bg-slate-900 group transition-all p-4 rounded-3xl border-white/80 dark:border-slate-800 shadow-lg flex flex-col gap-1 min-w-[160px] max-w-[280px] interactive-scale pointer-events-auto ${
+                                  className={`glass dark:bg-[#0a0a0a] group transition-all p-4 rounded-3xl border-white/80 dark:border-white/5 shadow-lg flex flex-col gap-1 min-w-[160px] max-w-[280px] interactive-scale pointer-events-auto ${
                                     canNavigate
                                       ? 'cursor-pointer hover:bg-indigo-50/60 dark:hover:bg-indigo-950/40 hover:border-indigo-200 dark:hover:border-indigo-900 hover:shadow-indigo-100 dark:hover:shadow-none hover:ring-2 hover:ring-indigo-100 dark:hover:ring-indigo-900/50'
                                       : 'cursor-not-allowed opacity-60'

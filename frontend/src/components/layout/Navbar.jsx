@@ -142,14 +142,14 @@ export default function Navbar() {
                 <button
                   onClick={() => setIsMoreOpen(!isMoreOpen)}
                   className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 gap-2 ${
-                    isMoreOpen ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
+                    isMoreOpen ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-black/40"
                   }`}
                 >
                   More <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isMoreOpen ? "rotate-180" : ""}`} />
                 </button>
 
                 {isMoreOpen && (
-                  <div className="absolute top-[80%] right-0 mt-3 w-52 glass rounded-2xl p-2 shadow-2xl border border-white/20 dark:border-slate-800 animate-in fade-in slide-in-from-top-3 duration-300 origin-top-right">
+                  <div className="absolute top-[80%] right-0 mt-3 w-52 glass rounded-2xl p-2 shadow-2xl border border-white/20 dark:border-white/5 animate-in fade-in slide-in-from-top-3 duration-300 origin-top-right">
                     {secondaryLinks.map((link) => (
                       <Link 
                         key={link.to}
@@ -184,7 +184,7 @@ export default function Navbar() {
                 <div className="relative" ref={profileRef}>
                   <button 
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="group hidden md:flex items-center gap-3 bg-white/40 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50 pl-1.5 pr-4 py-1.5 rounded-2xl hover:bg-white dark:hover:bg-slate-800 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300"
+                    className="group hidden md:flex items-center gap-3 bg-white/40 dark:bg-black/40 border border-slate-200/50 dark:border-white/5 pl-1.5 pr-4 py-1.5 rounded-2xl hover:bg-white dark:hover:bg-[#0a0a0a] hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300"
                   >
                     <div className="relative w-9 h-9 rounded-xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-0.5 shrink-0 group-hover:ring-2 ring-indigo-500/20 transition-all">
                       <img src={resolveUserAvatar(userProfile)} alt="Avatar" className="w-full h-full object-contain" onError={handleAvatarError} />
@@ -250,7 +250,7 @@ export default function Navbar() {
         ></div>
         
         {/* Panel */}
-        <div className={`absolute inset-y-0 right-0 w-[85%] max-w-[320px] bg-white dark:bg-slate-900 shadow-2xl transition-transform duration-500 ease-out border-l border-white/10 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`absolute inset-y-0 right-0 w-[85%] max-w-[320px] bg-white dark:bg-[#050505] shadow-2xl transition-transform duration-500 ease-out border-l border-white/10 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="h-24 flex items-center justify-between px-8 border-b border-slate-50 dark:border-slate-800/50">
             <div className="flex flex-col">
                <span className="text-xl font-black text-slate-900 dark:text-white tracking-tighter">CU PORTAL</span>

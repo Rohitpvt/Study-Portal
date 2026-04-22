@@ -6,7 +6,7 @@
   @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
   body {
-    @apply bg-[#fcfdfe] dark:bg-[#000000] text-slate-900 dark:text-slate-100 antialiased font-['Outfit',_sans-serif] transition-colors duration-300;
+    @apply bg-[#fcfdfe] dark:bg-[#050505] text-slate-900 dark:text-slate-100 antialiased font-['Outfit',_sans-serif] transition-colors duration-300;
     --mouse-glow-color: rgba(99, 102, 241, 0.03);
     background-image: 
       radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0, transparent 40%),
@@ -17,18 +17,19 @@
   }
 
   .dark body {
-    --mouse-glow-color: rgba(139, 92, 246, 0.07);
+    --mouse-glow-color: rgba(139, 92, 246, 0.05);
     background-image: 
-      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.04) 0, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.03) 0, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(79, 70, 229, 0.03) 0, transparent 50%),
-      radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.03) 0, transparent 50%);
+      radial-gradient(at 0% 0%, #0a0a0a 0, transparent 60%),
+      radial-gradient(at 100% 0%, #050505 0, transparent 60%),
+      radial-gradient(at 100% 100%, #080808 0, transparent 60%),
+      radial-gradient(at 0% 100%, #030303 0, transparent 60%);
+    background-color: #050505;
   }
 }
 
 @layer components {
   .glass {
-    @apply bg-white/70 dark:bg-[#020617]/50 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.5)];
+    @apply bg-white/70 dark:bg-[#0c0c0c]/80 backdrop-blur-2xl border border-white/40 dark:border-white/[0.03] shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)];
   }
 
   .premium-gradient {
@@ -49,7 +50,7 @@
 
   /* ── Modern Navbar Utilities ── */
   .glass-nav {
-    @apply bg-white/70 dark:bg-[#020617]/70 backdrop-blur-xl border-b border-white/20 dark:border-slate-800/50 shadow-lg shadow-indigo-500/5 transition-all duration-500;
+    @apply bg-white/70 dark:bg-black/80 backdrop-blur-2xl border-b border-white/20 dark:border-white/5 shadow-xl shadow-black/20 transition-all duration-500;
   }
 
   .nav-link-underline {
