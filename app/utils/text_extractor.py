@@ -53,33 +53,37 @@ async def extract_text(file_path: str) -> list[dict]:
         text = re.sub(r'\s+', ' ', text)
         return text.strip()
 
-    try:
-        if file_path.lower().split("?")[0].endswith(".pdf"):
-            import fitz  # PyMuPDF
-            pages: list[dict] = []
-            
-            with fitz.open(stream=file_bytes, filetype="pdf") as doc:
-                for i, page in enumerate(doc):
-                    text = clean_text(page.get_text())
-                    if text:
-                        pages.append({"text": text, "page": i + 1})
-            return pages
+    def _sync_extract():
+        try:
+            if file_path.lower().split("?")[0].endswith(".pdf"):
+                import fitz  # PyMuPDF
+                pages: list[dict] = []
+                
+                with fitz.open(stream=file_bytes, filetype="pdf") as doc:
+                    for i, page in enumerate(doc):
+                        text = clean_text(page.get_text())
+                        if text:
+                            pages.append({"text": text, "page": i + 1})
+                return pages
 
-        elif file_path.lower().split("?")[0].endswith((".docx", ".doc")):
-            from docx import Document
-            doc = Document(io.BytesIO(file_bytes))
-            full_text = clean_text("\n".join(p.text for p in doc.paragraphs if p.text.strip()))
-            if full_text:
-                return [{"text": full_text, "page": 1}]
+            elif file_path.lower().split("?")[0].endswith((".docx", ".doc")):
+                from docx import Document
+                doc = Document(io.BytesIO(file_bytes))
+                full_text = clean_text("\n".join(p.text for p in doc.paragraphs if p.text.strip()))
+                if full_text:
+                    return [{"text": full_text, "page": 1}]
+                return []
+
+            elif file_path.lower().split("?")[0].endswith(".txt"):
+                text = clean_text(file_bytes.decode('utf-8', errors="ignore"))
+                if text:
+                    return [{"text": text, "page": 1}]
+                return []
+
+        except Exception as e:
+            logger.warning(f"Internal extraction logic failed for '{file_path}': {e}")
             return []
+        return []
 
-        elif file_path.lower().split("?")[0].endswith(".txt"):
-            text = clean_text(file_bytes.decode('utf-8', errors="ignore"))
-            if text:
-                return [{"text": text, "page": 1}]
-            return []
-
-    except Exception as e:
-        logger.warning(f"Text extraction failed for '{file_path}': {e}")
-
-    return []
+    import asyncio
+    return await asyncio.to_thread(_sync_extract)

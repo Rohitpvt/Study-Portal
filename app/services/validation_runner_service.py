@@ -742,9 +742,21 @@ async def run_validation_pipeline(contribution_id: str, db: AsyncSession) -> Non
                 # FILE_STORED is a pure status marker, no layer logic
                 continue
 
-            # Execute the layer
+            # Execute the layer with a hard 30s timeout to prevent hangs
             try:
-                result = await layer_fn(contribution, pipeline_context)
+                import asyncio
+                result = await asyncio.wait_for(
+                    layer_fn(contribution, pipeline_context),
+                    timeout=30.0
+                )
+            except asyncio.TimeoutError:
+                logger.error(f"[{contribution_id[:8]}] Layer '{layer_name}' TIMED OUT after 30s")
+                result = LayerResult(
+                    layer_name=layer_name,
+                    passed=False,
+                    error="Processing step timed out.",
+                    details={"error_type": TECH_FAILURE, "summary_feedback": "This step took too long and was automatically terminated."}
+                )
             except Exception as e:
                 logger.error(f"[{contribution_id[:8]}] Layer '{layer_name}' CRASHED: {e}")
                 result = LayerResult(

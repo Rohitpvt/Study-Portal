@@ -280,14 +280,11 @@ async def ask(
         r"\b(what.*is.*your.*name)\b",
         r"tell me about yourself",
         # World Knowledge Overrides (Strict Patterns)
-        r"\b(who.*is.*(the.*)?prime minister)\b",
-        r"\b(prime minister.*is)\b",
-        r"\b(who.*is.*(the.*)?president)\b",
-        r"\b(president.*is)\b",
-        r"\b(what.*is.*(the.*)?capital of)\b",
-        r"\b(capital of.*is)\b",
-        r"\b(where.*is.*(the.*)?(city|country|capital) of)\b",
-        r"\b(who.*is.*(elon musk|bill gates|steve jobs|mark zuckerberg|narendra modi))\b"
+        r"\b(who.*is.*(elon musk|bill gates|steve jobs|mark zuckerberg|narendra modi))\b",
+        # Broad World Knowledge / General topics
+        r"\b(what.*is.*(kiwi|apple|banana|mango|fruit|animal|dog|cat|weather))\b",
+        r"\b(tell.*me.*a.*(joke|story|poem))\b",
+        r"\b(how.*to.*(cook|bake|make))\b"
     ]
     
     is_general_query = False
@@ -340,7 +337,7 @@ async def ask(
         # ── 5.1 Multi-Signal Relevance Gating ──────────────────────────────────
         num_hits = len(source_labels)
         context_len = len(raw_context)
-        soft_threshold = min(SIMILARITY_THRESHOLD + 0.2, 1.2)
+        soft_threshold = min(SIMILARITY_THRESHOLD + 0.05, 0.95)
         
         # Detect summary/explanation intent
         summary_keywords = ["summarize", "summary", "explain", "describe", "detail", "definition", "what is", "about"]
@@ -463,7 +460,8 @@ async def ask(
             "You are a professional AI assistant. Answer the user's query naturally "
             "from your internal knowledge. Do NOT mention any uploaded materials, "
             "library inventory, or 'provided context', as none was provided. "
-            "Provide a helpful and direct answer based on general knowledge."
+            "Provide a helpful and direct answer based on general knowledge. "
+            "Do not cite any sources."
         )
 
     # Construct the full message list for NVIDIA NIM
@@ -518,6 +516,10 @@ async def ask(
     ))
     await db.flush()
 
+    # ── 9. Final Safety Cleanup (Source of Truth Enforcement) ─────────────────
+    if mode != "document":
+        source_labels = []
+    
     return ChatResponse(session_id=session.id, answer=answer, mode=mode, sources=source_labels)
 
 

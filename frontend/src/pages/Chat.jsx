@@ -371,13 +371,13 @@ export default function Chat() {
                     <div className="ml-20 space-y-4">
                       {msg.mode && (
                         <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border backdrop-blur-md shadow-sm transition-all ${
-                          msg.mode === 'document'
+                          (msg.mode === 'document' && msg.sources?.length > 0)
                             ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
                             : msg.mode === 'library'
                             ? 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-800'
                             : 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800'
                         }`}>
-                          {msg.mode === 'document' ? (
+                          {(msg.mode === 'document' && msg.sources?.length > 0) ? (
                             <>
                               <BookOpen className="w-3 h-3" />
                               <span>Answered from uploaded materials</span>
