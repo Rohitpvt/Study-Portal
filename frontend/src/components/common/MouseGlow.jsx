@@ -21,7 +21,7 @@ export default function MouseGlow() {
       ref={glowRef}
       className="fixed inset-0 pointer-events-none z-[9999] opacity-0 lg:opacity-100 transition-opacity duration-1000 overflow-hidden"
       style={{
-        background: `radial-gradient(800px circle at var(--mouse-x, -100%) var(--mouse-y, -100%), var(--mouse-glow-color), transparent 80%)`
+        background: `radial-gradient(500px circle at var(--mouse-x, -100%) var(--mouse-y, -100%), var(--mouse-glow-color), transparent 80%)`
       }}
     />
   );
