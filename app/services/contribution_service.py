@@ -193,3 +193,82 @@ async def review_contribution(
 
     await db.flush()
     return contribution
+
+
+async def reprocess_contribution(
+    contribution_id: str,
+    user: User,
+    db: AsyncSession,
+    background_tasks: BackgroundTasks,
+) -> Contribution:
+    """
+    Rerun the AI validation pipeline for a failed contribution.
+    """
+    result = await db.execute(
+        select(Contribution).where(
+            Contribution.id == contribution_id,
+            Contribution.contributor_id == user.id
+        )
+    )
+    contribution = result.scalar_one_or_none()
+    if not contribution:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contribution not found.")
+
+    if contribution.processing_status != ProcessingStatus.PROCESSING_FAILED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail=f"Only failed contributions can be reprocessed. Current status: {contribution.processing_status}"
+        )
+
+    # Reset status and trigger pipeline
+    contribution.processing_status = ProcessingStatus.UPLOAD_RECEIVED
+    contribution.status = ContributionStatus.PENDING
+    contribution.processing_started_at = None
+    contribution.processing_completed_at = None
+    
+    # Trigger background task
+    from app.background.ai_tasks import run_validation_pipeline_task
+    background_tasks.add_task(run_validation_pipeline_task, contribution.id)
+
+    await db.commit()
+    await db.refresh(contribution)
+    return contribution
+
+
+async def delete_contribution(
+    contribution_id: str,
+    user: User,
+    db: AsyncSession,
+) -> bool:
+    """
+    Delete a failed contribution record and its associated file.
+    """
+    result = await db.execute(
+        select(Contribution).where(
+            Contribution.id == contribution_id,
+            Contribution.contributor_id == user.id
+        )
+    )
+    contribution = result.scalar_one_or_none()
+    if not contribution:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contribution not found.")
+
+    # Allow deleting failed or pending contributions
+    if contribution.status in [ContributionStatus.APPROVED, ContributionStatus.REJECTED]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Cannot delete a contribution that has already been approved or rejected by an admin."
+        )
+
+    # Delete the file from storage
+    storage = get_storage()
+    try:
+        await storage.delete_file(contribution.file_key or contribution.file_path)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Failed to delete file from storage: {e}")
+        # Continue with DB deletion even if storage fails
+
+    await db.delete(contribution)
+    await db.commit()
+    return True

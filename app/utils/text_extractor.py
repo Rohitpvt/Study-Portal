@@ -25,7 +25,7 @@ async def extract_text(file_path: str) -> list[dict]:
     if is_url:
         import httpx
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(file_path)
                 response.raise_for_status()
                 file_bytes = response.content

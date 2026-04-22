@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { UploadIcon, Activity, CheckCircle2, XCircle, Clock, FileText, Info } from 'lucide-react';
+import { UploadIcon, Activity, CheckCircle2, XCircle, Clock, FileText, Info, RotateCw, Trash2 } from 'lucide-react';
 import { ACADEMIC_DATA, CATEGORIES, SEMESTERS } from '../constants/academicData';
 import { useNotification } from '../context/NotificationContext';
 
@@ -16,6 +16,7 @@ export default function Contributions() {
   // Status Tracking & Polling
   const [statuses, setStatuses] = useState({}); // keyed by id
   const [isPolling, setIsPolling] = useState(false);
+  const [actionLoading, setActionLoading] = useState({}); // { [id]: 'reprocess' | 'delete' | null }
 
   const STATUS_CONFIG = {
     'upload_received': { label: 'Upload Received', color: 'bg-slate-400', progress: 10 },
@@ -124,6 +125,34 @@ export default function Contributions() {
        toastError(err.response?.data?.detail || "Upload failed. Please try again.");
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleReprocess = async (id) => {
+    setActionLoading(prev => ({ ...prev, [id]: 'reprocess' }));
+    try {
+      await api.post(`/contributions/${id}/reprocess`);
+      success("Reprocessing pipeline restarted.");
+      await fetchMine();
+    } catch (err) {
+      toastError(err.response?.data?.detail || "Failed to restart pipeline.");
+    } finally {
+      setActionLoading(prev => ({ ...prev, [id]: null }));
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this failed submission record? This action cannot be undone.")) return;
+    
+    setActionLoading(prev => ({ ...prev, [id]: 'delete' }));
+    try {
+      await api.delete(`/contributions/${id}`);
+      success("Submission record removed.");
+      await fetchMine();
+    } catch (err) {
+      toastError(err.response?.data?.detail || "Failed to remove submission.");
+    } finally {
+      setActionLoading(prev => ({ ...prev, [id]: null }));
     }
   };
 
@@ -240,6 +269,7 @@ export default function Contributions() {
                   <th className="py-6 pl-8 pr-4 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Document Horizon</th>
                   <th className="px-4 py-6 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Current Status</th>
                   <th className="px-4 py-6 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Insight Metrics</th>
+                  <th className="px-4 py-6 text-right pr-8 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/20 dark:divide-slate-800/50">
@@ -306,6 +336,28 @@ export default function Contributions() {
                             </div>
                           )}
                         </div>
+                      </td>
+                      <td className="px-4 py-6 text-right pr-8">
+                        {pStatus === 'processing_failed' && (
+                          <div className="flex items-center justify-end gap-3">
+                            <button
+                              onClick={() => handleReprocess(m.id)}
+                              disabled={actionLoading[m.id]}
+                              title="Reprocess Pipeline"
+                              className="p-3 rounded-xl glass dark:bg-slate-800/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:shadow-lg hover:shadow-indigo-500/10 transition-all disabled:opacity-50"
+                            >
+                              <RotateCw className={`w-4 h-4 ${actionLoading[m.id] === 'reprocess' ? 'animate-spin' : ''}`} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(m.id)}
+                              disabled={actionLoading[m.id]}
+                              title="Delete Failed Record"
+                              className="p-3 rounded-xl glass dark:bg-slate-800/40 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30 hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:shadow-lg hover:shadow-rose-500/10 transition-all disabled:opacity-50"
+                            >
+                              <Trash2 className={`w-4 h-4 ${actionLoading[m.id] === 'delete' ? 'animate-pulse' : ''}`} />
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );

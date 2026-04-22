@@ -91,7 +91,7 @@ def load_index() -> bool:
         logger.error(f"Failed to load RAG index: {e}")
         return False
 
-from openai import OpenAI, RateLimitError
+from openai import AsyncOpenAI, RateLimitError
 from app.services.key_manager import nvidia_key_manager
 
 async def embed(text: str, input_type: str = "passage") -> list[float]:
@@ -104,15 +104,16 @@ async def embed(text: str, input_type: str = "passage") -> list[float]:
         
         try:
             # Create a per-request client with the current key
-            client = OpenAI(
+            client = AsyncOpenAI(
                 base_url=settings.NVIDIA_BASE_URL,
                 api_key=api_key
             )
             
-            response = client.embeddings.create(
+            response = await client.embeddings.create(
                 input=[text],
                 model=settings.NVIDIA_EMBEDDING_MODEL,
-                extra_body={"input_type": input_type}
+                extra_body={"input_type": input_type},
+                timeout=10.0
             )
             return response.data[0].embedding
             

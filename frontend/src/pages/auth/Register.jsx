@@ -9,7 +9,8 @@ export default function Register() {
   const { success, error: toastError, info } = useNotification();
   const { theme, toggleTheme } = useTheme();
   const [formData, setFormData] = useState({
-    full_name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     roll_no: '',
     password: ''
@@ -85,6 +86,11 @@ export default function Register() {
       return;
     }
 
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      toastError("Please provide both your First and Last name.");
+      return;
+    }
+
     // Frontend Validation: Password confirmation
     if (!confirmPassword) {
       const msg = "Please re-enter your password to confirm.";
@@ -102,7 +108,15 @@ export default function Register() {
     setLoading(true);
 
     try {
-      await api.post('/auth/register', formData);
+      const payload = {
+        ...formData,
+        full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`
+      };
+      // Clean up the temporary fields
+      delete payload.firstName;
+      delete payload.lastName;
+
+      await api.post('/auth/register', payload);
       success("Account established successfully! Please verify your login credentials to enter the platform.");
       navigate('/login');
     } catch (err) {
@@ -156,20 +170,39 @@ export default function Register() {
         )}
 
         <form className="space-y-6" onSubmit={handleRegister}>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Full Identity</label>
-            <div className="relative group/input">
-              <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
-                <User className="w-5 h-5" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">First Name</label>
+              <div className="relative group/input">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
+                  <User className="w-5 h-5" />
+                </div>
+                <input
+                    type="text"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                    className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
+                    placeholder="Ex: First"
+                    required
+                  />
               </div>
-              <input
-                  type="text"
-                  value={formData.full_name}
-                  onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-                  className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
-                  placeholder="Ex: First Last"
-                  required
-                />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Last Name</label>
+              <div className="relative group/input">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
+                  <User className="w-5 h-5" />
+                </div>
+                <input
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                    className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
+                    placeholder="Ex: Last"
+                    required
+                  />
+              </div>
             </div>
           </div>
 

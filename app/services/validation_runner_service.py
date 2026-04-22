@@ -743,7 +743,25 @@ async def run_validation_pipeline(contribution_id: str, db: AsyncSession) -> Non
                 continue
 
             # Execute the layer
-            result = await layer_fn(contribution, pipeline_context)
+            try:
+                result = await layer_fn(contribution, pipeline_context)
+            except Exception as e:
+                logger.error(f"[{contribution_id[:8]}] Layer '{layer_name}' CRASHED: {e}")
+                result = LayerResult(
+                    layer_name=layer_name,
+                    passed=False,
+                    error=str(e),
+                    details={"error_type": TECH_FAILURE, "summary_feedback": "A technical error occurred during this step."}
+                )
+
+            if result is None:
+                result = LayerResult(
+                    layer_name=layer_name,
+                    passed=False,
+                    error="Layer returned None",
+                    details={"error_type": TECH_FAILURE, "summary_feedback": "Processing step returned an empty response."}
+                )
+
             collected_results.append(result)
 
             # ── Fail-Safe Logic ────────────────────────────────────────────────
@@ -877,6 +895,15 @@ async def run_validation_pipeline_task(contribution_id: str) -> None:
                 f"(contribution_id={contribution_id}): {exc}",
                 exc_info=True,
             )
+            # Final fallback to mark as failed
+            try:
+                await update_contribution_status(
+                    db, contribution_id,
+                    ProcessingStatus.PROCESSING_FAILED,
+                    message="An unexpected system error occurred. Please try reprocessing."
+                )
+            except:
+                pass
 """
 Sample log output from one upload:
 

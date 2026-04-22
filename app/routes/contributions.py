@@ -167,3 +167,40 @@ async def get_contribution_status(
         )
 
     return ContributionStatusTracker.from_contribution(contribution)
+
+
+@router.post(
+    "/{contribution_id}/reprocess",
+    response_model=ContributionOut,
+    summary="Rerun processing for a failed contribution",
+)
+async def reprocess_failed_contribution(
+    contribution_id: str,
+    background_tasks: BackgroundTasks,
+    db: DBSession,
+    current_user: StudentUser,
+):
+    """
+    Reruns the AI validation pipeline for a contribution that is stuck in PROCESSING_FAILED.
+    """
+    return await contribution_service.reprocess_contribution(
+        contribution_id, current_user, db, background_tasks
+    )
+
+
+@router.delete(
+    "/{contribution_id}",
+    status_code=204,
+    summary="Delete a failed or pending contribution",
+)
+async def delete_my_contribution(
+    contribution_id: str,
+    db: DBSession,
+    current_user: StudentUser,
+):
+    """
+    Permanently removes a contribution record and its associated file.
+    Only allowed if the contribution is not yet approved or rejected.
+    """
+    await contribution_service.delete_contribution(contribution_id, current_user, db)
+    return None
