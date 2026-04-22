@@ -127,7 +127,7 @@ async def ask(
     and metadata-aware academic filtering.
     """
     # ── 0. Thresholds & Safety Settings ───────────────────────────────────────
-    SIMILARITY_THRESHOLD = 0.85
+    SIMILARITY_THRESHOLD = 1.1
     MIN_CONTEXT_LENGTH   = 150
     MIN_VALID_HITS       = 2
 
@@ -337,7 +337,7 @@ async def ask(
         # ── 5.1 Multi-Signal Relevance Gating ──────────────────────────────────
         num_hits = len(source_labels)
         context_len = len(raw_context)
-        soft_threshold = min(SIMILARITY_THRESHOLD + 0.05, 0.95)
+        soft_threshold = min(SIMILARITY_THRESHOLD + 0.15, 1.35)
         
         # Detect summary/explanation intent
         summary_keywords = ["summarize", "summary", "explain", "describe", "detail", "definition", "what is", "about"]
@@ -352,12 +352,12 @@ async def ask(
             reason = "strong_distance"
         
         # B. Multi-hit confidence (Signal Path)
-        elif num_hits >= MIN_VALID_HITS and context_len > MIN_CONTEXT_LENGTH:
+        elif num_hits >= MIN_VALID_HITS and context_len > MIN_CONTEXT_LENGTH and min_distance < soft_threshold:
             relevance_pass = True
             reason = "multi_hit_override"
             
         # C. Context strength (Depth Path)
-        elif context_len > 1000:
+        elif context_len > 1000 and min_distance < soft_threshold:
             relevance_pass = True
             reason = "context_strength_override"
             

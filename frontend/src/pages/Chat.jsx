@@ -9,7 +9,7 @@ import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../utils/
 const INITIAL_GREETING = { 
   role: 'assistant', 
   text: 'Hello! I am your AI Study Assistant. I can search through all approved study materials. What would you like to learn today?',
-  mode: 'general',
+  mode: null,
   sources: []
 };
 
@@ -358,13 +358,33 @@ export default function Chat() {
                          )
                       ) : <Bot className="w-7 h-7"/>}
                     </div>
-                    <div className={`p-8 rounded-[2.5rem] text-[15px] font-semibold leading-relaxed shadow-xl ${
-                      msg.role === 'user' 
-                        ? 'premium-gradient text-white rounded-tr-none border-0 shadow-indigo-200 dark:shadow-none' 
-                        : 'glass dark:bg-slate-900 text-slate-700 dark:text-slate-200 rounded-tl-none border-white/60 dark:border-slate-800'
-                    }`}>
-                      {msg.text}
-                    </div>
+                      <div className={`p-8 rounded-[2.5rem] text-[15px] font-semibold leading-relaxed shadow-xl ${
+                        msg.role === 'user' 
+                          ? 'premium-gradient text-white rounded-tr-none border-0 shadow-indigo-200 dark:shadow-none' 
+                          : 'glass dark:bg-slate-900 text-slate-700 dark:text-slate-200 rounded-tl-none border-white/60 dark:border-slate-800'
+                      }`}>
+                        {msg.text.split(/```/).map((part, i) => {
+                          if (i % 2 === 1) {
+                            const lines = part.trim().split('\n');
+                            const lang = lines[0].length < 15 ? lines[0] : '';
+                            const code = lang ? lines.slice(1).join('\n') : part;
+                            
+                            return (
+                              <div key={i} className="my-4 relative group">
+                                {lang && (
+                                  <div className="absolute right-4 top-0 -translate-y-1/2 bg-slate-700 text-slate-300 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-600 shadow-lg">
+                                    {lang}
+                                  </div>
+                                )}
+                                <pre className="bg-slate-950/80 backdrop-blur-xl text-indigo-300 p-6 rounded-3xl overflow-x-auto font-mono text-[13px] border border-slate-800/50 shadow-2xl custom-scrollbar-horizontal">
+                                  <code>{code.trim()}</code>
+                                </pre>
+                              </div>
+                            );
+                          }
+                          return <span key={i} className="whitespace-pre-wrap">{part}</span>;
+                        })}
+                      </div>
                   </div>
 
                   {msg.role === 'assistant' && (
