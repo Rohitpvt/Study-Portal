@@ -20,12 +20,10 @@ ALLOWED_CONTENT_TYPES = {
     "application/pdf",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # .docx
     "application/msword",  # .doc
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation",  # .pptx
-    "application/vnd.ms-powerpoint",  # .ppt
     "text/plain",
 }
 
-CONVERTIBLE_EXTENSIONS = {".pdf", ".docx", ".doc", ".pptx", ".ppt", ".txt"}
+CONVERTIBLE_EXTENSIONS = {".docx", ".doc", ".txt"}
 
 
 def _validate_file(file: UploadFile, allowed_types: set = None) -> None:

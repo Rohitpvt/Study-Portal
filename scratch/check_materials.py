@@ -1,26 +1,20 @@
+
 import asyncio
-import os
-import sys
-
-# Add the project root to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 from app.core.database import AsyncSessionLocal
 from app.models.material import Material
-from sqlalchemy import select
+from sqlalchemy import select, func
 
-async def check_conversion_status():
+async def check_materials():
     async with AsyncSessionLocal() as db:
-        result = await db.execute(select(Material))
-        materials = result.scalars().all()
-        print(f"{'Title':<30} | {'Status':<10} | {'File Key':<40} | {'Original Key'}")
-        print("-" * 120)
-        for m in materials:
-            status = getattr(m, 'conversion_status', 'N/A')
-            orig = getattr(m, 'original_file_key', 'N/A')
-            title = (m.title or "No Title")[:30]
-            fkey = (m.file_key or "No Key")[:40]
-            print(f"{title:<30} | {str(status):<10} | {fkey:<40} | {orig}")
+        count = await db.scalar(select(func.count()).select_from(Material).where(Material.is_approved == True))
+        print(f"Approved Materials Count: {count}")
+        
+        if count > 0:
+            result = await db.execute(select(Material.title, Material.subject).where(Material.is_approved == True).limit(5))
+            materials = result.all()
+            print("Sample Materials:")
+            for m in materials:
+                print(f"- {m.title} ({m.subject})")
 
 if __name__ == "__main__":
-    asyncio.run(check_conversion_status())
+    asyncio.run(check_materials())

@@ -80,22 +80,6 @@ async def extract_text(file_path: str) -> list[dict]:
                     return [{"text": text, "page": 1}]
                 return []
 
-            elif file_path.lower().split("?")[0].endswith((".pptx", ".ppt")):
-                from pptx import Presentation
-                prs = Presentation(io.BytesIO(file_bytes))
-                pages = []
-                for i, slide in enumerate(prs.slides):
-                    slide_texts = []
-                    for shape in slide.shapes:
-                        if shape.has_text_frame:
-                            for para in shape.text_frame.paragraphs:
-                                line = para.text.strip()
-                                if line:
-                                    slide_texts.append(line)
-                    if slide_texts:
-                        pages.append({"text": clean_text(" ".join(slide_texts)), "page": i + 1})
-                return pages
-
         except Exception as e:
             logger.warning(f"Internal extraction logic failed for '{file_path}': {e}")
             return []

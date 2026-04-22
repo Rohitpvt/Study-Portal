@@ -27,12 +27,6 @@ class MaterialIntegrityStatus(str, enum.Enum):
     pending          = "pending"
 
 
-class ConversionStatus(str, enum.Enum):
-    PENDING = "pending"
-    SUCCESS = "success"
-    FAILED  = "failed"
-
-
 class Material(Base, TimestampMixin):
     __tablename__ = "materials"
 
@@ -46,20 +40,11 @@ class Material(Base, TimestampMixin):
 
     # File metadata
     file_path:   Mapped[str|None] = mapped_column(String(512), nullable=True) # Legacy or fallback local path
-    file_key:    Mapped[str|None] = mapped_column(String(512), nullable=True) # S3 object key (primary)
+    file_key:    Mapped[str|None] = mapped_column(String(512), nullable=True) # S3 object key
     file_url:    Mapped[str|None] = mapped_column(String(1024), nullable=True) # Public/Presigned URL
     file_name:   Mapped[str] = mapped_column(String(255), nullable=False)
     file_size:   Mapped[int] = mapped_column(Integer, nullable=False)
     file_type:   Mapped[str] = mapped_column(String(50), nullable=False)
-
-    # ── Non-destructive dual-key architecture (NEW) ──────────────────────────
-    original_file_key: Mapped[str|None] = mapped_column(String(512), nullable=True)
-    pdf_file_key:      Mapped[str|None] = mapped_column(String(512), nullable=True)
-    conversion_status: Mapped[ConversionStatus|None] = mapped_column(
-        Enum(ConversionStatus, name="conversionstatus"),
-        default=ConversionStatus.SUCCESS, # Default for PDFs
-        nullable=True
-    )
 
     # Integrity tracking
     integrity_status: Mapped[MaterialIntegrityStatus] = mapped_column(

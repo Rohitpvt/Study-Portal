@@ -9,7 +9,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from app.models.material import Category, MaterialIntegrityStatus, ConversionStatus
+from app.models.material import Category, MaterialIntegrityStatus
 
 
 class MaterialCreate(BaseModel):
@@ -42,8 +42,6 @@ class MaterialOut(BaseModel):
     uploader_id: str
     file_url: Optional[str] = None
     file_status: str = "available"  # Legacy helper for UI
-    pdf_file_key: Optional[str] = None
-    conversion_status: Optional[ConversionStatus] = None
     created_at: datetime
     updated_at: datetime
 

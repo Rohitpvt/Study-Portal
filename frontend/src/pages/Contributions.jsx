@@ -240,11 +240,11 @@ export default function Contributions() {
             ))}
           </select>
 
-           <input type="file" required accept=".pdf,.docx,.doc,.txt,.pptx,.ppt" className="glass dark:bg-slate-800/40 p-5 rounded-2xl text-xs font-black file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 transition-all border-white/60 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 cursor-pointer" onChange={e => setFile(e.target.files[0])} />
+           <input type="file" required accept=".pdf" className="glass dark:bg-slate-800/40 p-5 rounded-2xl text-xs font-black file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 transition-all border-white/60 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 cursor-pointer" onChange={e => setFile(e.target.files[0])} />
           
           <button type="submit" disabled={uploading || !file} className="premium-gradient font-black p-5 rounded-2xl hover:shadow-indigo-200 dark:shadow-none disabled:opacity-50 transition-all shadow-xl active:scale-[0.98] lg:col-span-3 flex items-center justify-center gap-3">
              <UploadIcon className="w-5 h-5" />
-             {uploading ? 'Converting & Uploading...' : 'Execute Submission'}
+             {uploading ? 'Processing Data Streams...' : 'Execute Submission'}
           </button>
         </form>
       </div>
@@ -304,9 +304,7 @@ export default function Contributions() {
                           
                           <div className="flex items-center gap-2">
                              <div className={`w-2 h-2 rounded-full ${config.color} ${!isTerminal ? 'animate-ping' : ''}`}></div>
-                             <span className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight transition-colors">
-                               {m.conversion_status === 'pending' ? 'Synchronizing PDF Preview...' : config.label}
-                             </span>
+                             <span className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight transition-colors">{config.label}</span>
                           </div>
  
                           <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
