@@ -167,58 +167,58 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex h-[85vh] gap-4 max-w-[1600px] mx-auto my-4 px-4 relative overflow-hidden">
+    <div className="flex h-[85vh] gap-6 max-w-[1700px] mx-auto my-6 px-6 relative overflow-hidden">
       {/* ── SIDEBAR (History) ────────────────────────────────────────────────── */}
       <aside className={`
         fixed inset-0 z-50 transition-all duration-500 lg:relative lg:inset-auto lg:z-10
         ${isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100'}
-        w-[280px] shrink-0
+        w-[300px] shrink-0
       `}>
         {/* Mobile Backdrop */}
         {isSidebarOpen && (
           <div 
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm lg:hidden"
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-md lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
 
-        <div className="relative h-full glass dark:bg-slate-900 border-white/40 dark:border-slate-800 rounded-[40px] flex flex-col overflow-hidden shadow-2xl">
+        <div className="relative h-full saas-card dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-[3rem] flex flex-col overflow-hidden shadow-2xl dark:shadow-none">
           <div className="p-6">
             <button
               onClick={startNewChat}
-              className="w-full flex items-center justify-center gap-2 py-4 premium-gradient rounded-3xl text-white font-black uppercase tracking-widest text-[11px] shadow-xl interactive-scale active:scale-95 group"
+              className="w-full flex items-center justify-center gap-2 py-4 premium-gradient rounded-2xl text-white font-black uppercase tracking-widest text-[11px] shadow-xl interactive-scale group"
             >
-              <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
+              <Plus className="w-5 h-5 transition-transform group-hover:rotate-90" />
               <span>New Conversation</span>
             </button>
           </div>
 
-          <div className="px-6 mb-4">
+          <div className="px-6 mb-6">
             <div className="relative group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
               <input 
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search history..."
-                className="w-full pl-11 pr-4 py-3 bg-white/50 dark:bg-slate-800/50 border border-white/60 dark:border-slate-700/50 rounded-2xl text-[12px] font-bold text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 focus:border-indigo-200 dark:focus:border-indigo-800 transition-all"
+                placeholder="Filter history..."
+                className="w-full pl-11 pr-4 py-4 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-[12px] font-bold text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
               />
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-3 custom-scrollbar">
-            <div className="flex items-center gap-2 px-3 mb-2">
-              <Clock className="w-3 h-3 text-slate-400" />
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                {searchQuery ? 'Search Results' : 'Recent Activity'}
+          <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-2 custom-scrollbar">
+            <div className="flex items-center gap-2 px-4 mb-4">
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
+                {searchQuery ? 'Search Results' : 'Archived Dialogues'}
               </span>
             </div>
             
             {sessions.filter(s => s.title?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
-              <div className="px-6 py-10 text-center space-y-3 opacity-40">
-                <MessageSquare className="w-8 h-8 mx-auto text-slate-400" />
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-tighter">
-                  {searchQuery ? 'No matching chats' : 'No past conversations'}
+              <div className="px-6 py-12 text-center space-y-4 opacity-30">
+                <MessageSquare className="w-10 h-10 mx-auto text-slate-400" />
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                  {searchQuery ? 'No matching logs' : 'Journal Empty'}
                 </p>
               </div>
             ) : (
@@ -229,13 +229,13 @@ export default function Chat() {
                   key={s.id}
                   onClick={() => editingId !== s.id && loadSession(s.id)}
                   className={`
-                    group relative p-4 rounded-3xl cursor-pointer transition-all duration-300
+                    group relative p-4 rounded-2xl cursor-pointer transition-all duration-300
                     ${activeSessionId === s.id 
-                      ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-100 dark:border-indigo-900/60 ring-1 ring-indigo-100 dark:ring-indigo-900/50 shadow-md' 
-                      : 'hover:bg-white/60 dark:hover:bg-slate-800/60 border border-transparent hover:border-white/80 dark:hover:border-slate-700'}
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-transparent'}
                   `}
                 >
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       {editingId === s.id ? (
                         <div className="flex items-center gap-2">
@@ -248,49 +248,36 @@ export default function Chat() {
                               if (e.key === 'Escape') setEditingId(null);
                             }}
                             onBlur={() => handleRename(s.id)}
-                            className="w-full bg-white dark:bg-slate-800 border border-indigo-300 dark:border-indigo-800 rounded-lg px-2 py-1 text-[13px] font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900"
+                            className="w-full bg-white dark:bg-slate-800 border border-indigo-500 rounded-lg px-2 py-1 text-[13px] font-bold text-slate-800 dark:text-slate-100 focus:outline-none"
                             onClick={(e) => e.stopPropagation()}
                           />
-                          <button onClick={() => handleRename(s.id)} className="text-emerald-500">
-                            <Check className="w-4 h-4" />
-                          </button>
                         </div>
                       ) : (
                         <>
-                          <h4 className={`text-[13px] font-black truncate pr-12 ${activeSessionId === s.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                          <h4 className={`text-[13px] font-black truncate pr-10 ${activeSessionId === s.id ? 'text-white' : 'text-slate-800 dark:text-slate-200'}`}>
                             {s.title || 'New Chat'}
                           </h4>
-                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-1 line-clamp-1 group-hover:text-slate-500 dark:group-hover:text-slate-400 transition-colors">
-                            {s.latest_message_preview || 'No messages yet'}
+                          <p className={`text-[10px] font-bold mt-1 line-clamp-1 opacity-70 ${activeSessionId === s.id ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                            {s.latest_message_preview || 'Ready for query'}
                           </p>
                         </>
                       )}
-                      
-                      <span className="text-[9px] text-slate-300 font-bold mt-2 inline-block">
-                        {new Date(s.last_message_at).toLocaleDateString([], { 
-                          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-                        })}
-                      </span>
                     </div>
 
-                    {editingId !== s.id && (
-                      <div className="absolute right-3 top-3 flex items-center gap-1">
-                        <button
-                          onClick={(e) => startRename(e, s)}
-                          className="lg:opacity-0 group-hover:opacity-100 p-2 hover:bg-indigo-100 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-300 dark:text-slate-600 rounded-xl transition-all"
-                          title="Rename"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={(e) => deleteSession(e, s.id)}
-                          className="lg:opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500 dark:hover:text-red-400 text-slate-300 dark:text-slate-600 rounded-xl transition-all"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
+                    <div className="absolute right-3 top-4 flex items-center gap-1">
+                      <button
+                        onClick={(e) => startRename(e, s)}
+                        className={`p-2 rounded-lg transition-all ${activeSessionId === s.id ? 'text-white/60 hover:bg-white/10 hover:text-white' : 'text-slate-300 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600'}`}
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => deleteSession(e, s.id)}
+                        className={`p-2 rounded-lg transition-all ${activeSessionId === s.id ? 'text-white/60 hover:bg-white/10 hover:text-white' : 'text-slate-300 dark:text-slate-600 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500'}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -300,68 +287,64 @@ export default function Chat() {
       </aside>
 
       {/* ── MAIN CHAT AREA ──────────────────────────────────────────────────── */}
-      <main className="flex-1 flex flex-col glass dark:bg-slate-900 rounded-[40px] shadow-2xl border-0 overflow-hidden relative">
-        <div className="p-8 premium-gradient flex items-center gap-6 relative z-10 shadow-lg">
-          {/* Mobile Menu Toggle */}
+      <main className="flex-1 flex flex-col saas-card dark:bg-[#0b1120] rounded-[3rem] shadow-2xl dark:shadow-none border-slate-200 dark:border-slate-800/50 overflow-hidden relative">
+        <div className="px-10 py-8 glass dark:bg-slate-900/60 border-0 border-b border-slate-200 dark:border-slate-800 flex items-center gap-6 relative z-10">
           <button 
             onClick={() => setIsSidebarOpen(true)}
-            className="lg:hidden bg-white/20 backdrop-blur-xl p-3 rounded-2xl border border-white/30 text-white interactive-scale"
+            className="lg:hidden p-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300"
           >
             <Menu className="w-6 h-6" />
           </button>
 
-          <div className="bg-white/20 dark:bg-slate-800/40 backdrop-blur-xl p-4 rounded-3xl border border-white/30 dark:border-slate-700/50 shadow-xl interactive-scale">
-             <Bot className="text-white dark:text-indigo-400 w-10 h-10" />
+          <div className="p-4 bg-indigo-600 rounded-[1.5rem] shadow-xl shadow-indigo-500/20">
+             <Bot className="text-white w-8 h-8" />
           </div>
           <div className="flex-1">
-            <h2 className="text-3xl font-black text-white tracking-tight leading-none">AI Study Assistant</h2>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase">Research Intelligence</h2>
             <div className="flex items-center gap-2 mt-2">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-              <p className="text-white/80 text-[10px] font-black uppercase tracking-[0.2em]">Verified Syllabus Logic Online</p>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <p className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">FAISS Knowledge Core Active</p>
             </div>
           </div>
         </div>
 
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-10 space-y-10 relative bg-white/30 dark:bg-slate-950/20 backdrop-blur-sm scroll-smooth"
+          className="flex-1 overflow-y-auto p-10 space-y-12 relative bg-slate-50/30 dark:bg-transparent scroll-smooth"
         >
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-[0.03] dark:opacity-[0.05] pointer-events-none">
-             <Bot className="w-96 h-96 dark:text-indigo-400" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-[0.02] dark:opacity-[0.04] pointer-events-none">
+             <Bot className="w-[500px] h-[500px] text-slate-900 dark:text-indigo-400" />
           </div>
           
           {(isFetchingHistory) ? (
-            <div className="flex flex-col items-center justify-center h-full space-y-4 opacity-40">
-              <Bot className="w-16 h-16 text-indigo-400 animate-bounce" />
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600">Retrieving History...</p>
+            <div className="flex flex-col items-center justify-center h-full space-y-6">
+              <div className="w-16 h-16 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin"></div>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-600 dark:text-indigo-400">Syncing Conversations</p>
             </div>
           ) : (
             messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
-                <div className={`flex flex-col gap-2 max-w-[80%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                <div className={`flex flex-col gap-4 max-w-[85%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                   <div className={`flex gap-6 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`relative w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center shadow-xl interactive-scale ${
+                    <div className={`relative w-12 h-12 shrink-0 rounded-xl flex items-center justify-center shadow-xl ${
                       msg.role === 'user' 
-                        ? 'p-0 bg-white dark:bg-slate-800 ring-2 ring-indigo-200 dark:ring-indigo-900/50 overflow-visible' 
-                        : 'glass dark:bg-slate-900 dark:border-slate-800 text-indigo-600 dark:text-indigo-400 overflow-hidden'
+                        ? 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700' 
+                        : 'premium-gradient'
                     }`}>
                       {msg.role === 'user' ? (
                          userProfile ? (
-                           <>
-                             <div className="w-full h-full rounded-2xl overflow-hidden">
-                               <img src={resolveUserAvatar(userProfile)} alt="User" className="w-full h-full object-contain bg-white dark:bg-slate-800" onError={handleAvatarError} />
-                             </div>
-                             <div className={`absolute -bottom-1 -right-1 w-4 h-4 border-[3px] border-white dark:border-slate-800 rounded-full ${getOnlineStatus(userProfile.last_seen) ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
-                           </>
+                           <div className="w-full h-full rounded-xl overflow-hidden p-0.5">
+                             <img src={resolveUserAvatar(userProfile)} alt="User" className="w-full h-full object-contain rounded-lg" onError={handleAvatarError} />
+                           </div>
                          ) : (
-                           <div className="w-full h-full premium-gradient flex items-center justify-center text-white"><User className="w-7 h-7"/></div>
+                           <User className="w-6 h-6 text-slate-400"/>
                          )
-                      ) : <Bot className="w-7 h-7"/>}
+                      ) : <Bot className="w-6 h-6 text-white"/>}
                     </div>
-                      <div className={`p-8 rounded-[2.5rem] text-[15px] font-semibold leading-relaxed shadow-xl ${
+                      <div className={`p-8 rounded-[2.5rem] text-[15px] font-bold leading-relaxed shadow-sm ${
                         msg.role === 'user' 
-                          ? 'premium-gradient text-white rounded-tr-none border-0 shadow-indigo-200 dark:shadow-none' 
-                          : 'glass dark:bg-slate-900 text-slate-700 dark:text-slate-200 rounded-tl-none border-white/60 dark:border-slate-800'
+                          ? 'premium-gradient text-white rounded-tr-none' 
+                          : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-tl-none border border-slate-200 dark:border-slate-800 shadow-xl'
                       }`}>
                         {msg.text.split(/```/).map((part, i) => {
                           if (i % 2 === 1) {
@@ -370,13 +353,13 @@ export default function Chat() {
                             const code = lang ? lines.slice(1).join('\n') : part;
                             
                             return (
-                              <div key={i} className="my-4 relative group">
+                              <div key={i} className="my-6 relative group">
                                 {lang && (
-                                  <div className="absolute right-4 top-0 -translate-y-1/2 bg-slate-700 text-slate-300 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-600 shadow-lg">
+                                  <div className="absolute right-4 top-0 -translate-y-1/2 bg-indigo-600 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-indigo-500 shadow-lg">
                                     {lang}
                                   </div>
                                 )}
-                                <pre className="bg-slate-950/80 backdrop-blur-xl text-indigo-300 p-6 rounded-3xl overflow-x-auto font-mono text-[13px] border border-slate-800/50 shadow-2xl custom-scrollbar-horizontal">
+                                <pre className="bg-slate-950 dark:bg-black text-indigo-300 p-8 rounded-[2rem] overflow-x-auto font-mono text-[13px] border border-white/5 dark:border-white/10 shadow-2xl custom-scrollbar-horizontal">
                                   <code>{code.trim()}</code>
                                 </pre>
                               </div>
@@ -388,75 +371,64 @@ export default function Chat() {
                   </div>
 
                   {msg.role === 'assistant' && (
-                    <div className="ml-20 space-y-4">
+                    <div className="ml-18 space-y-6">
                       {msg.mode && (
-                        <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border backdrop-blur-md shadow-sm transition-all ${
+                        <div className={`inline-flex items-center gap-3 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border shadow-sm transition-all ${
                           (msg.mode === 'document' && msg.sources?.length > 0)
-                            ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                             : msg.mode === 'library'
-                            ? 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-800'
-                            : 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800'
+                            ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20'
+                            : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20'
                         }`}>
                           {(msg.mode === 'document' && msg.sources?.length > 0) ? (
                             <>
-                              <BookOpen className="w-3 h-3" />
-                              <span>Answered from uploaded materials</span>
+                              <BookOpen className="w-3.5 h-3.5" />
+                              <span>Grounding: Verified Materials</span>
                             </>
                           ) : msg.mode === 'library' ? (
                             <>
-                              <BookOpen className="w-3 h-3" />
-                              <span>Answered from library inventory</span>
+                              <BookOpen className="w-3.5 h-3.5" />
+                              <span>Grounding: Inventory Data</span>
                             </>
                           ) : (
                             <>
-                              <Info className="w-3 h-3" />
-                              <span>Answered from general knowledge</span>
+                              <Info className="w-3.5 h-3.5" />
+                              <span>Fallback: General Knowledge</span>
                             </>
                           )}
                         </div>
                       )}
 
                       {msg.mode === 'document' && msg.sources && msg.sources.length > 0 && (
-                        <div className="mt-4 animate-in fade-in slide-in-from-left-4 duration-700 delay-300">
-                          <div className="flex items-center gap-2 mb-3 px-1 text-slate-400 dark:text-slate-500">
+                        <div className="mt-4 animate-in fade-in slide-in-from-left-4 duration-700">
+                          <div className="flex items-center gap-2 mb-4 px-2 text-slate-400 dark:text-slate-500">
                             <FileText className="w-4 h-4" />
-                            <span className="text-[11px] font-black uppercase tracking-[0.15em]">Verified Sources</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Verified Source Nodes</span>
                           </div>
-                          <div className="flex flex-wrap gap-3">
+                          <div className="flex flex-wrap gap-4">
                             {msg.sources.map((src, sIdx) => {
                               const canNavigate = !!src.material_id;
-                              const handleSourceClick = () => {
-                                if (!canNavigate) return;
-                                const pageParam = src.page_number ? `?page=${src.page_number}` : '';
-                                const excerptParam = src.excerpt ? `&excerpt=${encodeURIComponent(src.excerpt)}` : '';
-                                navigate(`/viewer/${src.material_id}${pageParam}${excerptParam}`);
-                              };
                               return (
                                 <div 
                                   key={sIdx}
-                                  onClick={handleSourceClick}
-                                  title={canNavigate ? `Open ${src.title}${src.page_number ? ` — Page ${src.page_number}` : ''}` : 'Source link unavailable'}
-                                  className={`glass dark:bg-slate-900 group transition-all p-4 rounded-3xl border-white/80 dark:border-slate-800 shadow-lg flex flex-col gap-1 min-w-[160px] max-w-[280px] interactive-scale pointer-events-auto ${
-                                    canNavigate
-                                      ? 'cursor-pointer hover:bg-indigo-50/60 dark:hover:bg-indigo-950/40 hover:border-indigo-200 dark:hover:border-indigo-900 hover:shadow-indigo-100 dark:hover:shadow-none hover:ring-2 hover:ring-indigo-100 dark:hover:ring-indigo-900/50'
-                                      : 'cursor-not-allowed opacity-60'
+                                  onClick={() => canNavigate && navigate(`/viewer/${src.material_id}${src.page_number ? `?page=${src.page_number}` : ''}${src.excerpt ? `&excerpt=${encodeURIComponent(src.excerpt)}` : ''}`)}
+                                  className={`saas-card dark:bg-slate-900 group transition-all p-5 rounded-[2rem] border-slate-200 dark:border-slate-800 shadow-md flex flex-col gap-2 min-w-[180px] max-w-[300px] interactive-scale ${
+                                    canNavigate ? 'cursor-pointer hover:border-indigo-500/50 dark:hover:border-indigo-500/50 hover:shadow-xl' : 'opacity-60 cursor-not-allowed'
                                   }`}
                                 >
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span className="text-xs font-black text-slate-800 dark:text-slate-200 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <span className="text-xs font-black text-slate-900 dark:text-slate-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors tracking-tight">
                                       {src.title}
                                     </span>
-                                    {canNavigate && (
-                                      <ExternalLink className="w-3 h-3 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors flex-shrink-0" />
-                                    )}
+                                    {canNavigate && <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-indigo-500" />}
                                   </div>
-                                  <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold">
+                                  <div className="flex items-center gap-3 text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">
                                     {src.page_number && (
-                                      <span className="bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-lg text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 uppercase tracking-tighter">
-                                         PG {src.page_number}
+                                      <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                         PAGE {src.page_number}
                                       </span>
                                     )}
-                                    <span className="truncate opacity-70 italic">{src.source_file}</span>
+                                    <span className="truncate max-w-[100px]">{src.source_file}</span>
                                   </div>
                                 </div>
                               );
@@ -473,40 +445,40 @@ export default function Chat() {
           
           {loading && (
             <div className="flex justify-start relative z-10">
-               <div className="flex gap-6">
-                 <div className="w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center glass dark:bg-slate-900 dark:border-slate-800">
-                    <Bot className="w-7 h-7 text-indigo-600 dark:text-indigo-400 animate-pulse"/>
+               <div className="flex gap-6 items-center">
+                 <div className="w-12 h-12 shrink-0 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/20">
+                    <Bot className="w-6 h-6 text-white animate-pulse"/>
                  </div>
-                 <div className="p-8 rounded-[2.5rem] glass dark:bg-slate-900 dark:border-slate-800 rounded-tl-none flex items-center gap-3">
-                   <div className="w-3 h-3 bg-indigo-400 rounded-full animate-bounce shadow-sm"></div>
-                   <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce delay-75 shadow-sm"></div>
-                   <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce delay-150 shadow-sm"></div>
+                 <div className="flex items-center gap-2">
+                   <div className="w-2.5 h-2.5 bg-indigo-600 rounded-full animate-bounce"></div>
+                   <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                   <div className="w-2.5 h-2.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
                  </div>
                </div>
             </div>
           )}
         </div>
 
-        <div className="p-8 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border-t border-white/40 dark:border-slate-800 relative z-10">
+        <div className="px-10 py-10 bg-white dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-800 relative z-10 backdrop-blur-md">
           <form onSubmit={handleSend} className="relative flex items-center w-full group">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your academic question here..."
-              className="w-full pl-8 pr-24 py-6 bg-white/80 dark:bg-slate-800/80 glass dark:bg-slate-900 rounded-[2.5rem] text-base font-bold text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 transition-all border-0 shadow-2xl dark:shadow-none"
+              placeholder="Synthesize information from your syllabus..."
+              className="w-full pl-10 pr-24 py-7 bg-slate-50 dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 rounded-[2.5rem] text-base font-bold text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-inner"
               disabled={loading}
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="absolute right-4 p-5 premium-gradient rounded-3xl hover:shadow-indigo-300 dark:hover:shadow-none disabled:opacity-50 transition-all shadow-xl dark:shadow-none active:scale-95"
+              className="absolute right-4 p-5 premium-gradient rounded-[1.5rem] hover:scale-105 active:scale-95 disabled:opacity-50 transition-all shadow-xl shadow-indigo-600/20"
             >
               <Send className="w-6 h-6 text-white" />
             </button>
           </form>
-          <p className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-4 opacity-50">
-            AI generated answers should be verified with official course materials
+          <p className="text-center text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.3em] mt-6">
+            RAG-Augmented Intelligent Synthesis — Christ University Academic Core
           </p>
         </div>
       </main>

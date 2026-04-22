@@ -246,40 +246,40 @@ export default function Materials() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-24 md:pb-8">
+    <div className="max-w-7xl mx-auto space-y-10 pb-24 md:pb-12 px-4 sm:px-6 lg:px-8">
 
       {/* ── Admin Upload ──────────────────────────────────────────────────── */}
       {role === 'admin' ? (
-        <div className="glass-card relative overflow-hidden group interactive-scale border-0 shadow-2xl mt-4">
+        <div className="hybrid-card relative overflow-hidden group interactive-scale border-0 shadow-2xl mt-8">
           <div className="absolute top-0 left-0 w-2 h-full premium-gradient" />
-          <h2 className="text-xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-4 tracking-tight">
-            <div className="p-3 premium-gradient rounded-2xl shadow-lg ring-4 ring-indigo-50 dark:ring-indigo-900/20">
-              <UploadIcon className="text-white w-6 h-6" />
+          <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-5 tracking-tight uppercase">
+            <div className="p-4 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-500/20">
+              <UploadIcon className="text-white w-7 h-7" />
             </div>
-            Direct Upload Authorization
+            Direct Vault Injection
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 text-base mt-3 mb-8 font-semibold">Bypass the review queue. Authorized materials are instantly indexed for the RAG engine.</p>
-          <form onSubmit={handleUpload} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <input type="text" placeholder="Document Title" required className="glass p-5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 outline-none border-white/60 dark:border-slate-700/50 dark:text-white dark:placeholder-slate-500" value={uploadData.title} onChange={e => setUploadData({ ...uploadData, title: e.target.value })} />
-            <select className="glass p-5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 outline-none border-white/60 dark:border-slate-700/50 dark:text-white dark:bg-slate-900 cursor-pointer" required value={uploadData.course} onChange={e => setUploadData({ ...uploadData, course: e.target.value, subject: '' })}>
-              <option value="" className="dark:bg-slate-900">Select Course</option>
+          <p className="text-slate-500 dark:text-slate-400 text-lg mt-4 mb-10 font-medium">Bypass review pipelines. Materials injected here are instantly vectorized for Research AI.</p>
+          <form onSubmit={handleUpload} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <input type="text" placeholder="Scientific Document Title" required className="saas-card !p-5 !rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none border-slate-200 dark:border-slate-800 dark:text-white dark:bg-slate-950" value={uploadData.title} onChange={e => setUploadData({ ...uploadData, title: e.target.value })} />
+            <select className="saas-card !p-5 !rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none border-slate-200 dark:border-slate-800 dark:text-white dark:bg-slate-950 cursor-pointer" required value={uploadData.course} onChange={e => setUploadData({ ...uploadData, course: e.target.value, subject: '' })}>
+              <option value="" className="dark:bg-slate-900">Select Academic Course</option>
               {Object.keys(ACADEMIC_DATA).map(c => <option key={c} value={c} className="dark:bg-slate-900">{c}</option>)}
             </select>
-            <select className="glass p-5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 outline-none border-white/60 dark:border-slate-700/50 dark:text-white dark:bg-slate-900 cursor-pointer disabled:opacity-50" required disabled={!uploadData.course} value={uploadData.subject} onChange={e => setUploadData({ ...uploadData, subject: e.target.value })}>
-              <option value="" className="dark:bg-slate-900">Select Subject</option>
+            <select className="saas-card !p-5 !rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none border-slate-200 dark:border-slate-800 dark:text-white dark:bg-slate-950 cursor-pointer disabled:opacity-50" required disabled={!uploadData.course} value={uploadData.subject} onChange={e => setUploadData({ ...uploadData, subject: e.target.value })}>
+              <option value="" className="dark:bg-slate-900">Select Target Subject</option>
               {uploadSubjects.map(s => <option key={s} value={s} className="dark:bg-slate-900">{s}</option>)}
             </select>
-            <select className="glass p-5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 outline-none border-white/60 dark:border-slate-700/50 dark:text-white dark:bg-slate-900 cursor-pointer" required value={uploadData.semester} onChange={e => setUploadData({ ...uploadData, semester: e.target.value })}>
-              <option value="" className="dark:bg-slate-900">Select Semester</option>
+            <select className="saas-card !p-5 !rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none border-slate-200 dark:border-slate-800 dark:text-white dark:bg-slate-950 cursor-pointer" required value={uploadData.semester} onChange={e => setUploadData({ ...uploadData, semester: e.target.value })}>
+              <option value="" className="dark:bg-slate-900">Academic Semester</option>
               {SEMESTERS.map(s => <option key={s} value={s} className="dark:bg-slate-900">Semester {s}</option>)}
             </select>
-            <select className="glass p-5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 outline-none border-white/60 dark:border-slate-700/50 dark:text-white dark:bg-slate-900 cursor-pointer" required value={uploadData.category} onChange={e => setUploadData({ ...uploadData, category: e.target.value })}>
+            <select className="saas-card !p-5 !rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none border-slate-200 dark:border-slate-800 dark:text-white dark:bg-slate-950 cursor-pointer" required value={uploadData.category} onChange={e => setUploadData({ ...uploadData, category: e.target.value })}>
               {CATEGORIES.map(cat => <option key={cat.id} value={cat.id} className="dark:bg-slate-900">{cat.name}</option>)}
             </select>
-            <input type="file" required accept=".pdf" className="glass p-5 rounded-2xl text-xs font-black file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-indigo-600 dark:file:bg-indigo-500 file:text-white hover:file:bg-indigo-700 transition-all border-white/60 dark:border-slate-700/50 cursor-pointer dark:text-slate-400" onChange={e => setFile(e.target.files[0])} />
-            <button type="submit" disabled={uploading || !file} className="premium-gradient font-black p-5 rounded-2xl hover:shadow-indigo-200 disabled:opacity-50 transition-all shadow-xl active:scale-[0.98] lg:col-span-3 flex items-center justify-center gap-3">
-              <UploadIcon className="w-5 h-5" />
-              {uploading ? 'Processing & Indexing Material...' : 'Authorize Global Upload'}
+            <input type="file" required accept=".pdf" className="saas-card !p-5 !rounded-2xl text-xs font-black file:mr-6 file:py-2.5 file:px-6 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 transition-all border-slate-200 dark:border-slate-800 cursor-pointer dark:text-slate-400 dark:bg-slate-950" onChange={e => setFile(e.target.files[0])} />
+            <button type="submit" disabled={uploading || !file} className="premium-gradient font-black p-6 rounded-[1.5rem] hover:scale-[1.02] disabled:opacity-50 transition-all shadow-2xl active:scale-[0.98] lg:col-span-3 flex items-center justify-center gap-4 text-base tracking-widest uppercase">
+              <UploadIcon className="w-6 h-6" />
+              {uploading ? 'Processing & Vectorizing Content...' : 'Authorize Vault Injection'}
             </button>
           </form>
         </div>
@@ -288,345 +288,263 @@ export default function Materials() {
       )}
 
       {/* ── DESKTOP: Refine Discovery (hidden on mobile) ───────────────────── */}
-      <div className="hidden md:block glass-card shadow-2xl border-0 p-10">
-        <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-4 mb-8 tracking-tighter">
-          <div className="p-3 accent-gradient rounded-2xl shadow-lg ring-4 ring-purple-50 dark:ring-purple-900/20">
-            <Search className="w-6 h-6 text-white" />
+      <div className="hidden md:block hybrid-card shadow-2xl border-0 p-12">
+        <div className="flex items-center justify-between mb-10">
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-5 tracking-tighter uppercase">
+            <div className="p-4 accent-gradient rounded-2xl shadow-xl shadow-purple-500/20">
+              <Search className="w-7 h-7 text-white" />
+            </div>
+            Discovery Matrix
+          </h2>
+          <div className="flex items-center gap-4">
+             <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Status: Ready</span>
+             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
           </div>
-          Discovery Matrix
-        </h2>
-        <div className="flex flex-wrap items-center gap-4 bg-slate-100/30 dark:bg-slate-900/30 p-6 rounded-[2rem] border border-white/60 dark:border-slate-800/60">
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 bg-slate-50 dark:bg-[#0b1120] p-8 rounded-[2.5rem] border border-slate-200 dark:border-slate-800">
+          <div className="lg:col-span-4 flex flex-wrap items-center gap-4">
+            <select value={courseFilter} onChange={e => { setCourseFilter(e.target.value); setSubjectFilter(''); }} className="saas-card !p-4 !rounded-2xl text-sm font-bold dark:bg-slate-950 dark:border-slate-800 flex-1 min-w-[200px]">
+              <option value="" className="dark:bg-slate-900">Filter by Course</option>
+              {Object.keys(ACADEMIC_DATA).map(c => <option key={c} value={c} className="dark:bg-slate-900">{c}</option>)}
+            </select>
 
-          <select value={courseFilter} onChange={e => { setCourseFilter(e.target.value); setSubjectFilter(''); }} className={`${selectCls} min-w-[160px] max-w-[220px] glass border-0 dark:bg-slate-900 dark:text-slate-200`}>
-            <option value="" className="dark:bg-slate-900">Any Course</option>
-            {Object.keys(ACADEMIC_DATA).map(c => <option key={c} value={c} className="dark:bg-slate-900">{c}</option>)}
-          </select>
-
-          <div className="relative">
-            <select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} disabled={!courseFilter} className={`${selectCls} min-w-[160px] max-w-[220px] glass border-0 dark:bg-slate-900 dark:text-slate-200 ${!courseFilter ? 'opacity-50 cursor-not-allowed' : ''}`}>
-              <option value="" className="dark:bg-slate-900">Any Subject</option>
+            <select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} disabled={!courseFilter} className="saas-card !p-4 !rounded-2xl text-sm font-bold dark:bg-slate-950 dark:border-slate-800 flex-1 min-w-[200px] disabled:opacity-50">
+              <option value="" className="dark:bg-slate-900">Filter by Subject</option>
               {availableSubjects.map(s => <option key={s} value={s} className="dark:bg-slate-900">{s}</option>)}
             </select>
-            {!courseFilter && <Lock className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />}
+
+            <select value={semesterFilter} onChange={e => setSemesterFilter(e.target.value)} className="saas-card !p-4 !rounded-2xl text-sm font-bold dark:bg-slate-950 dark:border-slate-800 flex-1 min-w-[180px]">
+              <option value="" className="dark:bg-slate-900">Target Semester</option>
+              {SEMESTERS.map(s => <option key={s} value={s} className="dark:bg-slate-900">Semester {s}</option>)}
+            </select>
+
+            <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="saas-card !p-4 !rounded-2xl text-sm font-bold dark:bg-slate-950 dark:border-slate-800 flex-1 min-w-[180px]">
+              <option value="" className="dark:bg-slate-900">Content Category</option>
+              {CATEGORIES.map(cat => <option key={cat.id} value={cat.id} className="dark:bg-slate-900">{cat.name}</option>)}
+            </select>
           </div>
 
-          <select value={semesterFilter} onChange={e => setSemesterFilter(e.target.value)} className={`${selectCls} min-w-[140px] max-w-[190px] glass border-0 dark:bg-slate-900 dark:text-slate-200`}>
-            <option value="" className="dark:bg-slate-900">Any Semester</option>
-            {SEMESTERS.map(s => <option key={s} value={s} className="dark:bg-slate-900">Semester {s}</option>)}
-          </select>
+          <div className="lg:col-span-4 h-px bg-slate-200 dark:bg-slate-800 my-2" />
 
-          <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className={`${selectCls} min-w-[140px] max-w-[190px] glass border-0 dark:bg-slate-900 dark:text-slate-200`}>
-            <option value="" className="dark:bg-slate-900">Any Category</option>
-            {CATEGORIES.map(cat => <option key={cat.id} value={cat.id} className="dark:bg-slate-900">{cat.name}</option>)}
-          </select>
-
-          <div className="hidden lg:block w-px h-10 bg-slate-200/50 dark:bg-slate-700/50 mx-2" />
-
-          <div className="relative flex-1 min-w-[220px]">
-            <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input type="text" placeholder="Search matrix..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchMaterials()} className="pl-12 pr-5 py-4 w-full glass border-0 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 transition-all outline-none shadow-inner dark:text-white dark:placeholder-slate-500" />
+          <div className="lg:col-span-3 relative group">
+            <Search className="w-6 h-6 absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Query the syllabus knowledge graph..." 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+              onKeyDown={e => e.key === 'Enter' && fetchMaterials()} 
+              className="pl-16 pr-6 py-6 w-full saas-card !rounded-[1.5rem] text-base font-bold focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none border-slate-200 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder-slate-600 shadow-inner" 
+            />
           </div>
 
-          <button onClick={handleClearFilters} className="py-4 px-6 rounded-2xl text-xs font-black text-slate-500 dark:text-slate-400 bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all border border-white/60 dark:border-slate-700/50 shadow-sm whitespace-nowrap uppercase tracking-widest">
-            Reset
-          </button>
-          <button onClick={fetchMaterials} className="py-4 px-8 premium-gradient text-white rounded-2xl text-sm font-black transition-all shadow-xl shadow-indigo-100 dark:shadow-none active:scale-95 flex items-center gap-3 whitespace-nowrap">
-            <Search className="w-4 h-4" /> Execute Discovery
-          </button>
+          <div className="flex gap-4">
+            <button onClick={handleClearFilters} className="flex-1 py-6 px-6 rounded-[1.5rem] text-[10px] font-black text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all border border-slate-200 dark:border-slate-800 uppercase tracking-[0.2em] shadow-sm">
+              Reset
+            </button>
+            <button onClick={fetchMaterials} className="flex-2 px-10 premium-gradient text-white rounded-[1.5rem] text-sm font-black transition-all shadow-2xl shadow-indigo-600/20 active:scale-95 flex items-center justify-center gap-4 uppercase tracking-widest min-w-[240px]">
+              <Search className="w-5 h-5" /> Execute Matrix
+            </button>
+          </div>
         </div>
       </div>
 
       {/* ── MOBILE: Search bar + Filter button ────────────────────────────── */}
-      <div className="md:hidden bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-4">
-        <div className="flex items-center gap-3">
-          {/* Search input */}
+      <div className="md:hidden saas-card dark:bg-[#0b1120] border-slate-200 dark:border-slate-800 p-5 rounded-[2rem] shadow-xl">
+        <div className="flex items-center gap-4">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search materials..."
+              placeholder="Search library..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && fetchMaterials()}
-              className="pl-10 pr-4 py-3 w-full border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-400 transition-all outline-none dark:placeholder-slate-500"
+              className="pl-12 pr-4 py-4 w-full border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-950 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none"
             />
           </div>
 
-          {/* Filter button with badge */}
           <button
             onClick={openFilterDrawer}
-            className="relative flex items-center gap-2 py-3 px-4 rounded-xl bg-indigo-600 dark:bg-indigo-500 text-white text-sm font-black shadow-md active:scale-95 transition-all whitespace-nowrap flex-shrink-0"
+            className="relative flex items-center justify-center p-4 rounded-2xl premium-gradient text-white shadow-xl active:scale-90 transition-all"
           >
-            <SlidersHorizontal className="w-4 h-4" />
-            <span>Filters</span>
+            <SlidersHorizontal className="w-6 h-6" />
             {activeFilterCount > 0 && (
-              <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-md">
+              <span className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg ring-2 ring-white dark:ring-slate-900">
                 {activeFilterCount}
               </span>
             )}
           </button>
         </div>
-
-        {/* Active filter chips (mobile) */}
-        {activeFilterCount > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {courseFilter && (
-              <span className="inline-flex items-center gap-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-xs font-bold px-3 py-1.5 rounded-full border border-indigo-200 dark:border-indigo-800/50">
-                {courseFilter}
-                <button onClick={() => setCourseFilter('')}><X className="w-3 h-3" /></button>
-              </span>
-            )}
-            {subjectFilter && (
-              <span className="inline-flex items-center gap-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-xs font-bold px-3 py-1.5 rounded-full border border-indigo-200 dark:border-indigo-800/50">
-                {subjectFilter}
-                <button onClick={() => setSubjectFilter('')}><X className="w-3 h-3" /></button>
-              </span>
-            )}
-            {semesterFilter && (
-              <span className="inline-flex items-center gap-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-xs font-bold px-3 py-1.5 rounded-full border border-indigo-200 dark:border-indigo-800/50">
-                Sem {semesterFilter}
-                <button onClick={() => setSemesterFilter('')}><X className="w-3 h-3" /></button>
-              </span>
-            )}
-            {categoryFilter && (
-              <span className="inline-flex items-center gap-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-xs font-bold px-3 py-1.5 rounded-full border border-indigo-200 dark:border-indigo-800/50">
-                {CATEGORIES.find(c => c.id === categoryFilter)?.name || categoryFilter}
-                <button onClick={() => setCategoryFilter('')}><X className="w-3 h-3" /></button>
-              </span>
-            )}
-            <button onClick={handleClearFilters} className="text-xs font-black text-red-500 dark:text-red-400 px-2 py-1.5">Clear all</button>
-          </div>
-        )}
       </div>
 
       {/* ── MOBILE Filter Drawer ──────────────────────────────────────────── */}
       {/* Backdrop overlay */}
       <div
-        className={`md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300 ${isFilterOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`md:hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xl z-[100] transition-opacity duration-500 ${isFilterOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setIsFilterOpen(false)}
       />
 
       {/* Slide-up drawer */}
       <div
-        className={`md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out ${isFilterOpen ? 'translate-y-0' : 'translate-y-full'} border-t border-slate-200 dark:border-slate-800`}
+        className={`md:hidden fixed bottom-0 left-0 right-0 z-[101] bg-white dark:bg-[#0b1120] rounded-t-[3rem] shadow-2xl transition-transform duration-500 ease-out ${isFilterOpen ? 'translate-y-0' : 'translate-y-full'} border-t border-slate-200 dark:border-slate-800 p-8 pt-4`}
         style={{ maxHeight: '90vh', overflowY: 'auto' }}
       >
-        {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full" />
+        <div className="flex justify-center mb-6">
+          <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full" />
         </div>
 
-        {/* Drawer header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-            <h3 className="text-lg font-black text-slate-900 dark:text-white">Filter Materials</h3>
-            {activeFilterCount > 0 && (
-              <span className="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-black px-2 py-0.5 rounded-full">
-                {activeFilterCount} active
-              </span>
-            )}
+        <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-indigo-600 rounded-xl">
+              <SlidersHorizontal className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Refine Discovery</h3>
           </div>
-          <button onClick={() => setIsFilterOpen(false)} className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
-            <X className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+          <button onClick={() => setIsFilterOpen(false)} className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+            <X className="w-6 h-6" />
           </button>
         </div>
 
-        {/* Drawer body — filter controls */}
-        <div className="px-6 py-5 space-y-5">
-
-          {/* Course */}
-          <div>
-            <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Course</label>
-            <div className="relative">
-              <select
-                value={tempCourse}
-                onChange={e => { setTempCourse(e.target.value); setTempSubject(''); }}
-                className={drawerSelectCls}
-              >
-                <option value="">Any Course</option>
-                {Object.keys(ACADEMIC_DATA).map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <ChevronDown className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            </div>
+        <div className="space-y-8 pb-10">
+          <div className="space-y-4">
+            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] ml-2">Academic Core</label>
+            <select value={tempCourse} onChange={e => { setTempCourse(e.target.value); setTempSubject(''); }} className="saas-card w-full !p-5 !rounded-2xl dark:bg-slate-950 dark:border-slate-800 font-bold text-sm">
+              <option value="">Any Academic Course</option>
+              {Object.keys(ACADEMIC_DATA).map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select value={tempSubject} onChange={e => setTempSubject(e.target.value)} disabled={!tempCourse} className="saas-card w-full !p-5 !rounded-2xl dark:bg-slate-950 dark:border-slate-800 font-bold text-sm disabled:opacity-50">
+              <option value="">Any Module Subject</option>
+              {tempAvailableSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
           </div>
 
-          {/* Subject */}
-          <div>
-            <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Subject</label>
-            <div className="relative">
-              <select
-                value={tempSubject}
-                onChange={e => setTempSubject(e.target.value)}
-                disabled={!tempCourse}
-                className={`${drawerSelectCls} dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:placeholder-slate-500 ${!tempCourse ? 'opacity-50' : ''}`}
-              >
-                <option value="">Any Subject</option>
-                {tempAvailableSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+          <div className="space-y-4">
+            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] ml-2">Timeframe & Sorting</label>
+            <div className="grid grid-cols-2 gap-4">
+              <select value={tempSemester} onChange={e => setTempSemester(e.target.value)} className="saas-card !p-5 !rounded-2xl dark:bg-slate-950 dark:border-slate-800 font-bold text-sm">
+                <option value="">Semester</option>
+                {SEMESTERS.map(s => <option key={s} value={s}>Sem {s}</option>)}
               </select>
-              {!tempCourse
-                ? <Lock className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                : <ChevronDown className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              }
-            </div>
-            {!tempCourse && <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5 font-medium">Select a course first</p>}
-          </div>
-
-          {/* Semester */}
-          <div>
-            <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Semester</label>
-            <div className="relative">
-              <select value={tempSemester} onChange={e => setTempSemester(e.target.value)} className={drawerSelectCls}>
-                <option value="">Any Semester</option>
-                {SEMESTERS.map(s => <option key={s} value={s}>Semester {s}</option>)}
-              </select>
-              <ChevronDown className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Category</label>
-            <div className="relative">
-              <select value={tempCategory} onChange={e => setTempCategory(e.target.value)} className={drawerSelectCls}>
-                <option value="">Any Category</option>
-                {CATEGORIES.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-              </select>
-              <ChevronDown className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Sort */}
-          <div>
-            <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Sort By</label>
-            <div className="relative">
-              <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={drawerSelectCls}>
+              <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="saas-card !p-5 !rounded-2xl dark:bg-slate-950 dark:border-slate-800 font-bold text-sm">
                 <option value="latest">Latest</option>
-                <option value="oldest">Oldest</option>
                 <option value="views">Popular</option>
               </select>
-              <ChevronDown className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
+            <select value={tempCategory} onChange={e => setTempCategory(e.target.value)} className="saas-card w-full !p-5 !rounded-2xl dark:bg-slate-950 dark:border-slate-800 font-bold text-sm">
+              <option value="">All Categories</option>
+              {CATEGORIES.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+            </select>
           </div>
         </div>
 
-        {/* Drawer footer — actions */}
-        <div className="px-6 pb-8 pt-4 flex gap-3 border-t border-slate-100 dark:border-slate-800">
-          <button
-            onClick={clearMobileFilters}
-            className="flex-1 py-3.5 rounded-2xl text-sm font-black text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
-          >
-            Clear All
-          </button>
-          <button
-            onClick={applyMobileFilters}
-            className="flex-2 py-3.5 px-8 rounded-2xl text-sm font-black text-white bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-200 dark:shadow-none active:scale-95 flex-1"
-          >
-            Apply Filters
-          </button>
+        <div className="flex gap-4 pb-12">
+          <button onClick={clearMobileFilters} className="flex-1 py-5 rounded-2xl font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 uppercase tracking-widest text-xs">Clear</button>
+          <button onClick={applyMobileFilters} className="flex-[2] py-5 premium-gradient text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95">Apply Parameters</button>
         </div>
       </div>
 
       {/* ── Results ───────────────────────────────────────────────────────── */}
-      <div className="glass-card shadow-2xl border-0 p-8 md:p-10">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter flex items-center gap-4">
-            Curated Assets
-            {isFetching && <span className="w-6 h-6 border-3 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin" />}
+      <div className="hybrid-card shadow-2xl border-0 p-10 md:p-14">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12">
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter flex items-center gap-5 uppercase">
+            Curated Knowledge Vault
+            {isFetching && <span className="w-7 h-7 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />}
           </h2>
           {!isFetching && materials.length > 0 && (
-            <div className="px-5 py-2 glass dark:bg-slate-800/60 rounded-2xl text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest shadow-sm">
-              {totalCount} Total Documents Verified
+            <div className="flex items-center gap-4 px-6 py-3 bg-slate-50 dark:bg-slate-950 rounded-[1.5rem] border border-slate-200 dark:border-slate-800 shadow-inner">
+               <div className="w-2 h-2 rounded-full bg-indigo-600"></div>
+               <span className="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-[0.2em]">{totalCount} Verified Academic Assets</span>
             </div>
           )}
         </div>
 
         {materials.length === 0 ? (
-          <div className="text-center py-24 glass dark:bg-slate-900/40 rounded-[2.5rem] border-0">
-            <div className="bg-slate-100 dark:bg-slate-800 w-20 h-20 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-inner">
-               <Search className="w-10 h-10 text-slate-300 dark:text-slate-600" />
+          <div className="text-center py-32 saas-card dark:bg-[#0b1120] border-slate-200 dark:border-slate-800/50 rounded-[3rem] border-dashed border-2">
+            <div className="bg-slate-100 dark:bg-slate-900/50 w-24 h-24 rounded-[2rem] mx-auto flex items-center justify-center mb-8 shadow-inner">
+               <Search className="w-12 h-12 text-slate-300 dark:text-slate-700" />
             </div>
-            <h3 className="text-xl font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">No materials found for selected filters</h3>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mt-2 font-semibold">Try adjusting your Discovery Matrix parameters or reset the view.</p>
+            <h3 className="text-2xl font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.3em]">No Assets Found</h3>
+            <p className="text-slate-400 dark:text-slate-500 text-base mt-4 font-medium max-w-md mx-auto">The requested parameters did not yield any verified academic materials. Reset filters to continue.</p>
           </div>
         ) : (
           <>
             {/* DESKTOP table */}
-            <div className="hidden md:block overflow-hidden glass border-white/60 dark:border-slate-800 rounded-[2rem] shadow-xl">
-              <table className="min-w-full divide-y divide-white/20 dark:divide-slate-800">
-                <thead className="bg-slate-900/5 dark:bg-slate-800/10">
+            <div className="hidden lg:block overflow-hidden saas-card dark:bg-[#0b1120] border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-xl">
+              <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+                <thead className="bg-slate-50 dark:bg-slate-900/40">
                   <tr>
-                    <th className="py-6 pl-8 pr-4 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Title</th>
-                    <th className="px-4 py-6 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Course & Subject</th>
-                    <th className="px-4 py-6 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Semester</th>
-                    <th className="px-8 py-6 text-right text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Actions</th>
+                    <th className="py-8 pl-10 pr-4 text-left text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Material Asset</th>
+                    <th className="px-4 py-8 text-left text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Academic Node</th>
+                    <th className="px-4 py-8 text-left text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Semester</th>
+                    <th className="px-10 py-8 text-right text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Operations</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/20 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                   {materials.map(m => (
-                    <tr key={m.id} className="hover:bg-white/40 dark:hover:bg-slate-800/20 transition-all group">
-                      <td className="py-6 pl-8 pr-4">
-                        <div className="flex flex-col">
-                           <div className="flex items-center gap-3">
-                               <span className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{m.title}</span>
+                    <tr key={m.id} className="hover:bg-indigo-50/20 dark:hover:bg-indigo-500/5 transition-all group">
+                      <td className="py-8 pl-10 pr-4">
+                        <div className="flex flex-col gap-2">
+                           <div className="flex items-center gap-4">
+                               <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl group-hover:scale-110 transition-transform shadow-sm">
+                                  <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                               </div>
+                               <span className="text-lg font-black text-slate-900 dark:text-white tracking-tight uppercase">{m.title}</span>
                                {m.integrity_status !== 'available' && (
-                                 <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border uppercase tracking-tighter ${
-                                   m.integrity_status === 'missing_file' ? 'bg-red-500/10 text-red-500 border-red-200 dark:border-red-900/30' : 'bg-amber-500/10 text-amber-500 border-amber-200 dark:border-amber-900/30'
+                                 <span className={`text-[9px] font-black px-3 py-1 rounded-full border uppercase tracking-widest ${
+                                   m.integrity_status === 'missing_file' ? 'bg-red-500/10 text-red-500 border-red-200 dark:border-red-900/30 shadow-sm' : 'bg-amber-500/10 text-amber-500 border-amber-200 dark:border-amber-900/30 shadow-sm'
                                  }`}>
-                                   {m.integrity_status === 'missing_file' ? 'File Missing' : 'Invalid Metadata'}
+                                   {m.integrity_status === 'missing_file' ? 'Missing Binary' : 'Metadata Drift'}
                                  </span>
                                )}
                            </div>
-                           <div className="flex items-center gap-2 mt-2">
-                           <span className="text-xs font-black text-indigo-400 uppercase tracking-widest leading-none">
-                             {CATEGORIES.find(c => c.id === m.category)?.name || m.category}
-                           </span>
-                        </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-6">
-                        <div className="flex flex-col">
-                           <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{m.course}</span>
-                           <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">{m.subject}</span>
+                           <div className="flex items-center gap-3 pl-16">
+                               <span className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em]">{CATEGORIES.find(c => c.id === m.category)?.name || m.category}</span>
+                               <div className="w-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+                               <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{m.views || 0} Analytical Reads</span>
+                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-6">
-                        <span className="px-3 py-1 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase">
-                          Sem {m.semester}
+                      <td className="px-4 py-8">
+                        <div className="flex flex-col gap-1">
+                           <span className="text-base font-bold text-slate-800 dark:text-slate-200">{m.course}</span>
+                           <span className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest opacity-70">{m.subject}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-8">
+                        <span className="px-5 py-2 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-[11px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest shadow-inner">
+                          Level {m.semester}
                         </span>
                       </td>
-                      <td className="py-6 px-8 text-right">
-                        <div className="flex items-center justify-end gap-5">
+                      <td className="py-8 px-10 text-right">
+                        <div className="flex items-center justify-end gap-6 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
                           <button
-                            className={`p-2 rounded-xl transition-all interactive-scale ${favoriteIds.has(m.id) ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-500 dark:text-amber-400 shadow-amber-50 dark:shadow-none' : 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 hover:text-amber-500'}`}
+                            className={`p-3 rounded-2xl transition-all ${favoriteIds.has(m.id) ? 'bg-amber-500 text-white shadow-xl shadow-amber-500/20' : 'bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 hover:text-amber-500 border border-slate-200 dark:border-slate-800'}`}
                             onClick={() => toggleFavorite(m.id)}
-                            title={favoriteIds.has(m.id) ? 'Remove Bookmark' : 'Save to Favorites'}
                           >
-                            <Star className="w-5 h-5" fill={favoriteIds.has(m.id) ? 'currentColor' : 'none'} />
+                            <Star className="w-6 h-6" fill={favoriteIds.has(m.id) ? 'currentColor' : 'none'} />
                           </button>
                           <button
-                            className="bg-indigo-600 dark:bg-indigo-500 p-3 rounded-2xl text-white shadow-lg shadow-indigo-100 dark:shadow-none opacity-0 group-hover:opacity-100 transition-all interactive-scale flex items-center justify-center disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:shadow-none disabled:text-slate-400 dark:disabled:text-slate-600"
+                            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl text-slate-900 dark:text-white shadow-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center disabled:opacity-30"
                             onClick={() => navigate(`/viewer/${m.id}`)}
                             disabled={m.integrity_status === 'missing_file' || m.integrity_status === 'corrupted_file'}
-                            title={m.integrity_status === 'missing_file' ? "Material Missing" : m.integrity_status === 'corrupted_file' ? "Material Corrupted" : "View Online"}
                           >
-                            <Eye className="w-5 h-5" />
+                            <Eye className="w-6 h-6" />
                           </button>
                           <button
-                            className="premium-gradient p-3 rounded-2xl text-white shadow-lg shadow-indigo-100 dark:shadow-none opacity-0 group-hover:opacity-100 transition-all interactive-scale flex items-center justify-center disabled:opacity-40 dark:disabled:opacity-20 disabled:scale-100 disabled:cursor-not-allowed"
+                            className="premium-gradient p-4 rounded-2xl text-white shadow-2xl shadow-indigo-600/20 transition-all active:scale-95 flex items-center justify-center disabled:opacity-30"
                             onClick={() => handleDownload(m.id)}
                             disabled={m.integrity_status === 'missing_file' || m.integrity_status === 'corrupted_file'}
-                            title={m.integrity_status === 'missing_file' ? "Material Missing" : m.integrity_status === 'corrupted_file' ? "Material Corrupted" : "Download Material"}
                           >
-                            <Download className="w-5 h-5" />
+                            <Download className="w-6 h-6" />
                           </button>
                           {role === 'admin' && (
                             <button
-                              className="bg-red-500 dark:bg-red-600 p-3 rounded-2xl text-white shadow-lg shadow-red-100 dark:shadow-none opacity-0 group-hover:opacity-100 transition-all interactive-scale flex items-center justify-center hover:bg-red-600 dark:hover:bg-red-700"
+                              className="bg-red-500/10 text-red-500 p-4 rounded-2xl border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
                               onClick={() => handleDelete(m.id, m.title)}
-                              title="Delete Material (Admin)"
                             >
-                              <Trash2 className="w-5 h-5" />
+                              <Trash2 className="w-6 h-6" />
                             </button>
                           )}
                         </div>
@@ -638,62 +556,58 @@ export default function Materials() {
             </div>
 
             {/* MOBILE cards */}
-            <div className="md:hidden space-y-6">
+            <div className="lg:hidden space-y-8">
               {materials.map(m => (
-                <div key={m.id} className="glass-card shadow-xl border-white/40 dark:border-slate-800 p-6 interactive-scale relative overflow-hidden group">
-                  <div className="flex items-start justify-between gap-4 relative z-10">
+                <div key={m.id} className="saas-card dark:bg-[#0b1120] border-slate-200 dark:border-slate-800 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                  <div className="flex items-start justify-between gap-6 relative z-10">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                         <span className="text-[10px] font-black uppercase tracking-widest bg-white/50 dark:bg-slate-800/60 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full border border-white/60 dark:border-slate-700">
+                      <div className="flex items-center gap-3 mb-4">
+                         <span className="text-[9px] font-black uppercase tracking-widest bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-lg border border-indigo-500/20">
                            {CATEGORIES.find(c => c.id === m.category)?.name || m.category}
                          </span>
+                         {m.integrity_status !== 'available' && (
+                          <span className="text-[9px] font-black px-2 py-1 bg-red-500/10 text-red-500 rounded-lg uppercase tracking-widest">DRIVE SYNC ERR</span>
+                         )}
                       </div>
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight truncate uppercase tracking-tighter">{m.title}</h3>
-                        {m.integrity_status !== 'available' && (
-                          <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border uppercase tracking-tighter shrink-0 ${
-                            m.integrity_status === 'missing_file' ? 'bg-red-500/10 text-red-500 border-red-200 dark:border-red-900/30' : 'bg-amber-500/10 text-amber-500 border-amber-200 dark:border-amber-900/30'
-                          }`}>
-                            {m.integrity_status === 'missing_file' ? 'Missing' : 'Invalid'}
-                          </span>
-                        )}
+                      <h3 className="text-xl font-black text-slate-900 dark:text-white leading-tight uppercase tracking-tighter mb-4">{m.title}</h3>
+                      <div className="space-y-2">
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-3">
+                           <BookOpen className="w-3.5 h-3.5 text-indigo-500" /> {m.course}
+                        </p>
+                        <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-3 ml-6 uppercase tracking-widest">
+                           {m.subject}
+                        </p>
                       </div>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 font-bold mt-2 flex items-center gap-2">
-                        <span className="text-indigo-600 dark:text-indigo-400">Sem {m.semester}</span>
-                        <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>
-                        <span className="truncate">{m.subject}</span>
-                      </p>
                     </div>
                     <button
-                      className={`flex-shrink-0 p-3 rounded-2xl transition-all shadow-sm ${favoriteIds.has(m.id) ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-500 dark:text-amber-400 shadow-amber-50 dark:shadow-none' : 'bg-white/60 dark:bg-slate-800 glass text-slate-300 dark:text-slate-600 hover:text-amber-500'}`}
+                      className={`flex-shrink-0 p-4 rounded-2xl transition-all shadow-md ${favoriteIds.has(m.id) ? 'bg-amber-500 text-white shadow-amber-500/20' : 'bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 border border-slate-200 dark:border-slate-800'}`}
                       onClick={() => toggleFavorite(m.id)}
                     >
-                      <Star className="w-5 h-5" fill={favoriteIds.has(m.id) ? 'currentColor' : 'none'} />
+                      <Star className="w-6 h-6" fill={favoriteIds.has(m.id) ? 'currentColor' : 'none'} />
                     </button>
                   </div>
 
-                  <div className="mt-6 flex items-center gap-3">
+                  <div className="mt-10 flex flex-col sm:flex-row gap-4">
                     <button
-                      className="flex-1 py-4 rounded-2xl bg-indigo-600 dark:bg-indigo-500 text-white text-xs font-black flex items-center justify-center gap-3 active:scale-95 transition-all shadow-lg dark:shadow-none disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600"
+                      className="flex-1 py-5 rounded-2xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-4 active:scale-95 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-30"
                       onClick={() => navigate(`/viewer/${m.id}`)}
                       disabled={m.integrity_status === 'missing_file' || m.integrity_status === 'corrupted_file'}
                     >
-                      <Eye className="w-4 h-4" /> VIEW ONLINE
+                      <Eye className="w-5 h-5" /> Insights
                     </button>
                     <button
-                      className="flex-1 py-4 rounded-2xl border-2 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-xs font-black flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-40 dark:disabled:opacity-20"
+                      className="flex-1 py-5 rounded-2xl border-2 border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-4 active:scale-95 transition-all disabled:opacity-30"
                       onClick={() => handleDownload(m.id)}
                       disabled={m.integrity_status === 'missing_file' || m.integrity_status === 'corrupted_file'}
                     >
-                      <Download className="w-4 h-4" /> DOWNLOAD
+                      <Download className="w-5 h-5" /> Binary
                     </button>
                     {role === 'admin' && (
                       <button
-                        className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 border border-red-100 dark:border-red-900/50 active:scale-95 transition-all"
+                        className="p-5 rounded-2xl bg-red-500/10 text-red-500 active:scale-90 transition-all border border-red-500/20"
                         onClick={() => handleDelete(m.id, m.title)}
-                        title="Delete Material"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-6 h-6" />
                       </button>
                     )}
                   </div>
@@ -705,28 +619,28 @@ export default function Materials() {
 
         {/* ── Pagination Controls ─────────────────────────────── */}
         {totalPages > 1 && (
-          <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-6 pt-10 border-t border-white/20">
+          <div className="mt-16 flex flex-col sm:flex-row items-center justify-between gap-8 pt-12 border-t border-slate-100 dark:border-slate-800">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1 || isFetching}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-xs font-black glass dark:bg-slate-800 dark:border-slate-700/50 dark:text-slate-400 border-0 text-slate-600 hover:bg-white dark:hover:bg-slate-700 hover:shadow-xl disabled:opacity-30 disabled:cursor-not-allowed transition-all uppercase tracking-widest"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-4 px-10 py-5 rounded-[1.5rem] text-[10px] font-black saas-card !p-5 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-30 transition-all uppercase tracking-[0.3em] shadow-md border-0"
             >
-              ← Previous Era
+              ← Prev Era
             </button>
 
-            <div className="px-6 py-3 glass dark:bg-slate-900/50 rounded-[2rem] border-0 shadow-inner flex items-center gap-4">
-              <span className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Navigation Matrix</span>
-              <div className="flex items-center gap-2">
-                <span className="w-8 h-8 flex items-center justify-center bg-slate-900 dark:bg-indigo-600 text-white rounded-lg text-xs font-black shadow-lg">{currentPage}</span>
-                <span className="text-slate-300 dark:text-slate-700 text-xs">/</span>
-                <span className="text-slate-900 dark:text-slate-200 text-xs font-black">{totalPages}</span>
+            <div className="px-8 py-4 saas-card !p-0 dark:bg-[#0b1120] rounded-[2rem] border-slate-200 dark:border-slate-800 shadow-inner flex items-center gap-6">
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] ml-6">Registry Index</span>
+              <div className="flex items-center gap-3 pr-6">
+                <span className="w-10 h-10 flex items-center justify-center bg-indigo-600 text-white rounded-xl text-xs font-black shadow-xl">{currentPage}</span>
+                <span className="text-slate-300 dark:text-slate-700 font-black">/</span>
+                <span className="text-slate-900 dark:text-slate-200 font-black">{totalPages}</span>
               </div>
             </div>
 
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages || isFetching}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-xs font-black premium-gradient text-white border-0 hover:shadow-2xl disabled:opacity-30 disabled:cursor-not-allowed transition-all uppercase tracking-widest shadow-lg shadow-indigo-100 dark:shadow-none"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-4 px-10 py-5 rounded-[1.5rem] text-[10px] font-black premium-gradient text-white hover:scale-105 disabled:opacity-30 transition-all uppercase tracking-[0.3em] shadow-2xl shadow-indigo-600/20"
             >
               Next Phase →
             </button>

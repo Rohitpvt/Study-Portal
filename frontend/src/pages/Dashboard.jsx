@@ -99,7 +99,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="glass-card relative overflow-hidden group interactive-scale border-0 shadow-2xl">
+      <div className="hybrid-card relative overflow-hidden group interactive-scale border-0">
         <div className="absolute -top-24 -right-24 w-64 h-64 premium-gradient opacity-10 rounded-full blur-3xl group-hover:opacity-20 transition-opacity duration-1000"></div>
         <div className="absolute -bottom-24 -left-24 w-64 h-64 accent-gradient opacity-10 rounded-full blur-3xl group-hover:opacity-20 transition-opacity duration-1000"></div>
         
@@ -107,35 +107,42 @@ export default function Dashboard() {
           <div>
             <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
               Welcome back, <br/>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-500 dark:from-indigo-400 dark:to-blue-300">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-500 dark:from-indigo-400 dark:to-blue-300 uppercase">
                 {user.full_name.split(' ')[0]}
               </span>
             </h1>
-            <div className="mt-4">
-              <p className="text-slate-500 dark:text-slate-400 font-black text-sm uppercase tracking-tight opacity-70">
-                {user.email}
-              </p>
+            <div className="mt-4 flex items-center gap-4 flex-wrap">
+              <div className="flex flex-col">
+                <p className="text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-[0.2em] mb-1">Authenticated ID</p>
+                <p className="text-slate-800 dark:text-slate-100 font-bold text-sm tracking-tight">{user.email}</p>
+              </div>
               {user.roll_no && (
-                <p className="text-indigo-600 font-black text-xs uppercase tracking-widest mt-1">
-                  Roll No: {user.roll_no}
-                </p>
+                <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2 hidden sm:block"></div>
+              )}
+              {user.roll_no && (
+                <div className="flex flex-col">
+                  <p className="text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-[0.2em] mb-1">Roll Number</p>
+                  <p className="text-indigo-600 dark:text-indigo-400 font-black text-sm tracking-widest">{user.roll_no}</p>
+                </div>
               )}
             </div>
-            <p className="text-slate-500 dark:text-slate-300 mt-6 font-medium text-lg max-w-2xl">
-              Ready to excel? Explore your tailored study dashboard for <span className="text-indigo-600 dark:text-indigo-400 font-bold">Christ University</span> academic success.
+            <p className="text-slate-500 dark:text-slate-400 mt-8 font-medium text-lg max-w-2xl leading-relaxed">
+              Unlock your potential with our <span className="text-slate-900 dark:text-white font-bold underline decoration-indigo-500/30">tailored study ecosystem</span> for Christ University students.
             </p>
-            <div className="mt-6 flex items-center gap-3">
-               <span className={`px-5 py-2 text-[10px] md:text-xs font-black rounded-2xl uppercase tracking-widest shadow-sm transition-colors ${user.role?.toLowerCase() === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400'}`}>
-                {user.role} Account
+            <div className="mt-8 flex items-center gap-4">
+               <span className={`px-6 py-2.5 text-[10px] font-black rounded-xl uppercase tracking-widest transition-all ${user.role?.toLowerCase() === 'admin' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'}`}>
+                {user.role} Status
                </span>
-               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-               <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Active Session</span>
+               <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
+                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                 <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Active Hub</span>
+               </div>
             </div>
           </div>
           
-          <div className="hidden lg:block w-48 h-48 premium-gradient rounded-[40px] rotate-12 opacity-90 shadow-2xl flex items-center justify-center relative overflow-hidden">
-             <div className="absolute inset-0 bg-white/10 backdrop-blur-sm -rotate-12"></div>
-             <BookOpen className="w-24 h-24 text-white relative z-10" />
+          <div className="hidden lg:block w-56 h-56 premium-gradient rounded-[3rem] rotate-12 opacity-95 shadow-2xl flex items-center justify-center relative overflow-hidden group-hover:rotate-6 transition-transform duration-700">
+             <div className="absolute inset-0 bg-white/10 backdrop-blur-sm -rotate-12 group-hover:rotate-0 transition-transform duration-700"></div>
+             <BookOpen className="w-28 h-28 text-white relative z-10 drop-shadow-2xl" />
           </div>
         </div>
       </div>
@@ -145,8 +152,8 @@ export default function Dashboard() {
           to="/materials" 
           icon={<BookOpen className="w-10 h-10 text-white" />}
           gradient="premium-gradient"
-          title="Study Materials"
-          description="Browse and download approved study materials, notes, and past exams."
+          title="Library Vault"
+          description="Access approved study materials, structured notes, and past examination papers."
         />
         
         {user.role?.toLowerCase() === 'student' && (
@@ -154,8 +161,8 @@ export default function Dashboard() {
             to="/contributions" 
             icon={<Upload className="w-10 h-10 text-white" />}
             gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
-            title="Contribute"
-            description="Upload your own notes to help others. Submissions are reviewed by administrators."
+            title="Contribution Lab"
+            description="Upload your intellectual work to assist peers. Submissions undergo AI verification."
           />
         )}
 
@@ -164,8 +171,8 @@ export default function Dashboard() {
             to="/admin" 
             icon={<ShieldCheck className="w-10 h-10 text-white" />}
             gradient="bg-gradient-to-br from-rose-500 to-red-600"
-            title="Admin Review"
-            description="Review student submissions and authorize uploads into the global database."
+            title="Admin Console"
+            description="Authorize student work, manage repositories, and oversee system integrity."
           />
         )}
 
@@ -173,16 +180,16 @@ export default function Dashboard() {
           to="/chat" 
           icon={<MessageSquare className="w-10 h-10 text-white" />}
           gradient="bg-gradient-to-br from-violet-600 to-purple-700"
-          title="AI Chatbot"
-          description="Ask questions and get answers based on our verified syllabus materials."
+          title="Research AI"
+          description="Engage with our RAG-powered chatbot for syllabus-specific insights and queries."
         />
         
         <DashboardCard 
           to="/favorites" 
           icon={<Star className="w-10 h-10 text-white" />}
           gradient="bg-gradient-to-br from-amber-400 to-orange-500"
-          title="My Favorites"
-          description="Access all your saved notes and materials quickly from one place."
+          title="My Archives"
+          description="Your personalized collection of saved notes and bookmarks for quick retrieval."
         />
       </div>
     </div>
@@ -192,14 +199,14 @@ export default function Dashboard() {
 function DashboardCard({ to, icon, title, description, gradient }) {
   return (
     <Link to={to} className="block group h-full">
-      <div className="glass-card shadow-lg hover:shadow-indigo-100 dark:shadow-slate-900/50 dark:hover:shadow-indigo-900/20 h-full interactive-scale p-8 flex flex-col items-start border-0">
-        <div className={`${gradient || 'premium-gradient'} p-4 rounded-2xl mb-6 shadow-lg shadow-indigo-100 dark:shadow-none group-hover:rotate-6 transition-transform duration-500`}>
+      <div className="hybrid-card shadow-lg dark:shadow-none h-full interactive-scale p-8 flex flex-col items-start border-0 !rounded-[3rem]">
+        <div className={`${gradient || 'premium-gradient'} p-5 rounded-2xl mb-8 shadow-xl shadow-indigo-500/10 group-hover:rotate-12 transition-all duration-500`}>
           {icon}
         </div>
-        <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{title}</h3>
-        <p className="text-slate-500 dark:text-slate-400 font-semibold leading-relaxed text-sm">{description}</p>
-        <div className="mt-auto pt-6 flex items-center text-indigo-600 dark:text-indigo-400 font-black text-xs uppercase tracking-widest gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          Open Now <span>&rarr;</span>
+        <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors tracking-tight">{title}</h3>
+        <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed text-[13px] opacity-80">{description}</p>
+        <div className="mt-auto pt-8 flex items-center text-indigo-600 dark:text-indigo-400 font-black text-[10px] uppercase tracking-[0.2em] gap-3 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
+          Enter Module <span className="text-lg">&rarr;</span>
         </div>
       </div>
     </Link>

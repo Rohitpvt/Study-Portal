@@ -587,66 +587,66 @@ export default function DocumentViewer() {
   const currentPageMatch = searchMatches.find(m => m.page === pageNumber);
 
   return (
-    <div className={`flex flex-col h-screen max-h-screen overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50 bg-slate-900 dark:bg-black' : 'bg-slate-100/50 dark:bg-slate-950'}`}>
+    <div className={`flex flex-col h-screen max-h-screen overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50 bg-[#0b1120]' : 'bg-slate-50 dark:bg-[#0b1120]'}`}>
       
       {/* ── Toolbar ────────────────────────────────────────────────────────── */}
-      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 md:px-10 py-4 flex items-center justify-between gap-4 z-20 shadow-sm transition-all duration-300">
+      <div className="glass dark:bg-slate-900/80 border-0 border-b border-slate-200 dark:border-slate-800 px-6 md:px-12 py-5 flex items-center justify-between gap-6 z-20 shadow-sm transition-all duration-300">
         
         {/* Left: Metadata */}
-        <div className="flex items-center gap-5 min-w-0">
+        <div className="flex items-center gap-6 min-w-0">
           <button 
             onClick={() => navigate(-1)}
-            className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white"
+            className="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl transition-all text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 interactive-scale"
             title="Exit Viewer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
-          <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 hidden md:block" />
+          <div className="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden md:block" />
           <div className="flex flex-col min-w-0">
-            <h1 className="text-sm md:text-base font-black text-slate-900 dark:text-white truncate uppercase tracking-tight">
+            <h1 className="text-base md:text-lg font-black text-slate-900 dark:text-white truncate uppercase tracking-tight leading-none mb-1">
               {material?.title || 'System Core Fragment'}
             </h1>
-            <div className="flex items-center gap-2">
-               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-               <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Active Stream Channel</p>
+            <div className="flex items-center gap-3">
+               <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+               <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Matrix Connection Active</p>
             </div>
           </div>
         </div>
 
         {/* Center: Search & Navigation */}
-        <div className="hidden lg:flex items-center gap-6 bg-slate-100/60 dark:bg-slate-800/60 p-1.5 rounded-[2rem] border border-white dark:border-slate-700">
+        <div className="hidden lg:flex items-center gap-8 bg-slate-50 dark:bg-slate-950 p-2 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-inner">
           
           {/* View Mode Toggle */}
-          <div className="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-900 p-1.5 rounded-2xl shadow-md border border-slate-200 dark:border-slate-800">
             <button 
               onClick={() => setViewMode('single')}
-              className={`p-2 rounded-xl transition-all ${viewMode === 'single' ? 'bg-slate-900 dark:bg-indigo-600 text-white shadow-md' : 'text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+              className={`p-2.5 rounded-xl transition-all ${viewMode === 'single' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
               title="Matrix Mode (Single Page)"
             >
-              <Layout className="w-4 h-4" />
+              <Layout className="w-5 h-5" />
             </button>
             <button 
               onClick={() => setViewMode('continuous')}
-              className={`p-2 rounded-xl transition-all ${viewMode === 'continuous' ? 'bg-slate-900 dark:bg-indigo-600 text-white shadow-md' : 'text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+              className={`p-2.5 rounded-xl transition-all ${viewMode === 'continuous' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
               title="Stream Mode (Continuous)"
             >
-              <Layers className="w-4 h-4" />
+              <Layers className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="w-px h-6 bg-slate-200 dark:bg-slate-800" />
+          <div className="w-px h-8 bg-slate-200 dark:bg-slate-800" />
 
           {/* Page nav */}
           {viewMode === 'single' && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <button 
                 onClick={() => changePage(-1)} 
                 disabled={pageNumber <= 1}
-                className="p-2.5 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md rounded-xl disabled:opacity-20 transition-all text-slate-600 dark:text-slate-400"
+                className="p-3 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl rounded-2xl disabled:opacity-30 transition-all text-slate-600 dark:text-slate-400 interactive-scale"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-6 h-6" />
               </button>
-              <div className="flex items-center gap-2 px-3">
+              <div className="flex items-center gap-3 px-4 py-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <input 
                   type="text" 
                   value={pageNumber} 
@@ -654,69 +654,72 @@ export default function DocumentViewer() {
                     const val = parseInt(e.target.value);
                     if (val > 0 && val <= numPages) setPageNumber(val);
                   }}
-                  className="w-10 text-center bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 py-1 font-black text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-400 outline-none"
+                  className="w-12 text-center bg-transparent font-black text-slate-900 dark:text-white text-base focus:outline-none"
                 />
-                <span className="text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-tighter">/ {numPages || '--'}</span>
+                <span className="text-slate-300 dark:text-slate-700 font-black text-sm">/</span>
+                <span className="text-slate-500 dark:text-slate-400 font-black text-sm">{numPages || '--'}</span>
               </div>
               <button 
                 onClick={() => changePage(1)} 
                 disabled={pageNumber >= (numPages || 1)}
-                className="p-2.5 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md rounded-xl disabled:opacity-20 transition-all text-slate-600 dark:text-slate-400"
+                className="p-3 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl rounded-2xl disabled:opacity-30 transition-all text-slate-600 dark:text-slate-400 interactive-scale"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-6 h-6" />
               </button>
             </div>
           )}
         </div>
 
         {/* Right: Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           
-          <div className="hidden sm:flex items-center bg-slate-100/60 dark:bg-slate-800/60 p-1.5 rounded-2xl border border-white dark:border-slate-700 space-x-1">
-             <button onClick={() => handleZoom(-0.2)} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all text-slate-500 dark:text-slate-400">
-               <ZoomOut className="w-4 h-4" />
+          <div className="hidden sm:flex items-center bg-slate-50 dark:bg-slate-950 p-2 rounded-2xl border border-slate-200 dark:border-slate-800 space-x-2 shadow-inner">
+             <button onClick={() => handleZoom(-0.2)} className="p-2.5 hover:bg-white dark:hover:bg-slate-900 rounded-xl transition-all text-slate-500 dark:text-slate-400 interactive-scale">
+               <ZoomOut className="w-5 h-5" />
              </button>
-             <span className="w-12 text-center text-[10px] font-black text-slate-700 dark:text-slate-300">{Math.round(scale * 100)}%</span>
-             <button onClick={() => handleZoom(0.2)} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all text-slate-500 dark:text-slate-400">
-               <ZoomIn className="w-4 h-4" />
+             <span className="w-16 text-center text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest">{Math.round(scale * 100)}%</span>
+             <button onClick={() => handleZoom(0.2)} className="p-2.5 hover:bg-white dark:hover:bg-slate-900 rounded-xl transition-all text-slate-500 dark:text-slate-400 interactive-scale">
+               <ZoomIn className="w-5 h-5" />
              </button>
           </div>
 
           <button 
             onClick={() => { setIsSearchOpen(!isSearchOpen); setSearchMessage(''); }}
-            className={`p-3 rounded-2xl transition-all shadow-sm border ${isSearchOpen ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border-slate-100 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
+            className={`p-4 rounded-2xl transition-all shadow-xl border ${isSearchOpen ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-600/20' : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
             title="Search Document"
           >
-            <Search className="w-5 h-5" />
+            <Search className="w-6 h-6" />
           </button>
 
           <button 
             onClick={toggleFullscreen}
-            className="p-3 bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white rounded-2xl transition-all hidden sm:block shadow-sm"
+            className="p-4 bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl transition-all hidden sm:block shadow-xl active:scale-95"
           >
-            {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+            {isFullscreen ? <Minimize2 className="w-6 h-6" /> : <Maximize2 className="w-6 h-6" />}
           </button>
 
           <button 
             onClick={handleDownload}
-            className="p-3.5 premium-gradient text-white rounded-2xl shadow-xl shadow-indigo-100 dark:shadow-none transition-all hover:scale-105 active:scale-95 flex items-center gap-3 px-5"
+            className="p-4 premium-gradient text-white rounded-2xl shadow-2xl shadow-indigo-600/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-4 px-6"
           >
-            <Download className="w-5 h-5" />
-            <span className="text-[10px] font-black uppercase hidden lg:block tracking-widest">Capture Local</span>
+            <Download className="w-6 h-6" />
+            <span className="text-[11px] font-black uppercase hidden lg:block tracking-[0.2em]">Capture Binary</span>
           </button>
         </div>
       </div>
 
       {/* ── Search Bar Overlay ────────────────────────────────────────────── */}
       {isSearchOpen && (
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 z-30 w-full max-w-lg px-4">
-          <div className="bg-slate-900/95 dark:bg-slate-900/98 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-slate-700/50 dark:border-slate-800 overflow-hidden">
-            <div className="p-4 flex items-center gap-3">
-              <Search className="w-5 h-5 text-indigo-400 ml-2 flex-shrink-0" />
+        <div className="absolute top-28 left-1/2 -translate-x-1/2 z-30 w-full max-w-2xl px-6">
+          <div className="bg-slate-900/95 dark:bg-slate-900 rounded-[2.5rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden backdrop-blur-2xl">
+            <div className="p-6 flex items-center gap-5">
+              <div className="p-3 bg-indigo-600/20 rounded-2xl">
+                <Search className="w-6 h-6 text-indigo-400" />
+              </div>
               <input 
                 type="text" 
-                placeholder="Search document text..."
-                className="flex-1 bg-transparent border-none text-white font-bold text-sm outline-none placeholder:text-slate-500 dark:placeholder:text-slate-600"
+                placeholder="Query knowledge fragment..."
+                className="flex-1 bg-transparent border-none text-white font-black text-base outline-none placeholder:text-slate-500 uppercase tracking-tight"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
@@ -724,13 +727,15 @@ export default function DocumentViewer() {
               />
               
               {totalMatchCount > 0 && (
-                <div className="flex items-center gap-2 pr-2 border-r border-slate-700 mr-2">
-                   <span className="text-[10px] font-black text-indigo-400 uppercase whitespace-nowrap">
-                     {activeMatchGlobal + 1} / {totalMatchCount}
-                   </span>
-                   <div className="flex gap-1">
-                     <button onClick={() => navigateMatch('prev')} className="p-1.5 hover:bg-slate-800 dark:hover:bg-slate-700 rounded-lg text-white transition-colors"><ChevronUp className="w-3 h-3" /></button>
-                     <button onClick={() => navigateMatch('next')} className="p-1.5 hover:bg-slate-800 dark:hover:bg-slate-700 rounded-lg text-white transition-colors"><ChevronDown className="w-3 h-3" /></button>
+                <div className="flex items-center gap-4 pr-4 border-r border-slate-700/50 mr-2">
+                   <div className="px-3 py-1.5 bg-white/5 rounded-xl border border-white/10">
+                     <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">
+                       {activeMatchGlobal + 1} <span className="text-slate-500 mx-1">/</span> {totalMatchCount}
+                     </span>
+                   </div>
+                   <div className="flex gap-2">
+                     <button onClick={() => navigateMatch('prev')} className="p-2 hover:bg-white/10 rounded-xl text-white transition-all interactive-scale"><ChevronUp className="w-4 h-4" /></button>
+                     <button onClick={() => navigateMatch('next')} className="p-2 hover:bg-white/10 rounded-xl text-white transition-all interactive-scale"><ChevronDown className="w-4 h-4" /></button>
                    </div>
                 </div>
               )}
@@ -738,25 +743,25 @@ export default function DocumentViewer() {
               <button 
                 onClick={executeSearch} 
                 disabled={isSearching || !searchTerm.trim()}
-                className="px-6 py-2.5 bg-indigo-600 rounded-2xl text-white text-[10px] font-black uppercase tracking-widest disabled:opacity-30 hover:bg-indigo-700 transition-all shadow-lg flex-shrink-0"
+                className="px-8 py-4 premium-gradient rounded-2xl text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-30 shadow-2xl shadow-indigo-600/20 active:scale-95 transition-all"
               >
-                {isSearching ? `${textExtractionProgress}%` : 'Scan'}
+                {isSearching ? `${textExtractionProgress}%` : 'Execute Scan'}
               </button>
-              <button onClick={clearSearch} className="p-2 text-slate-500 dark:text-slate-400 hover:text-white transition-colors flex-shrink-0">
-                <X className="w-5 h-5" />
+              <button onClick={clearSearch} className="p-3 text-slate-500 hover:text-white transition-colors">
+                <X className="w-6 h-6" />
               </button>
             </div>
             
             {/* Search feedback message */}
             {searchMessage && (
-              <div className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border-t border-slate-800 dark:border-slate-700 ${
+              <div className={`px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 border-t border-white/5 ${
                 totalMatchCount > 0 
-                  ? 'text-emerald-400 dark:text-emerald-500 bg-emerald-950/30 dark:bg-emerald-900/20' 
-                  : 'text-amber-400 dark:text-amber-500 bg-amber-950/30 dark:bg-amber-900/20'
+                  ? 'text-emerald-400 bg-emerald-500/5' 
+                  : 'text-amber-400 bg-amber-500/5'
               }`}>
                 {totalMatchCount > 0 
-                  ? <FileText className="w-3 h-3" /> 
-                  : <AlertCircle className="w-3 h-3" />
+                  ? <FileText className="w-4 h-4" /> 
+                  : <AlertCircle className="w-4 h-4" />
                 }
                 {searchMessage}
               </div>
@@ -767,15 +772,17 @@ export default function DocumentViewer() {
 
       {/* ── Chatbot Source Banner ──────────────────────────────────────────── */}
       {chatSourceBanner && chatSourcePage && (
-        <div className="bg-indigo-600 dark:bg-indigo-700 text-white px-6 py-2.5 flex items-center justify-between z-20">
-          <div className="flex items-center gap-3">
-            <FileText className="w-4 h-4" />
-            <span className="text-[11px] font-black uppercase tracking-widest">
-              {targetExcerpt ? 'AI Cited Source — Text Highlighted' : `Opened from AI Chat — Page ${chatSourcePage}`}
+        <div className="bg-indigo-600 text-white px-8 py-3.5 flex items-center justify-between z-20 shadow-xl border-b border-indigo-500">
+          <div className="flex items-center gap-4">
+            <div className="p-1.5 bg-white/20 rounded-lg">
+              <FileText className="w-4 h-4" />
+            </div>
+            <span className="text-[11px] font-black uppercase tracking-[0.2em]">
+              {targetExcerpt ? 'Verified Source Anchor — Precision Gating Active' : `Research Citation Mode — Synchronized to Page ${chatSourcePage}`}
             </span>
           </div>
-          <button onClick={() => setChatSourceBanner(false)} className="p-1 hover:bg-white/20 rounded-lg transition-colors">
-            <X className="w-4 h-4" />
+          <button onClick={() => setChatSourceBanner(false)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
+            <X className="w-5 h-5" />
           </button>
         </div>
       )}

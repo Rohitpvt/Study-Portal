@@ -99,14 +99,13 @@ export default function Navbar() {
   return (
     <>
       <nav 
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
+        className={`fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl z-50 transition-all duration-500 ease-in-out ${
           isScrolled 
-            ? "glass-nav h-16" 
-            : "bg-white/0 h-24"
-        }`}
+            ? "glass h-16 rounded-[2rem]" 
+            : "bg-white/5 dark:bg-slate-900/40 backdrop-blur-md h-20 rounded-[2.5rem]"
+        } px-8 flex items-center justify-between shadow-2xl dark:shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/10`}
       >
-        <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-full">
+        <div className="flex justify-between items-center w-full h-full">
             
             {/* LEFT: Brand Section */}
             <div className="flex items-center">
@@ -237,7 +236,6 @@ export default function Navbar() {
               </button>
             </div>
 
-          </div>
         </div>
       </nav>
 
