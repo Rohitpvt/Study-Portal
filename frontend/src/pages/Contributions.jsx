@@ -182,126 +182,97 @@ export default function Contributions() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-16 pb-24 animate-in fade-in duration-700">
+    <div className="max-w-6xl mx-auto space-y-12 pb-20">
       
       {/* Upload Section */}
-      <div className="hybrid-card p-12 mt-10 relative overflow-hidden border border-white/10 dark:border-slate-800 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)]">
-        <div className="absolute top-0 left-0 w-full h-1 bg-indigo-600 shadow-[0_0_20px_rgba(79,70,229,0.5)]"></div>
-        
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-14">
-          <div>
-            <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-6 uppercase">
-              <div className="p-5 bg-indigo-600 text-white rounded-[1.75rem] shadow-2xl shadow-indigo-600/20">
-                <UploadIcon className="w-8 h-8"/>
-              </div>
-              Knowledge Injection
-            </h2>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.4em] mt-5 ml-1 leading-relaxed">
-              Synthesize your materials into the platform index via high-fidelity AI vetting.
-            </p>
-          </div>
-          <div className="flex items-center gap-3 px-6 py-3 bg-indigo-600/5 border border-indigo-600/10 rounded-2xl">
-             <div className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></div>
-             <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Quality Check Active</span>
-          </div>
+      <div className="glass-card dark:bg-slate-900/50 shadow-2xl border-0 p-10 mt-6 relative overflow-hidden group transition-colors">
+        <div className="absolute top-0 left-0 w-2 h-full premium-gradient"></div>
+        <div className="flex items-center justify-between mb-8">
+           <h2 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-4 tracking-tighter transition-colors">
+             <div className="p-3 premium-gradient rounded-2xl shadow-lg ring-4 ring-indigo-50 dark:ring-indigo-900/40">
+               <UploadIcon className="text-white w-6 h-6"/>
+             </div>
+             Knowledge Submission
+           </h2>
+           <div className="hidden md:flex items-center gap-2 px-4 py-2 glass dark:bg-slate-800/40 rounded-2xl text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-colors">
+             <Info className="w-3.5 h-3.5"/> Quality Check Active
+           </div>
         </div>
+        <p className="text-slate-500 dark:text-slate-400 text-base mt-2 mb-10 font-bold opacity-80 leading-relaxed max-w-2xl transition-colors">
+          Contribute to the collective intelligence. Your materials undergo high-fidelity AI quality vetting before platform indexing.
+        </p>
         
-        <form onSubmit={handleUpload} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest ml-1">Research Title</label>
-            <input type="text" placeholder="Strategic Identifier" required className="w-full px-6 py-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl text-sm font-black text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-600/10 transition-all" value={uploadData.title} onChange={e => setUploadData({...uploadData, title: e.target.value})} />
-          </div>
+        <form onSubmit={handleUpload} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <input type="text" placeholder="Strategic Title (e.g. OS Module 1 Summary)" required className="glass dark:bg-slate-800/40 p-5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 outline-none border-white/60 dark:border-slate-700/50 text-slate-900 dark:text-white transition-all" value={uploadData.title} onChange={e => setUploadData({...uploadData, title: e.target.value})} />
           
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest ml-1">Knowledge Domain</label>
-            <select className="w-full px-6 py-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl text-sm font-black text-slate-900 dark:text-white cursor-pointer focus:outline-none focus:ring-4 focus:ring-indigo-600/10 transition-all" required value={uploadData.course} onChange={e => setUploadData({...uploadData, course: e.target.value, subject: ''})}>
-              <option value="">Select Domain</option>
-              {Object.keys(ACADEMIC_DATA).map(course => (
-                <option key={course} value={course}>{course}</option>
-              ))}
-            </select>
-          </div>
+          <select className="glass dark:bg-slate-800/40 p-5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 outline-none border-white/60 dark:border-slate-700/50 text-slate-900 dark:text-white cursor-pointer transition-all" required value={uploadData.course} onChange={e => setUploadData({...uploadData, course: e.target.value, subject: ''})}>
+            <option value="" className="dark:bg-slate-900">Select Domain</option>
+            {Object.keys(ACADEMIC_DATA).map(course => (
+              <option key={course} value={course} className="dark:bg-slate-900">{course}</option>
+            ))}
+          </select>
 
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest ml-1">Subject Matter</label>
+          <div className="relative">
             <select 
-              className="w-full px-6 py-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl text-sm font-black text-slate-900 dark:text-white cursor-pointer focus:outline-none focus:ring-4 focus:ring-indigo-600/10 transition-all disabled:opacity-40" 
+              className="glass dark:bg-slate-800/40 p-5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 outline-none border-white/60 dark:border-slate-700/50 text-slate-900 dark:text-white cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all w-full" 
               required 
               disabled={!uploadData.course} 
               value={uploadData.subject} 
               onChange={e => setUploadData({...uploadData, subject: e.target.value})}
             >
-              <option value="">{uploadData.course ? "Select Subject" : "Await Domain..."}</option>
+              <option value="" className="dark:bg-slate-900">{uploadData.course ? "Select Subject" : "Awaiting Domain Select..."}</option>
               {uploadSubjects.map(sub => (
-                <option key={sub} value={sub}>{sub}</option>
+                <option key={sub} value={sub} className="dark:bg-slate-900">{sub}</option>
               ))}
             </select>
           </div>
 
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest ml-1">Timeline</label>
-            <select className="w-full px-6 py-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl text-sm font-black text-slate-900 dark:text-white cursor-pointer focus:outline-none focus:ring-4 focus:ring-indigo-600/10 transition-all" required value={uploadData.semester} onChange={e => setUploadData({...uploadData, semester: e.target.value})}>
-               <option value="">Select Semester</option>
-               {SEMESTERS.map(sem => (
-                 <option key={sem} value={sem}>Semester {sem}</option>
-               ))}
-            </select>
-          </div>
+          <select className="glass dark:bg-slate-800/40 p-5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 outline-none border-white/60 dark:border-slate-700/50 text-slate-900 dark:text-white cursor-pointer transition-all" required value={uploadData.semester} onChange={e => setUploadData({...uploadData, semester: e.target.value})}>
+             <option value="" className="dark:bg-slate-900">Select Semester</option>
+             {SEMESTERS.map(sem => (
+               <option key={sem} value={sem} className="dark:bg-slate-900">Semester {sem}</option>
+             ))}
+          </select>
 
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest ml-1">Classification</label>
-            <select className="w-full px-6 py-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl text-sm font-black text-slate-900 dark:text-white cursor-pointer focus:outline-none focus:ring-4 focus:ring-indigo-600/10 transition-all" required value={uploadData.category} onChange={e => setUploadData({...uploadData, category: e.target.value})}>
-              {CATEGORIES.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-          </div>
+          <select className="glass dark:bg-slate-800/40 p-5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 outline-none border-white/60 dark:border-slate-700/50 text-slate-900 dark:text-white cursor-pointer transition-all" required value={uploadData.category} onChange={e => setUploadData({...uploadData, category: e.target.value})}>
+            {CATEGORIES.map(cat => (
+              <option key={cat.id} value={cat.id} className="dark:bg-slate-900">{cat.name}</option>
+            ))}
+          </select>
 
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest ml-1">Source Material (.PDF)</label>
-            <div className="relative group/file">
-              <input type="file" required accept=".pdf" className="w-full px-6 py-[1.1rem] bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl text-[10px] font-black text-slate-400 uppercase tracking-widest cursor-pointer file:hidden transition-all" onChange={e => setFile(e.target.files[0])} />
-              <div className="absolute inset-y-0 right-6 flex items-center pointer-events-none text-indigo-600 group-hover/file:translate-x-1 transition-transform">
-                <ArrowRight className="w-4 h-4" />
-              </div>
-              <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none text-slate-300 dark:text-slate-700">
-                {file ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <FileText className="w-4 h-4" />}
-                <span className="ml-3 truncate max-w-[120px]">{file ? file.name : "Choose File"}</span>
-              </div>
-            </div>
-          </div>
+           <input type="file" required accept=".pdf" className="glass dark:bg-slate-800/40 p-5 rounded-2xl text-xs font-black file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 transition-all border-white/60 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 cursor-pointer" onChange={e => setFile(e.target.files[0])} />
           
-          <button type="submit" disabled={uploading || !file} className="w-full lg:col-span-3 mt-4 py-6 px-8 bg-indigo-600 text-white rounded-[1.5rem] text-xs font-black uppercase tracking-[0.3em] shadow-[0_20px_40px_-10px_rgba(79,70,229,0.3)] hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-4">
-             {uploading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <UploadIcon className="w-5 h-5" />}
+          <button type="submit" disabled={uploading || !file} className="premium-gradient font-black p-5 rounded-2xl hover:shadow-indigo-200 dark:shadow-none disabled:opacity-50 transition-all shadow-xl active:scale-[0.98] lg:col-span-3 flex items-center justify-center gap-3">
+             <UploadIcon className="w-5 h-5" />
              {uploading ? 'Processing Data Streams...' : 'Execute Submission'}
           </button>
         </form>
       </div>
 
       {/* Tracker Section */}
-      <div className="hybrid-card p-12 relative overflow-hidden border border-white/10 dark:border-slate-800 shadow-2xl transition-all">
-        <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-14 uppercase">Knowledge Ledger</h2>
+      <div className="glass-card dark:bg-slate-900/50 shadow-2xl border-0 p-10 relative overflow-hidden transition-colors">
+        <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter mb-10 transition-colors">Data Submission Ledger</h2>
         
         {contributions.length === 0 ? (
-          <div className="text-center py-32 bg-slate-50 dark:bg-slate-950/50 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-800">
-            <div className="bg-white dark:bg-slate-900 w-24 h-24 rounded-[2rem] mx-auto flex items-center justify-center mb-8 shadow-xl">
-               <FileText className="w-12 h-12 text-slate-200 dark:text-slate-800" />
+          <div className="text-center py-24 glass dark:bg-slate-900/30 rounded-[2.5rem] border-0">
+            <div className="bg-slate-100 dark:bg-slate-800 w-20 h-20 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-inner">
+               <FileText className="w-10 h-10 text-slate-300 dark:text-slate-600" />
             </div>
-            <h3 className="text-sm font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.3em]">No Active Records</h3>
-            <p className="text-[11px] text-slate-300 dark:text-slate-700 font-black uppercase tracking-widest mt-3">Platform registry is currently empty</p>
+            <h3 className="text-xl font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">No Active Submissions</h3>
+            <p className="text-slate-400 dark:text-slate-500 text-sm mt-2 font-semibold">Start building the knowledge base today.</p>
           </div>
         ) : (
-          <div className="overflow-hidden bg-white dark:bg-slate-950/30 border border-slate-100 dark:border-slate-800/50 rounded-[2.5rem] shadow-2xl">
-            <table className="min-w-full divide-y divide-slate-50 dark:divide-slate-800/50">
-              <thead className="bg-slate-50 dark:bg-slate-950/20">
+          <div className="overflow-hidden glass dark:bg-slate-900/30 border-white/60 dark:border-slate-800/50 rounded-[2rem] shadow-xl">
+            <table className="min-w-full divide-y divide-white/20 dark:divide-slate-800/50">
+              <thead className="bg-slate-900/5 dark:bg-slate-950/20">
                 <tr>
-                  <th className="py-7 pl-10 pr-4 text-left text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Asset Horizon</th>
-                  <th className="px-4 py-7 text-left text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">State</th>
-                  <th className="px-4 py-7 text-left text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Insight Metrics</th>
-                  <th className="px-4 py-7 text-right pr-10 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Ops</th>
+                  <th className="py-6 pl-8 pr-4 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Document Horizon</th>
+                  <th className="px-4 py-6 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Current Status</th>
+                  <th className="px-4 py-6 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Insight Metrics</th>
+                  <th className="px-4 py-6 text-right pr-8 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+              <tbody className="divide-y divide-white/20 dark:divide-slate-800/50">
                 {contributions.map((m) => {
                   const s = statuses[m.id] || {};
                   const pStatus = s.processing_status || m.processing_status;
@@ -311,72 +282,77 @@ export default function Contributions() {
                   const isTerminal = TERMINAL_STATES.includes(pStatus);
 
                   return (
-                    <tr key={m.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-all group">
-                      <td className="py-8 pl-10 pr-4">
-                        <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight block group-hover:text-indigo-600 transition-colors">{m.title}</span>
-                        <div className="flex items-center gap-3 mt-2">
-                          <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">ID: {m.id.substring(0,8)}</span>
-                          <span className="text-slate-200 dark:text-slate-800">•</span>
-                          <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{new Date(m.created_at).toLocaleDateString()}</span>
+                    <tr key={m.id} className="hover:bg-white/40 dark:hover:bg-slate-900/70 transition-all group">
+                      <td className="py-6 pl-8 pr-4">
+                        <span className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight block transition-colors">{m.title}</span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-colors">ID: {m.id.substring(0,8)}</span>
+                          <span className="text-slate-300 dark:text-slate-800">•</span>
+                          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-colors">{new Date(m.created_at).toLocaleDateString()}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-8 whitespace-nowrap">{getStatusBadge(m.status, pStatus)}</td>
-                      <td className="px-4 py-8">
-                        <div className="flex flex-col gap-4 p-6 bg-slate-50/50 dark:bg-slate-950/50 rounded-[1.75rem] border border-slate-100 dark:border-slate-800/50 shadow-sm min-w-[320px]">
+                      <td className="px-4 py-6 whitespace-nowrap">{getStatusBadge(m.status, pStatus)}</td>
+                      <td className="px-4 py-6">
+                        <div className="flex flex-col gap-3 p-5 glass dark:bg-slate-800/40 rounded-2xl border-0 shadow-inner w-80">
+                          {/* Step & Progress */}
                           <div className="flex justify-between items-center">
-                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.3em]">
-                              {isTerminal ? 'System Resolution' : 'Pipeline Progress'}
+                            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-colors">
+                              {isTerminal ? 'Resolution' : 'Current Step'}
                             </span>
-                            {!isTerminal && (
-                              <div className="flex gap-1">
-                                <div className="w-1 h-1 bg-indigo-600 rounded-full animate-bounce"></div>
-                                <div className="w-1 h-1 bg-indigo-600 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                                <div className="w-1 h-1 bg-indigo-600 rounded-full animate-bounce [animation-delay:0.4s]"></div>
-                              </div>
-                            )}
+                            {!isTerminal && <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 animate-pulse uppercase tracking-widest">Processing</span>}
                           </div>
                           
-                          <div className="flex items-center gap-3">
-                             <div className={`w-2.5 h-2.5 rounded-full ${config.color} ${!isTerminal ? 'animate-pulse' : ''}`}></div>
-                             <span className="text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest">{config.label}</span>
+                          <div className="flex items-center gap-2">
+                             <div className={`w-2 h-2 rounded-full ${config.color} ${!isTerminal ? 'animate-ping' : ''}`}></div>
+                             <span className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight transition-colors">{config.label}</span>
                           </div>
  
-                          <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-900 rounded-full overflow-hidden">
-                            <div className={`h-full transition-all duration-1000 ${isTerminal ? 'bg-emerald-500' : 'bg-indigo-600 shadow-[0_0_10px_rgba(79,70,229,0.5)]'}`} style={{ width: `${config.progress}%` }}></div>
+                          <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div className={`h-full transition-all duration-1000 ${isTerminal ? 'bg-emerald-500' : 'premium-gradient'}`} style={{ width: `${config.progress}%` }}></div>
                           </div>
 
+                           {/* Feedback / Recommendation */}
                           {(recommendation || feedback) && (
-                            <div className="pt-3 border-t border-slate-100 dark:border-slate-900/50 space-y-3">
+                            <div className="mt-2 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2">
                               {recommendation && (
-                                <span className="inline-block text-[9px] font-black bg-indigo-600 text-white px-3 py-1 rounded-lg uppercase tracking-widest">
-                                  {recommendation.replace(/_/g, ' ')}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[9px] font-black bg-indigo-50 dark:bg-indigo-900/40 text-indigo-500 dark:text-indigo-300 px-2 py-0.5 rounded uppercase tracking-widest border border-indigo-100 dark:border-indigo-800">
+                                    {recommendation.replace(/_/g, ' ')}
+                                  </span>
+                                </div>
                               )}
                               {feedback && (
-                                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 italic leading-relaxed">
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 leading-tight transition-colors">
                                   "{feedback}"
                                 </p>
                               )}
                             </div>
                           )}
+
+                          {/* Secondary Legacy Info */}
+                          {!isTerminal && m.ai_grammar_score && (
+                            <div className="mt-2 pt-2 flex justify-between items-center opacity-40">
+                               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Legacy AI Score: {m.ai_grammar_score}</span>
+                            </div>
+                          )}
                         </div>
                       </td>
-                      <td className="px-4 py-8 text-right pr-10">
+                      <td className="px-4 py-6 text-right pr-8">
                         {pStatus === 'processing_failed' && (
-                          <div className="flex items-center justify-end gap-4">
+                          <div className="flex items-center justify-end gap-3">
                             <button
                               onClick={() => handleReprocess(m.id)}
                               disabled={actionLoading[m.id]}
-                              title="Restart Pipeline"
-                              className="p-3 bg-indigo-600/10 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all interactive-scale"
+                              title="Reprocess Pipeline"
+                              className="p-3 rounded-xl glass dark:bg-slate-800/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:shadow-lg hover:shadow-indigo-500/10 transition-all disabled:opacity-50"
                             >
                               <RotateCw className={`w-4 h-4 ${actionLoading[m.id] === 'reprocess' ? 'animate-spin' : ''}`} />
                             </button>
                             <button
                               onClick={() => handleDelete(m.id)}
                               disabled={actionLoading[m.id]}
-                              title="Purge Record"
-                              className="p-3 bg-rose-600/10 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all interactive-scale"
+                              title="Delete Failed Record"
+                              className="p-3 rounded-xl glass dark:bg-slate-800/40 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30 hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:shadow-lg hover:shadow-rose-500/10 transition-all disabled:opacity-50"
                             >
                               <Trash2 className={`w-4 h-4 ${actionLoading[m.id] === 'delete' ? 'animate-pulse' : ''}`} />
                             </button>

@@ -20,6 +20,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { SystemProvider, useSystem } from './context/SystemContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ErrorPage from './components/common/ErrorPage';
+import MouseGlow from './components/common/MouseGlow';
 
 const AppContent = () => {
   const { isOffline, isServerDown, isRetrying, checkHealth } = useSystem();
@@ -92,6 +93,7 @@ function App() {
       <SystemProvider>
         <NotificationProvider>
           <ToastContainer />
+          <MouseGlow />
           <BrowserRouter>
             <AppContent />
           </BrowserRouter>

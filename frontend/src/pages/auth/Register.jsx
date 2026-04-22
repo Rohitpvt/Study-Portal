@@ -134,83 +134,83 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-[90vh] flex items-center justify-center p-8 bg-transparent relative overflow-hidden animate-in fade-in duration-700">
+    <div className="min-h-[85vh] flex items-center justify-center p-6 bg-transparent relative overflow-hidden">
       
-      {/* Background Orbs */}
-      <div className="absolute top-1/2 -left-40 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[140px] pointer-events-none animate-pulse"></div>
-      <div className="absolute bottom-0 -right-40 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none animate-pulse delay-1000"></div>
+      {/* Background Decorative Elements */}
+      <div className="absolute top-1/2 left-0 w-80 h-80 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute bottom-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-      <div className="hybrid-card max-w-2xl w-full p-12 border border-white/10 dark:border-slate-800 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)] relative overflow-hidden group">
-        <div className="absolute top-0 left-0 w-full h-1 bg-indigo-600 shadow-[0_0_20px_rgba(79,70,229,0.5)]"></div>
+      <div className="glass-card max-w-lg w-full shadow-2xl p-10 border-0 relative overflow-hidden group">
+        <div className="absolute top-0 left-0 w-full h-1.5 premium-gradient opacity-80"></div>
         
         {/* Floating Theme Toggle */}
         <button
           onClick={toggleTheme}
-          className="absolute top-8 right-8 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all z-10 interactive-scale"
+          className="absolute top-6 right-6 p-3 rounded-xl glass dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all z-10"
           aria-label="Toggle Theme"
         >
           {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
         
-        <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-indigo-600 text-white rounded-[1.75rem] mx-auto flex items-center justify-center mb-6 shadow-2xl shadow-indigo-600/20 transform group-hover:rotate-6 transition-transform duration-700">
-             <ShieldPlus className="w-10 h-10" />
+        <div className="text-center mb-10">
+          <div className="w-16 h-16 premium-gradient rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-xl shadow-indigo-100 dark:shadow-none transform group-hover:rotate-6 transition-transform duration-500">
+             <ShieldPlus className="text-white w-8 h-8" />
           </div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">Researcher Indexing</h2>
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.3em]">
-            Credential Validation Required // <span className="text-indigo-600">@christuniversity.in</span>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter transition-colors">Researcher Indexing</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-bold opacity-80 transition-colors">
+            Authorization required via <span className="text-indigo-600 dark:text-indigo-400">@christuniversity.in</span>
           </p>
         </div>
         
         {error && (
-          <div className="bg-rose-500/10 text-rose-600 dark:text-rose-400 p-6 rounded-[1.5rem] text-[11px] font-black mb-10 border border-rose-500/20 flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
-            <div className="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></div>
-            {error.toUpperCase()}
+          <div className="bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 p-5 rounded-2xl text-xs font-black mb-8 border border-rose-100 dark:border-rose-900/30 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-rose-600 dark:bg-rose-400 animate-pulse"></div>
+            {error}
           </div>
         )}
 
-        <form className="space-y-8" onSubmit={handleRegister}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] ml-1">Given Name</label>
+        <form className="space-y-6" onSubmit={handleRegister}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">First Name</label>
               <div className="relative group/input">
-                <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-300 dark:text-slate-700 group-focus-within/input:text-indigo-600 transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
                   <User className="w-5 h-5" />
                 </div>
                 <input
                     type="text"
                     value={formData.firstName}
                     onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                    className="w-full pl-16 pr-6 py-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-[1.5rem] text-sm font-black text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-600/10 transition-all"
-                    placeholder="First"
+                    className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
+                    placeholder="Ex: First"
                     required
                   />
               </div>
             </div>
 
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] ml-1">Family Name</label>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Last Name</label>
               <div className="relative group/input">
-                <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-300 dark:text-slate-700 group-focus-within/input:text-indigo-600 transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
                   <User className="w-5 h-5" />
                 </div>
                 <input
                     type="text"
                     value={formData.lastName}
                     onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                    className="w-full pl-16 pr-6 py-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-[1.5rem] text-sm font-black text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-600/10 transition-all"
-                    placeholder="Last"
+                    className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
+                    placeholder="Ex: Last"
                     required
                   />
               </div>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] ml-1">Academic Protocol</label>
-            <div className="flex gap-3">
-              <div className="relative flex-1 group/input">
-                <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-300 dark:text-slate-700 group-focus-within/input:text-indigo-600 transition-colors">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Academic Email</label>
+            <div className="relative group/input flex gap-2">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
                   <Mail className="w-5 h-5" />
                 </div>
                 <input
@@ -218,7 +218,7 @@ export default function Register() {
                   value={formData.email}
                   disabled={otpVerified}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full pl-16 pr-6 py-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-[1.5rem] text-sm font-black text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-600/10 transition-all disabled:opacity-50"
+                  className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm disabled:opacity-50"
                   placeholder="name@course.christuniversity.in"
                   required
                 />
@@ -228,7 +228,7 @@ export default function Register() {
                   type="button"
                   disabled={sendingOtp || !formData.email}
                   onClick={handleSendOTP}
-                  className="px-8 py-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 transition-all interactive-scale shadow-sm"
+                  className="px-6 py-4 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-black text-sm border border-indigo-100 dark:border-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
                   {sendingOtp ? <RefreshCw className="w-4 h-4 animate-spin" /> : (otpSent ? 'Resend' : 'Send OTP')}
                 </button>
@@ -237,11 +237,11 @@ export default function Register() {
           </div>
 
           {otpSent && !otpVerified && (
-            <div className="space-y-3 animate-in slide-in-from-top-4">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] ml-1">Verification Code</label>
-              <div className="flex gap-3">
-                <div className="relative flex-1 group/input">
-                  <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-emerald-500 transition-colors">
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Enter OTP Code</label>
+              <div className="relative group/input flex gap-2">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-emerald-600 dark:group-focus-within/input:text-emerald-400 transition-colors">
                     <KeyRound className="w-5 h-5" />
                   </div>
                   <input
@@ -249,8 +249,8 @@ export default function Register() {
                     maxLength={6}
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value)}
-                    className="w-full pl-16 pr-6 py-5 bg-emerald-500/5 border border-emerald-500/20 rounded-[1.5rem] text-sm font-black tracking-[0.4em] text-center text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all"
-                    placeholder="000000"
+                    className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-emerald-200 dark:border-emerald-900/30 rounded-2xl text-sm font-black tracking-widest text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-emerald-100/50 dark:focus:ring-emerald-900/30 transition-all shadow-sm"
+                    placeholder="123456"
                     required
                   />
                 </div>
@@ -258,7 +258,7 @@ export default function Register() {
                   type="button"
                   disabled={verifyingOtp || otpCode.length !== 6}
                   onClick={handleVerifyOTP}
-                  className="px-10 py-5 bg-emerald-600 text-white rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all interactive-scale"
+                  className="px-6 py-4 rounded-2xl bg-emerald-500 text-white font-black text-sm hover:bg-emerald-600 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
                   {verifyingOtp ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Verify'}
                 </button>
@@ -267,103 +267,103 @@ export default function Register() {
           )}
 
           {otpVerified && (
-             <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 p-6 rounded-[1.5rem] text-[11px] font-black flex items-center gap-4 border border-emerald-500/20 animate-in fade-in">
-               <CheckCircle2 className="w-6 h-6" />
-               CREDENTIALS VALIDATED // PROCEED TO REGISTRATION
+             <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 p-4 rounded-2xl text-xs font-black flex items-center gap-3 border border-emerald-100 dark:border-emerald-900/30 animate-in fade-in">
+               <CheckCircle2 className="w-5 h-5" />
+               Email verified successfully. You may continue.
              </div>
           )}
 
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] ml-1">Institutional ID / Roll</label>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Admission / Roll Number</label>
             <div className="relative group/input">
-              <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-300 dark:text-slate-700 group-focus-within/input:text-indigo-600 transition-colors">
+              <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
                 <ShieldPlus className="w-5 h-5" />
               </div>
               <input
                 type="text"
                 value={formData.roll_no}
                 onChange={(e) => setFormData({...formData, roll_no: e.target.value})}
-                className="w-full pl-16 pr-6 py-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-[1.5rem] text-sm font-black text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-600/10 transition-all"
-                placeholder="2522****"
+                className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
+                placeholder="Ex: 2522****"
                 required
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] ml-1">Access Token</label>
-              <div className="relative group/input">
-                <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-300 dark:text-slate-700 group-focus-within/input:text-indigo-600 transition-colors">
-                  <Lock className="w-5 h-5" />
-                </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  className="w-full pl-16 pr-14 py-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-[1.5rem] text-sm font-black text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-600/10 transition-all"
-                  placeholder="Min 8 Chars"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-6 flex items-center text-slate-300 hover:text-indigo-600 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Security Token</label>
+            <div className="relative group/input">
+              <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
+                <Lock className="w-5 h-5" />
               </div>
+              <input
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                className="glass dark:bg-slate-800/40 block w-full pl-14 pr-12 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
+                placeholder="Minimum 8 characters"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
+          </div>
 
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] ml-1">Confirm String</label>
-              <div className="relative group/input">
-                <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-300 dark:text-slate-700 group-focus-within/input:text-indigo-600 transition-colors">
-                  <Lock className="w-5 h-5" />
-                </div>
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full pl-16 pr-14 py-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-[1.5rem] text-sm font-black text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-600/10 transition-all"
-                  placeholder="Confirm"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-6 flex items-center text-slate-300 hover:text-indigo-600 transition-colors"
-                >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">RE-ENTER PASSWORD</label>
+            <div className="relative group/input">
+              <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
+                <Lock className="w-5 h-5" />
               </div>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="glass dark:bg-slate-800/40 block w-full pl-14 pr-12 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
+                placeholder="Re-enter your password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={loading || !otpVerified}
-            className="w-full mt-8 py-6 px-8 bg-indigo-600 text-white rounded-[1.5rem] text-xs font-black uppercase tracking-[0.3em] shadow-[0_20px_40px_-10px_rgba(79,70,229,0.3)] hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-4"
+            className="w-full mt-6 flex justify-center items-center gap-3 py-5 px-4 border-transparent rounded-2xl shadow-xl shadow-indigo-100 dark:shadow-none text-sm font-black text-white premium-gradient hover:opacity-90 disabled:opacity-50 transition-all active:scale-[0.98]"
           >
             {loading ? (
-               <RefreshCw className="w-5 h-5 animate-spin" />
+               <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-.3s]"></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-.5s]"></div>
+               </div>
             ) : (
               <>
                 <UserPlus className="w-5 h-5" />
-                Establish Record
+                ESTABLISH ACCOUNT
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-12 pt-10 border-t border-slate-50 dark:border-slate-900 text-center">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em]">
-            Existing Researcher?{' '}
-            <Link to="/login" className="text-indigo-600 hover:text-indigo-700 transition-all ml-2 underline underline-offset-4 decoration-2">
-              Initiate Session
-            </Link>
-          </p>
-        </div>
+        <p className="mt-10 text-center text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-colors">
+          Existing researcher?{' '}
+          <Link to="/login" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors ml-1">
+            INITIATE SESSION
+          </Link>
+        </p>
       </div>
     </div>
   );

@@ -46,74 +46,50 @@ export default function Favorites() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-12 pb-20 animate-in fade-in duration-700">
-      <div className="hybrid-card p-12 mt-10 relative overflow-hidden border border-white/10 dark:border-slate-800 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)]">
-        <div className="absolute top-0 left-0 w-full h-1 bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.5)]"></div>
-        
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-14">
-          <div>
-            <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-5 uppercase">
-              <div className="p-4 bg-amber-500 text-white rounded-[1.5rem] shadow-xl shadow-amber-500/20">
-                <Bookmark className="w-8 h-8"/>
-              </div>
-              My Library
-              {isFetching && <RefreshCw className="w-6 h-6 text-amber-500 animate-spin ml-4" />}
-            </h2>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.4em] mt-4 ml-1">Privately Curated Research Repository</p>
-          </div>
-          
-          <div className="flex items-center gap-3 px-6 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl">
-             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-             <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{materials.length} ASSETS SECURED</span>
-          </div>
-        </div>
+    <div className="max-w-6xl mx-auto space-y-8">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 p-8 mt-6 transition-colors">
+        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2 flex items-center gap-3 transition-colors">
+          <Bookmark className="w-7 h-7 text-amber-500"/>
+          My Favorites
+          {isFetching && <span className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin ml-4"></span>}
+        </h2>
+        <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 transition-colors">Access your privately saved documents and assignments.</p>
         
         {materials.length === 0 && !isFetching ? (
-          <div className="text-center py-32 bg-slate-50 dark:bg-slate-950/50 rounded-[2.5rem] border border-dashed border-slate-200 dark:border-slate-800 transition-all">
-            <Star className="w-16 h-16 text-slate-200 dark:text-slate-800 mx-auto mb-6" />
-            <h3 className="text-sm font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.3em]">Vault Empty</h3>
-            <p className="text-[11px] text-slate-300 dark:text-slate-700 font-bold uppercase tracking-widest mt-2">Bookmark materials to see them here</p>
+          <div className="text-center py-20 text-slate-400 dark:text-slate-500 font-bold bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 uppercase tracking-widest text-xs transition-colors">
+            You haven't favorited any materials yet.
           </div>
         ) : (
-          <div className="overflow-hidden bg-white dark:bg-slate-950/30 border border-slate-100 dark:border-slate-800/50 rounded-[2rem] shadow-2xl">
-            <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800/50">
-              <thead className="bg-slate-50 dark:bg-slate-950/20">
+          <div className="overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 rounded-2xl transition-colors">
+            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+              <thead className="bg-slate-100 dark:bg-slate-950/40">
                 <tr>
-                  <th className="py-6 pl-10 pr-4 text-left text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Asset Title</th>
-                  <th className="px-4 py-6 text-left text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Domain</th>
-                  <th className="px-4 py-6 text-left text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Timeline</th>
-                  <th className="px-4 py-6 text-right pr-10 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Operations</th>
+                  <th className="py-4 pl-4 pr-3 text-left text-xs font-black text-slate-700 dark:text-slate-400 uppercase tracking-wider sm:pl-6">Title</th>
+                  <th className="px-3 py-4 text-left text-xs font-black text-slate-700 dark:text-slate-400 uppercase tracking-wider">Category</th>
+                  <th className="px-3 py-4 text-left text-xs font-black text-slate-700 dark:text-slate-400 uppercase tracking-wider">Semester</th>
+                  <th className="px-3 py-4 text-left text-xs font-black text-slate-700 dark:text-slate-400 uppercase tracking-wider">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900/50">
                 {materials.map((m) => (
-                  <tr key={m.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-all group">
-                    <td className="py-7 pl-10 pr-4">
-                      <span className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{m.title}</span>
-                    </td>
-                    <td className="px-4 py-7">
-                      <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">{m.subject}</span>
-                    </td>
-                    <td className="px-4 py-7">
-                      <span className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">SEM {m.semester}</span>
-                    </td>
-                    <td className="px-4 py-7 text-right pr-10">
-                        <div className="flex items-center justify-end gap-6">
-                          <button 
-                            className="p-3 bg-amber-500/10 text-amber-600 dark:text-amber-500 rounded-xl hover:bg-amber-500 hover:text-white transition-all interactive-scale"
-                            onClick={() => removeFavorite(m.id)}
-                            title="Remove from favorites"
-                          >
-                            <Star className="w-5 h-5" fill="currentColor"/>
-                          </button>
-                          <button 
-                            className="p-3 bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 rounded-xl hover:bg-indigo-600 hover:text-white transition-all interactive-scale" 
-                            onClick={() => handleDownload(m.id)}
-                            title="Download Asset"
-                          >
-                            <Download className="w-5 h-5"/>
-                          </button>
-                        </div>
+                  <tr key={m.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-extrabold text-slate-900 dark:text-white sm:pl-6 transition-colors">{m.title}</td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400 font-semibold transition-colors">{m.subject}</td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400 font-semibold transition-colors">Sem {m.semester}</td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-4 transition-colors">
+                        <button 
+                          className="inline-flex items-center transition-colors text-amber-500 hover:text-amber-600 font-black"
+                          onClick={() => removeFavorite(m.id)}
+                          title="Remove from favorites"
+                        >
+                          <Star className="w-5 h-5 mr-1" fill="currentColor"/>
+                        </button>
+                        <button 
+                          className="text-blue-600 hover:text-blue-900 font-black inline-flex items-center opacity-80 group-hover:opacity-100 transition-opacity" 
+                          onClick={() => handleDownload(m.id)}
+                        >
+                          <Download className="w-4 h-4 mr-1"/>
+                        </button>
                     </td>
                   </tr>
                 ))}
