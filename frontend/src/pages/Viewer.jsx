@@ -21,7 +21,8 @@ import {
   ChevronDown,
   ChevronUp,
   FileText,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle
 } from 'lucide-react';
 import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
@@ -164,7 +165,8 @@ export default function DocumentViewer() {
           if (isMounted) {
             setMaterial(res.data);
             if (res.data.conversion_status === 'failed') {
-              setError('PDF Preview Unavailable: Automatic conversion to PDF failed for this document. You can still download the original file using the button below.');
+              // Don't set global error, just a local flag so we can show fallback UI
+              setPdfLoading(false);
             } else {
               info("Opening document...");
             }
@@ -790,7 +792,27 @@ export default function DocumentViewer() {
         className="flex-1 overflow-auto bg-slate-200/40 dark:bg-slate-900/20 p-4 md:p-8 flex justify-center scrollbar-hide py-10 transition-colors duration-300"
       >
         <div className="relative">
-          {!blobUrl || pdfLoading ? (
+          {material?.conversion_status === 'failed' ? (
+            <div className="flex flex-col items-center justify-center p-16 md:p-32 gap-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-[3rem] shadow-2xl min-w-[60vw] border border-slate-200/50 dark:border-slate-800/50 text-center max-w-2xl">
+              <div className="w-24 h-24 bg-rose-50 dark:bg-rose-950/30 rounded-full flex items-center justify-center mb-2">
+                <AlertTriangle className="w-12 h-12 text-rose-500" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-4">PDF Preview Unavailable</h2>
+                <p className="text-slate-600 dark:text-slate-400 font-bold text-sm leading-relaxed mb-8">
+                  Automatic conversion to PDF failed for this document. This usually happens with complex layouts or protected files. 
+                  The original file is still safe and accessible for download.
+                </p>
+                <button 
+                  onClick={downloadFile}
+                  className="premium-gradient px-10 py-4 rounded-2xl text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all flex items-center gap-3 mx-auto"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Original File
+                </button>
+              </div>
+            </div>
+          ) : !blobUrl || pdfLoading ? (
             <div className="flex flex-col items-center justify-center p-32 gap-6 bg-white dark:bg-slate-900 rounded-[2rem] shadow-inner min-w-[60vw] border border-slate-200 dark:border-slate-800">
               <div className="relative">
                  <div className="w-12 h-12 border-2 border-slate-100 dark:border-slate-800 border-t-indigo-600 rounded-full animate-spin" />

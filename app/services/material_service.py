@@ -32,6 +32,11 @@ async def upload_material(
     """
     # ── Non-destructive Dual-Key Storage ──────────────────────────────────────
     storage = get_storage()
+
+    # Read file bytes ONCE up front (UploadFile stream is consumed after first read)
+    original_bytes = await file.read()
+    await file.seek(0)  # Reset for storage.upload_file() which also reads
+
     # 1. Always store the original file
     try:
         stored_original = await storage.upload_file(file, folder=payload.category.value)
@@ -41,37 +46,37 @@ async def upload_material(
         from app.utils.file_handler import LocalStorage
         from app.core.config import settings
         storage = LocalStorage(base_dir=settings.UPLOAD_DIR)
+        await file.seek(0)
         stored_original = await storage.upload_file(file, folder=payload.category.value)
 
-    # 2. Attempt PDF conversion
+    # 2. Attempt PDF conversion (using the bytes we already captured)
     pdf_stored = None
     conversion_status = ConversionStatus.SUCCESS if file.filename.lower().endswith(".pdf") else ConversionStatus.PENDING
     
     if conversion_status == ConversionStatus.PENDING:
-        # Seek original file to beginning since upload_file might have read it
-        await file.seek(0)
-        original_bytes = await file.read()
-        
-        pdf_bytes = await convert_to_pdf(original_bytes, file.filename)
-        if pdf_bytes:
-            # Wrap bytes for storage upload
-            import io
-            from fastapi import UploadFile
-            pdf_filename = f"{file.filename.rsplit('.', 1)[0]}.pdf"
-            pdf_file = UploadFile(
-                file=io.BytesIO(pdf_bytes),
-                filename=pdf_filename
-            )
-            pdf_file.content_type = "application/pdf"
-            
-            try:
-                pdf_stored = await storage.upload_file(pdf_file, folder=f"{payload.category.value}/previews")
-                conversion_status = ConversionStatus.SUCCESS
-            except Exception as e:
-                import logging
-                logging.getLogger(__name__).error(f"Failed to store converted PDF: {e}")
+        try:
+            pdf_bytes = await convert_to_pdf(original_bytes, file.filename)
+            if pdf_bytes:
+                import io
+                pdf_filename = f"{file.filename.rsplit('.', 1)[0]}.pdf"
+                pdf_upload = UploadFile(
+                    file=io.BytesIO(pdf_bytes),
+                    filename=pdf_filename
+                )
+                pdf_upload.content_type = "application/pdf"
+                
+                try:
+                    pdf_stored = await storage.upload_file(pdf_upload, folder=f"{payload.category.value}/previews")
+                    conversion_status = ConversionStatus.SUCCESS
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).error(f"Failed to store converted PDF: {e}")
+                    conversion_status = ConversionStatus.FAILED
+            else:
                 conversion_status = ConversionStatus.FAILED
-        else:
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"PDF conversion crashed: {e}")
             conversion_status = ConversionStatus.FAILED
 
     from datetime import datetime

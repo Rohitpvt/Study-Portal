@@ -1,8 +1,8 @@
 """
 app/utils/document_converter.py
 ──────────────────────────────────
-Utility for converting DOCX and TXT files to PDF.
-Uses python-docx for parsing and PyMuPDF (fitz) for PDF generation.
+Utility for converting DOCX, TXT, and PPTX files to PDF.
+Uses python-docx, python-pptx for parsing and PyMuPDF (fitz) for PDF generation.
 """
 
 import io
@@ -27,6 +27,8 @@ async def convert_to_pdf(file_bytes: bytes, filename: str) -> bytes | None:
             return await _convert_docx_to_pdf(file_bytes)
         elif ext == 'txt':
             return await _convert_txt_to_pdf(file_bytes)
+        elif ext in ['pptx', 'ppt']:
+            return await _convert_pptx_to_pdf(file_bytes)
             
         logger.warning(f"Unsupported file type for conversion: {ext}")
         return None
@@ -102,4 +104,67 @@ async def _convert_txt_to_pdf(file_bytes: bytes) -> bytes | None:
         
     except Exception as e:
         logger.error(f"TXT conversion error: {e}")
+        return None
+
+
+async def _convert_pptx_to_pdf(file_bytes: bytes) -> bytes | None:
+    """
+    Converts PPTX presentations to PDF.
+    Extracts text content from each slide and renders it as a separate PDF page.
+    Uses python-pptx for reading and PyMuPDF (fitz) for PDF generation.
+    """
+    try:
+        from pptx import Presentation
+        from pptx.util import Inches, Pt
+
+        prs = Presentation(io.BytesIO(file_bytes))
+        pdf_doc = fitz.open()
+
+        slide_count = len(prs.slides)
+        if slide_count == 0:
+            # Empty presentation — create a single page with a notice
+            page = pdf_doc.new_page()
+            rect = fitz.Rect(72, 72, 523, 770)
+            page.insert_textbox(rect, "[Empty presentation — no slides found]",
+                                fontname="helv", fontsize=12)
+            pdf_bytes = pdf_doc.tobytes()
+            pdf_doc.close()
+            return pdf_bytes
+
+        for slide_idx, slide in enumerate(prs.slides, start=1):
+            page = pdf_doc.new_page(width=720, height=540)  # landscape 10x7.5"
+
+            # ── Slide header ──────────────────────────────────────────────
+            header_rect = fitz.Rect(36, 20, 684, 45)
+            page.insert_textbox(header_rect,
+                                f"Slide {slide_idx} / {slide_count}",
+                                fontname="helv", fontsize=9, color=(0.4, 0.4, 0.4))
+
+            # ── Collect text from all shapes on this slide ─────────────────
+            slide_texts = []
+            for shape in slide.shapes:
+                if not shape.has_text_frame:
+                    continue
+                for paragraph in shape.text_frame.paragraphs:
+                    line = paragraph.text.strip()
+                    if line:
+                        slide_texts.append(line)
+
+            if not slide_texts:
+                slide_texts = ["[No text content on this slide]"]
+
+            slide_text = "\n\n".join(slide_texts)
+
+            # ── Render text into the page body ────────────────────────────
+            body_rect = fitz.Rect(36, 50, 684, 510)
+            page.insert_textbox(body_rect, slide_text,
+                                fontname="helv", fontsize=11)
+
+        pdf_bytes = pdf_doc.tobytes()
+        pdf_doc.close()
+        logger.info(f"PPTX conversion successful: {slide_count} slides → PDF")
+        return pdf_bytes
+
+    except Exception as e:
+        logger.error(f"PPTX conversion error: {e}")
         return None

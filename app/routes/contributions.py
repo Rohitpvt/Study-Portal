@@ -204,3 +204,46 @@ async def delete_my_contribution(
     """
     await contribution_service.delete_contribution(contribution_id, current_user, db)
     return None
+@router.get("/{contribution_id}/file", summary="Serve the actual contribution file")
+async def serve_contribution_file(
+    contribution_id: str, 
+    db: DBSession, 
+    current_user: CurrentUser,
+    download: bool = Query(False, description="Force download if True")
+):
+    """
+    Serves the contribution file directly via a streaming proxy.
+    Supports both local and S3 backends.
+    """
+    result = await db.execute(select(Contribution).where(Contribution.id == contribution_id))
+    contribution = result.scalar_one_or_none()
+    
+    if not contribution:
+        raise HTTPException(status_code=404, detail="Contribution not found")
+        
+    # Check permission (admin or owner)
+    if current_user.role != "ADMIN" and contribution.contributor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Permission denied")
+
+    from app.utils.file_handler import get_storage
+    storage = get_storage()
+    
+    # Use PDF key if success, else original
+    key = contribution.pdf_file_key if (contribution.conversion_status == "success" and contribution.pdf_file_key) else contribution.file_key
+    
+    file_info = await storage.get_file_stream(key or contribution.file_url or contribution.file_path)
+    content_type = file_info["content_type"]
+
+    headers = {
+        "Content-Length": str(file_info["content_length"]),
+        "Accept-Ranges": "bytes",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Disposition": "attachment" if download else "inline"
+    }
+
+    from fastapi.responses import StreamingResponse
+    return StreamingResponse(
+        file_info["stream"],
+        media_type=content_type,
+        headers=headers
+    )
