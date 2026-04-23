@@ -8,6 +8,7 @@ import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../utils/
 import { Skeleton, SkeletonCircle, SkeletonTitle, SkeletonText } from '../components/common/Skeleton';
 import MaterialLoader from '../components/common/MaterialLoader';
 import Typewriter from '../components/common/Typewriter';
+import BrainLoader from '../components/common/BrainLoader';
 
 const INITIAL_GREETING = { 
   role: 'assistant', 
@@ -390,7 +391,7 @@ export default function Chat() {
                          )
                       ) : <Bot className="w-7 h-7"/>}
                     </div>
-                      <div className={`p-8 rounded-[2.5rem] text-[15px] font-semibold leading-relaxed shadow-xl animate-fade-in-up ${
+                      <div className={`p-8 rounded-[2.5rem] text-[15px] font-semibold leading-relaxed shadow-xl animate-fade-in-up premium-hover-physics ${
                         msg.role === 'user' 
                           ? 'premium-gradient text-white rounded-tr-none border-0 shadow-indigo-200 dark:shadow-none' 
                           : 'glass dark:bg-[#0a0a0a] text-slate-700 dark:text-slate-200 rounded-tl-none border-white/60 dark:border-white/5'
@@ -412,7 +413,7 @@ export default function Chat() {
                   {msg.role === 'assistant' && (
                     <div className="ml-20 space-y-4">
                       {msg.mode && (
-                        <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border backdrop-blur-md shadow-sm transition-all ${
+                        <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border backdrop-blur-md shadow-sm transition-all premium-hover-physics ${
                           (msg.mode === 'document' && msg.sources?.length > 0)
                             ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
                             : msg.mode === 'library'
@@ -458,7 +459,7 @@ export default function Chat() {
                                   key={sIdx}
                                   onClick={handleSourceClick}
                                   title={canNavigate ? `Open ${src.title}${src.page_number ? ` — Page ${src.page_number}` : ''}` : 'Source link unavailable'}
-                                  className={`glass dark:bg-[#0a0a0a] group transition-all p-4 rounded-3xl border-white/80 dark:border-white/5 shadow-lg flex flex-col gap-1 min-w-[160px] max-w-[280px] interactive-scale pointer-events-auto ${
+                                  className={`glass dark:bg-[#0a0a0a] group transition-all p-4 rounded-3xl border-white/80 dark:border-white/5 shadow-lg flex flex-col gap-1 min-w-[160px] max-w-[280px] premium-hover-physics pointer-events-auto ${
                                     canNavigate
                                       ? 'cursor-pointer hover:bg-indigo-50/60 dark:hover:bg-indigo-950/40 hover:border-indigo-200 dark:hover:border-indigo-900 hover:shadow-indigo-100 dark:hover:shadow-none hover:ring-2 hover:ring-indigo-100 dark:hover:ring-indigo-900/50'
                                       : 'cursor-not-allowed opacity-60'
@@ -496,12 +497,12 @@ export default function Chat() {
           {loading && (
             <div className="flex justify-start relative z-10">
                <div className="flex gap-6">
-                 <div className="w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center glass dark:bg-slate-900 dark:border-slate-800">
-                    <Bot className="w-7 h-7 text-indigo-600 dark:text-indigo-400 animate-pulse"/>
-                 </div>
-                 <div className="p-8 rounded-[2.5rem] glass dark:bg-slate-900 dark:border-slate-800 rounded-tl-none flex items-center gap-3 min-w-[320px] h-[200px] overflow-hidden relative">
-                   <MaterialLoader message="Consulting Knowledge Base..." />
-                 </div>
+                  <div className="w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center glass dark:bg-slate-900 dark:border-slate-800">
+                     <Bot className="w-7 h-7 text-indigo-600 dark:text-indigo-400"/>
+                  </div>
+                  <div className="p-10 rounded-[2.5rem] glass dark:bg-slate-900 dark:border-slate-800 rounded-tl-none flex items-center justify-center min-w-[320px] min-h-[180px] overflow-hidden relative">
+                    <BrainLoader message="Synthesizing Knowledge..." subtext="Neural Engine Active" />
+                  </div>
                </div>
             </div>
           )}
