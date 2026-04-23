@@ -5,15 +5,19 @@
   --skeleton-light-shimmer: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.2) 80%,
     rgba(255, 255, 255, 0) 100%
   );
   
-  --skeleton-dark-bg: #1e293b; /* Slate-800 matches the theme's glass-card base */
+  --skeleton-dark-bg: #0f172a; /* Deeper slate for contrast */
   --skeleton-dark-shimmer: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.02) 20%,
     rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.02) 80%,
     rgba(255, 255, 255, 0) 100%
   );
 }
@@ -24,7 +28,8 @@
   position: relative;
   overflow: hidden;
   background-color: var(--skeleton-light-bg);
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
+  transition: background-color 0.3s ease;
 }
 
 .dark .skeleton-base {
@@ -40,7 +45,7 @@
   left: 0;
   transform: translateX(-100%);
   background: var(--skeleton-light-shimmer);
-  animation: skeleton-shimmer 2s infinite;
+  animation: skeleton-shimmer 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .dark .skeleton-base::after {
@@ -48,6 +53,9 @@
 }
 
 @keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
   100% {
     transform: translateX(100%);
   }
