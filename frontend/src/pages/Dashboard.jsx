@@ -58,7 +58,7 @@ export default function Dashboard() {
   if (!user) return <DashboardSkeleton />;
 
   return (
-    <div className="w-full space-y-10 py-6 md:py-8">
+    <div className="w-full space-y-10 py-6 md:py-8 animate-fade-in-up stagger-1">
       
       {/* ── Birthday Celebration Section ─────────────────────────────────── */}
       {isBirthday && !isBirthdayDismissed && (
@@ -144,6 +144,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         <DashboardCard 
           to="/materials" 
+          index={2}
           icon={<BookOpen className="w-10 h-10 text-white" />}
           gradient="premium-gradient"
           title="Study Materials"
@@ -153,6 +154,7 @@ export default function Dashboard() {
         {user.role?.toLowerCase() === 'student' && (
           <DashboardCard 
             to="/contributions" 
+            index={3}
             icon={<Upload className="w-10 h-10 text-white" />}
             gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
             title="Contribute"
@@ -163,6 +165,7 @@ export default function Dashboard() {
         {user.role?.toLowerCase() === 'admin' && (
           <DashboardCard 
             to="/admin" 
+            index={3}
             icon={<ShieldCheck className="w-10 h-10 text-white" />}
             gradient="bg-gradient-to-br from-rose-500 to-red-600"
             title="Admin Review"
@@ -172,6 +175,7 @@ export default function Dashboard() {
 
         <DashboardCard 
           to="/chat" 
+          index={4}
           icon={<MessageSquare className="w-10 h-10 text-white" />}
           gradient="bg-gradient-to-br from-violet-600 to-purple-700"
           title="AI Chatbot"
@@ -180,6 +184,7 @@ export default function Dashboard() {
         
         <DashboardCard 
           to="/favorites" 
+          index={5}
           icon={<Star className="w-10 h-10 text-white" />}
           gradient="bg-gradient-to-br from-amber-400 to-orange-500"
           title="My Favorites"
@@ -223,9 +228,9 @@ function DashboardSkeleton() {
   );
 }
 
-function DashboardCard({ to, icon, title, description, gradient }) {
+function DashboardCard({ to, icon, title, description, gradient, index = 1 }) {
   return (
-    <Link to={to} className="block group h-full">
+    <Link to={to} className={`block group h-full animate-fade-in-up stagger-${index}`}>
       <div className="glass-card shadow-lg hover:shadow-indigo-100 dark:shadow-slate-900/50 dark:hover:shadow-indigo-900/20 h-full interactive-scale p-8 flex flex-col items-start border-0">
         <div className={`${gradient || 'premium-gradient'} p-4 rounded-2xl mb-6 shadow-lg shadow-indigo-100 dark:shadow-none group-hover:rotate-6 transition-transform duration-500`}>
           {icon}

@@ -7,6 +7,7 @@ import { useNotification } from '../context/NotificationContext';
 import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../utils/avatarUtils';
 import { Skeleton, SkeletonCircle, SkeletonTitle, SkeletonText } from '../components/common/Skeleton';
 import MaterialLoader from '../components/common/MaterialLoader';
+import Typewriter from '../components/common/Typewriter';
 
 const INITIAL_GREETING = { 
   role: 'assistant', 
@@ -29,6 +30,7 @@ export default function Chat() {
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const { userProfile } = useAuth();
+  const [newAssistantMessageIndex, setNewAssistantMessageIndex] = useState(null);
   
   const scrollRef = useRef(null);
 
@@ -52,6 +54,7 @@ export default function Chat() {
     setIsSidebarOpen(false); // Close sidebar on mobile after selection
     
     try {
+      setNewAssistantMessageIndex(null); // Reset when loading new session
       const response = await api.get(`/chat/sessions/${sessionId}`);
       const { messages: historyMessages } = response.data;
       
@@ -75,6 +78,7 @@ export default function Chat() {
   const startNewChat = () => {
     setActiveSessionId(null);
     setMessages([INITIAL_GREETING]);
+    setNewAssistantMessageIndex(null);
     setIsSidebarOpen(false);
     info("New chat session started");
   };
@@ -146,12 +150,18 @@ export default function Chat() {
       });
       const { answer, mode, sources, session_id } = response.data;
       
-      setMessages(prev => [...prev, { 
+      const newMessage = { 
         role: 'assistant', 
         text: answer,
         mode: mode || 'general',
         sources: sources || []
-      }]);
+      };
+
+      setMessages(prev => {
+        const next = [...prev, newMessage];
+        setNewAssistantMessageIndex(next.length - 1);
+        return next;
+      });
 
       // If this was a new session, store the returned ID
       if (!activeSessionId && session_id) {
@@ -380,32 +390,22 @@ export default function Chat() {
                          )
                       ) : <Bot className="w-7 h-7"/>}
                     </div>
-                      <div className={`p-8 rounded-[2.5rem] text-[15px] font-semibold leading-relaxed shadow-xl ${
+                      <div className={`p-8 rounded-[2.5rem] text-[15px] font-semibold leading-relaxed shadow-xl animate-fade-in-up ${
                         msg.role === 'user' 
                           ? 'premium-gradient text-white rounded-tr-none border-0 shadow-indigo-200 dark:shadow-none' 
                           : 'glass dark:bg-[#0a0a0a] text-slate-700 dark:text-slate-200 rounded-tl-none border-white/60 dark:border-white/5'
                       }`}>
-                        {msg.text.split(/```/).map((part, i) => {
-                          if (i % 2 === 1) {
-                            const lines = part.trim().split('\n');
-                            const lang = lines[0].length < 15 ? lines[0] : '';
-                            const code = lang ? lines.slice(1).join('\n') : part;
-                            
-                            return (
-                              <div key={i} className="my-4 relative group">
-                                {lang && (
-                                  <div className="absolute right-4 top-0 -translate-y-1/2 bg-slate-700 text-slate-300 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-600 shadow-lg">
-                                    {lang}
-                                  </div>
-                                )}
-                                <pre className="bg-slate-950/80 backdrop-blur-xl text-indigo-300 p-6 rounded-3xl overflow-x-auto font-mono text-[13px] border border-slate-800/50 shadow-2xl custom-scrollbar-horizontal">
-                                  <code>{code.trim()}</code>
-                                </pre>
-                              </div>
-                            );
-                          }
-                          return <span key={i} className="whitespace-pre-wrap">{part}</span>;
-                        })}
+                        {msg.role === 'assistant' ? (
+                          <Typewriter 
+                            text={msg.text} 
+                            skipAnimation={idx !== newAssistantMessageIndex}
+                            onComplete={() => {
+                              if (idx === newAssistantMessageIndex) setNewAssistantMessageIndex(null);
+                            }}
+                          />
+                        ) : (
+                          <span className="whitespace-pre-wrap">{msg.text}</span>
+                        )}
                       </div>
                   </div>
 

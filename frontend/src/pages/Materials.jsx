@@ -8,6 +8,7 @@ import { useNotification } from '../context/NotificationContext';
 import ErrorPage from '../components/common/ErrorPage';
 import MaterialLoader from '../components/common/MaterialLoader';
 import { Skeleton, SkeletonCard, SkeletonTitle, SkeletonText, SkeletonTableRow } from '../components/common/Skeleton';
+import { usePseudoProgress } from '../hooks/usePseudoProgress';
 
 export default function Materials() {
   const navigate = useNavigate();
@@ -53,6 +54,8 @@ export default function Materials() {
 
   // Count active filters for badge
   const activeFilterCount = [courseFilter, subjectFilter, semesterFilter, categoryFilter].filter(Boolean).length;
+
+  const { progress, phase } = usePseudoProgress(uploading);
 
   const fetchMaterials = (pageArg) => {
     const page = typeof pageArg === 'number' ? pageArg : currentPage;
@@ -252,8 +255,13 @@ export default function Materials() {
        {/* Global Processing Overlays */}
        {uploading && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md">
-          <div className="max-w-md w-full p-10 glass rounded-[3rem] shadow-2xl relative overflow-hidden h-[300px]">
-             <MaterialLoader message="Optimizing & Indexing Material..." />
+          <div className="max-w-md w-full p-10 glass rounded-[3rem] shadow-2xl relative overflow-hidden h-[360px]">
+             <MaterialLoader 
+               message="Optimizing & Indexing Material..." 
+               showProgress={true}
+               progress={progress}
+               phase={phase}
+             />
           </div>
         </div>
       )}
@@ -574,8 +582,8 @@ export default function Materials() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/20 dark:divide-slate-800">
-                  {materials.map(m => (
-                    <tr key={m.id} className="hover:bg-white/40 dark:hover:bg-slate-800/20 transition-all group">
+                  {materials.map((m, idx) => (
+                    <tr key={m.id} className={`hover:bg-white/40 dark:hover:bg-slate-800/20 transition-all group animate-fade-in-up stagger-${(idx % 5) + 1}`}>
                       <td className="py-6 pl-8 pr-4">
                         <div className="flex flex-col">
                            <div className="flex items-center gap-3">
@@ -661,8 +669,8 @@ export default function Materials() {
 
             {/* MOBILE cards */}
             <div className="md:hidden space-y-6">
-              {materials.map(m => (
-                <div key={m.id} className="glass-card shadow-xl border-white/40 dark:border-slate-800 p-6 interactive-scale relative overflow-hidden group">
+              {materials.map((m, idx) => (
+                <div key={m.id} className={`glass-card shadow-xl border-white/40 dark:border-slate-800 p-6 interactive-scale relative overflow-hidden group animate-fade-in-up stagger-${(idx % 5) + 1}`}>
                   <div className="flex items-start justify-between gap-4 relative z-10">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1.5">
