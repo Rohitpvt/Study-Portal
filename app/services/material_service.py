@@ -198,18 +198,28 @@ async def get_material_by_id(material_id: str, db: AsyncSession, current_user: U
             detail="Material not found or currently unavailable.",
         )
     
-    storage = get_storage()
-    # 1. Extract actual storage key BEFORE overriding
-    key = material.file_key or material.file_url or material.file_path
-    
-    # 2. Override file_url to point to our internal streaming proxy
-    material.file_url = f"/api/v1/materials/{material.id}/file"
-    
-    # 3. Check physical existence
-    exists = await storage.exists(key)
-    material.file_status = "available" if exists else "missing"
+    # 3. Use the cached integrity status from the database
+    # (Background reconciliation keeps this accurate without blocking user requests)
+    material.file_status = material.integrity_status.value
     
     return material
+
+
+async def update_material_integrity(
+    material_id: str,
+    status: MaterialIntegrityStatus,
+    message: Optional[str],
+    db: AsyncSession
+) -> None:
+    """Updates the integrity status and message for a material (used by background worker)."""
+    from datetime import datetime
+    result = await db.execute(select(Material).where(Material.id == material_id))
+    material = result.scalar_one_or_none()
+    if material:
+        material.integrity_status = status
+        material.integrity_message = message
+        material.last_reconciliation_at = datetime.utcnow()
+        await db.flush()
 
 
 from fastapi import BackgroundTasks

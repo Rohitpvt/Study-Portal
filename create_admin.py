@@ -38,7 +38,10 @@ async def main():
                 await session.commit()
                 print("SUCCESS: Admin 'admin@christuniversity.in' created.")
             else:
-                print("SUCCESS: Admin 'admin@christuniversity.in' already exists.")
+                admin.hashed_password = hash_password("AdminPass1!")
+                admin.role = Role.ADMIN
+                await session.commit()
+                print("SUCCESS: Admin 'admin@christuniversity.in' password reset to 'AdminPass1!' and verified as ADMIN.")
     except Exception as e:
         print(f"FAILED: {str(e)}")
 

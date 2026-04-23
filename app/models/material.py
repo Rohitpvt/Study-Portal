@@ -23,6 +23,7 @@ class Category(str, enum.Enum):
 class MaterialIntegrityStatus(str, enum.Enum):
     available        = "available"
     missing_file     = "missing_file"
+    corrupted_file   = "corrupted_file"
     invalid_metadata = "invalid_metadata"
     pending          = "pending"
 
@@ -53,6 +54,7 @@ class Material(Base, TimestampMixin):
         nullable=False,
         index=True
     )
+    integrity_message: Mapped[str|None] = mapped_column(String(512), nullable=True)
     last_reconciliation_at: Mapped[datetime|None] = mapped_column(nullable=True)
 
     is_approved: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

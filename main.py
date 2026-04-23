@@ -60,6 +60,12 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"⚠️  RAG Knowledge Base initialization skipped: {e}")
 
+    # Start background workers
+    from app.background.integrity_worker import integrity_worker_loop
+    import asyncio
+    asyncio.create_task(integrity_worker_loop())
+    logger.info("✅ Background workers started.")
+
     yield
 
     # Shutdown

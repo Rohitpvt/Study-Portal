@@ -568,13 +568,24 @@ export default function Materials() {
                       <td className="py-6 pl-8 pr-4">
                         <div className="flex flex-col">
                            <div className="flex items-center gap-3">
-                               <span className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{m.title}</span>
+                               <span className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight">{m.title}</span>
                                {m.integrity_status !== 'available' && (
-                                 <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border uppercase tracking-tighter ${
-                                   m.integrity_status === 'missing_file' ? 'bg-red-500/10 text-red-500 border-red-200 dark:border-red-900/30' : 'bg-amber-500/10 text-amber-500 border-amber-200 dark:border-amber-900/30'
-                                 }`}>
-                                   {m.integrity_status === 'missing_file' ? 'File Missing' : 'Invalid Metadata'}
-                                 </span>
+                                 <div className="flex flex-col gap-1">
+                                   <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border uppercase tracking-tighter w-fit ${
+                                     m.integrity_status === 'missing_file' ? 'bg-red-500/10 text-red-500 border-red-200 dark:border-red-900/30' : 
+                                     m.integrity_status === 'corrupted_file' ? 'bg-rose-500/10 text-rose-600 border-rose-200 dark:border-rose-900/30' :
+                                     'bg-amber-500/10 text-amber-500 border-amber-200 dark:border-amber-900/30'
+                                   }`}>
+                                     {m.integrity_status === 'missing_file' ? 'File Missing' : 
+                                      m.integrity_status === 'corrupted_file' ? 'Corrupted' : 
+                                      m.integrity_status === 'pending' ? 'Verification Pending' : 'Metadata Issue'}
+                                   </span>
+                                   {role === 'admin' && m.integrity_message && (
+                                     <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 italic max-w-[200px] leading-tight truncate" title={m.integrity_message}>
+                                       {m.integrity_message}
+                                     </span>
+                                   )}
+                                 </div>
                                )}
                            </div>
                            <div className="flex items-center gap-2 mt-2">
@@ -608,7 +619,7 @@ export default function Materials() {
                             className="bg-indigo-600 dark:bg-indigo-500 p-3 rounded-2xl text-white shadow-lg shadow-indigo-100 dark:shadow-none opacity-0 group-hover:opacity-100 transition-all interactive-scale flex items-center justify-center disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:shadow-none disabled:text-slate-400 dark:disabled:text-slate-600"
                             onClick={() => navigate(`/viewer/${m.id}`)}
                             disabled={m.integrity_status === 'missing_file' || m.integrity_status === 'corrupted_file'}
-                            title={m.integrity_status === 'missing_file' ? "Material Missing" : m.integrity_status === 'corrupted_file' ? "Material Corrupted" : "View Online"}
+                            title={m.integrity_status === 'missing_file' ? "Material Missing" : m.integrity_status === 'corrupted_file' ? "Material Corrupted" : m.integrity_message || "View Online"}
                           >
                             <Eye className="w-5 h-5" />
                           </button>
@@ -616,7 +627,7 @@ export default function Materials() {
                             className="premium-gradient p-3 rounded-2xl text-white shadow-lg shadow-indigo-100 dark:shadow-none opacity-0 group-hover:opacity-100 transition-all interactive-scale flex items-center justify-center disabled:opacity-40 dark:disabled:opacity-20 disabled:scale-100 disabled:cursor-not-allowed"
                             onClick={() => handleDownload(m.id)}
                             disabled={m.integrity_status === 'missing_file' || m.integrity_status === 'corrupted_file'}
-                            title={m.integrity_status === 'missing_file' ? "Material Missing" : m.integrity_status === 'corrupted_file' ? "Material Corrupted" : "Download Material"}
+                            title={m.integrity_status === 'missing_file' ? "Material Missing" : m.integrity_status === 'corrupted_file' ? "Material Corrupted" : m.integrity_message || "Download Material"}
                           >
                             <Download className="w-5 h-5" />
                           </button>
@@ -651,13 +662,24 @@ export default function Materials() {
                       <div className="flex items-center gap-3">
                         <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight truncate uppercase tracking-tighter">{m.title}</h3>
                         {m.integrity_status !== 'available' && (
-                          <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border uppercase tracking-tighter shrink-0 ${
-                            m.integrity_status === 'missing_file' ? 'bg-red-500/10 text-red-500 border-red-200 dark:border-red-900/30' : 'bg-amber-500/10 text-amber-500 border-amber-200 dark:border-amber-900/30'
-                          }`}>
-                            {m.integrity_status === 'missing_file' ? 'Missing' : 'Invalid'}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border uppercase tracking-tighter shrink-0 ${
+                              m.integrity_status === 'missing_file' ? 'bg-red-500/10 text-red-500 border-red-200 dark:border-red-900/30' : 
+                              m.integrity_status === 'corrupted_file' ? 'bg-rose-500/10 text-rose-600 border-rose-200 dark:border-rose-900/30' :
+                              'bg-amber-500/10 text-amber-500 border-amber-200 dark:border-amber-900/30'
+                            }`}>
+                              {m.integrity_status === 'missing_file' ? 'Missing' : 
+                               m.integrity_status === 'corrupted_file' ? 'Corrupted' : 
+                               m.integrity_status === 'pending' ? 'Pending' : 'Invalid'}
+                            </span>
+                          </div>
                         )}
                       </div>
+                      {role === 'admin' && m.integrity_status !== 'available' && m.integrity_message && (
+                        <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 italic mt-1 leading-tight">
+                          {m.integrity_message}
+                        </p>
+                      )}
                       <p className="text-xs text-slate-400 dark:text-slate-500 font-bold mt-2 flex items-center gap-2">
                         <span className="text-indigo-600 dark:text-indigo-400">Sem {m.semester}</span>
                         <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>

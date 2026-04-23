@@ -38,6 +38,7 @@ class MaterialOut(BaseModel):
     file_type: str
     is_approved: bool
     integrity_status: MaterialIntegrityStatus
+    integrity_message: Optional[str] = None
     view_count: int
     uploader_id: str
     file_url: Optional[str] = None
