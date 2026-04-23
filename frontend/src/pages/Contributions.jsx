@@ -4,6 +4,7 @@ import { UploadIcon, Activity, CheckCircle2, XCircle, Clock, FileText, Info, Rot
 import { ACADEMIC_DATA, CATEGORIES, SEMESTERS } from '../constants/academicData';
 import { useNotification } from '../context/NotificationContext';
 import { Skeleton, SkeletonTableRow, SkeletonCard } from '../components/common/Skeleton';
+import MaterialLoader from '../components/common/MaterialLoader';
 
 export default function Contributions() {
   const { success, error: toastError, info } = useNotification();
@@ -188,6 +189,21 @@ export default function Contributions() {
   return (
     <div className="max-w-6xl mx-auto space-y-12 pb-20">
       
+      {/* Global Processing Overlays */}
+      {(uploading || Object.values(actionLoading).some(v => !!v)) && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md">
+          <div className="max-w-md w-full p-10 glass rounded-[3rem] shadow-2xl relative overflow-hidden h-[300px]">
+             <MaterialLoader 
+               message={
+                 uploading 
+                   ? "Initializing AI Quality Pipeline..." 
+                   : "Recalibrating Assessment algorithm..."
+               } 
+             />
+          </div>
+        </div>
+      )}
+
       {/* Upload Section */}
       <div className="glass-card dark:bg-slate-900/50 shadow-2xl border-0 p-10 mt-6 relative overflow-hidden group transition-colors">
         <div className="absolute top-0 left-0 w-2 h-full premium-gradient"></div>

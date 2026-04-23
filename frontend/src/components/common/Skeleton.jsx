@@ -61,6 +61,22 @@ export const SkeletonCard = ({ rows = 2, className = '' }) => (
 );
 
 /**
+ * Skeleton for user avatars
+ */
+export const SkeletonAvatar = ({ size = '3rem', className = '' }) => (
+  <Skeleton width={size} height={size} circle className={className} />
+);
+
+/**
+ * Skeleton for a whole page section or block
+ */
+export const SkeletonSection = ({ className = '', height = '200px' }) => (
+  <div className={`glass dark:bg-slate-900/40 rounded-[2.5rem] border-0 overflow-hidden ${className}`}>
+    <Skeleton height={height} className="opacity-40" />
+  </div>
+);
+
+/**
  * Skeleton Row for tables
  */
 export const SkeletonTableRow = ({ columns = 4, className = '' }) => (

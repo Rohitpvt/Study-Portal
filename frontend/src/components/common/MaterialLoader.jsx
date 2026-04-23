@@ -6,7 +6,7 @@ import './MaterialLoader.css';
  * Used for initial material fetches. 
  * Includes a delay threshold to prevent flickering on fast connections.
  */
-const MaterialLoader = () => {
+const MaterialLoader = ({ message = "Synchronizing study resources" }) => {
   const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
@@ -46,10 +46,10 @@ const MaterialLoader = () => {
 
       <div className="z-20 text-center space-y-4">
         <h3 className="ml-text">
-          Synchronizing study resources
+          {message}
         </h3>
-        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] animate-pulse">
-            Fetching documents from cloud library...
+        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] animate-pulse px-6">
+            Connecting to secure cloud infrastructure...
         </p>
       </div>
     </div>

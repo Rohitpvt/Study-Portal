@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../utils/avatarUtils';
 import { Skeleton, SkeletonCircle, SkeletonTitle, SkeletonText } from '../components/common/Skeleton';
+import MaterialLoader from '../components/common/MaterialLoader';
 
 const INITIAL_GREETING = { 
   role: 'assistant', 
@@ -498,10 +499,8 @@ export default function Chat() {
                  <div className="w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center glass dark:bg-slate-900 dark:border-slate-800">
                     <Bot className="w-7 h-7 text-indigo-600 dark:text-indigo-400 animate-pulse"/>
                  </div>
-                 <div className="p-8 rounded-[2.5rem] glass dark:bg-slate-900 dark:border-slate-800 rounded-tl-none flex items-center gap-3">
-                   <div className="w-3 h-3 bg-indigo-400 rounded-full animate-bounce shadow-sm"></div>
-                   <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce delay-75 shadow-sm"></div>
-                   <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce delay-150 shadow-sm"></div>
+                 <div className="p-8 rounded-[2.5rem] glass dark:bg-slate-900 dark:border-slate-800 rounded-tl-none flex items-center gap-3 min-w-[320px] h-[200px] overflow-hidden relative">
+                   <MaterialLoader message="Consulting Knowledge Base..." />
                  </div>
                </div>
             </div>

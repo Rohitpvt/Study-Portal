@@ -798,6 +798,13 @@ export default function DocumentViewer() {
         ref={containerRef}
         className="flex-1 overflow-auto bg-slate-200/40 dark:bg-slate-900/20 p-4 md:p-8 flex justify-center scrollbar-hide py-10 transition-colors duration-300"
       >
+        {pdfLoading && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-100/40 dark:bg-slate-900/40 backdrop-blur-md">
+            <div className="max-w-md w-full p-10 glass dark:bg-slate-900 rounded-[3rem] shadow-2xl relative overflow-hidden h-[300px]">
+              <MaterialLoader message="Streaming Secure Fragment..." />
+            </div>
+          </div>
+        )}
         <div className="relative">
           {!blobUrl || pdfLoading ? (
             <div className="flex flex-col items-center justify-center p-32 bg-white dark:bg-slate-900 rounded-[2rem] shadow-inner min-w-[60vw] border border-slate-200 dark:border-slate-800">
@@ -836,7 +843,5 @@ export default function DocumentViewer() {
         </div>
       </div>
     </div>
-  );
-}
   );
 }

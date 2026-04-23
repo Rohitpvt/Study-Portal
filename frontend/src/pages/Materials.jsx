@@ -249,6 +249,14 @@ export default function Materials() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-24 md:pb-8">
+       {/* Global Processing Overlays */}
+       {uploading && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md">
+          <div className="max-w-md w-full p-10 glass rounded-[3rem] shadow-2xl relative overflow-hidden h-[300px]">
+             <MaterialLoader message="Optimizing & Indexing Material..." />
+          </div>
+        </div>
+      )}
 
       {/* ── Admin Upload ──────────────────────────────────────────────────── */}
       {role === 'admin' ? (

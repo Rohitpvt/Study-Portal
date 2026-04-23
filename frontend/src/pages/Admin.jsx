@@ -5,6 +5,7 @@ import {
   CheckCircle, Fingerprint, Gauge, Clock, Search, ChevronDown, ListCheck 
 } from 'lucide-react';
 import { Skeleton, SkeletonTableRow, SkeletonCard } from '../components/common/Skeleton';
+import MaterialLoader from '../components/common/MaterialLoader';
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('review');
@@ -85,6 +86,20 @@ export default function Admin() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+      {/* Global Processing Overlays */}
+      {loading && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md">
+          <div className="max-w-md w-full p-10 glass dark:bg-slate-900 rounded-[3rem] shadow-2xl relative overflow-hidden h-[300px]">
+             <MaterialLoader 
+               message={
+                 activeReportId && !reportData 
+                   ? "Extracting Academic Metadata..." 
+                   : "System Audit in Progress..."
+               } 
+             />
+          </div>
+        </div>
+      )}
       <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 p-10 mt-6 relative overflow-hidden transition-colors duration-300">
          <div className="absolute top-0 left-0 w-1.5 h-full bg-red-600"></div>
         <h2 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-4 tracking-tight"><ShieldAlert className="text-red-600 w-10 h-10"/> Admin Control Panel</h2>
