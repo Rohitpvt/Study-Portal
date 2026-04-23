@@ -3,6 +3,7 @@ import api from '../services/api';
 import { BookOpen, Upload, MessageSquare, ShieldCheck, Star, Cake, Sparkles, PartyPopper, Gift } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ErrorPage from '../components/common/ErrorPage';
+import { Skeleton, SkeletonCard, SkeletonCircle, SkeletonTitle, SkeletonText } from '../components/common/Skeleton';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -54,7 +55,7 @@ export default function Dashboard() {
   })();
 
   if (error) return <ErrorPage type="api" fullScreen={false} message={error} onRetry={() => window.location.reload()} />;
-  if (!user) return <div className="animate-pulse flex p-10 font-bold text-slate-400 dark:text-slate-600">Loading user profile...</div>;
+  if (!user) return <DashboardSkeleton />;
 
   return (
     <div className="w-full space-y-10 py-6 md:py-8">
@@ -184,6 +185,39 @@ export default function Dashboard() {
           title="My Favorites"
           description="Access all your saved notes and materials quickly from one place."
         />
+      </div>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="w-full space-y-10 py-6 md:py-8">
+      {/* Hero Skeleton */}
+      <div className="glass-card p-10 border-0 shadow-2xl relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex-1 space-y-4">
+            <Skeleton height="3rem" width="60%" className="mb-2" />
+            <Skeleton height="3rem" width="40%" />
+            <div className="mt-8 space-y-2">
+              <SkeletonText lines={2} />
+            </div>
+            <div className="mt-8 flex gap-3">
+              <Skeleton width="100px" height="2rem" className="rounded-2xl" />
+              <Skeleton width="120px" height="2rem" className="rounded-2xl" />
+            </div>
+          </div>
+          <div className="hidden lg:block">
+            <Skeleton width="12rem" height="12rem" className="rounded-[40px] rotate-12" />
+          </div>
+        </div>
+      </div>
+
+      {/* Grid Skeleton */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <SkeletonCard rows={2} />
+        <SkeletonCard rows={2} />
+        <SkeletonCard rows={2} />
       </div>
     </div>
   );

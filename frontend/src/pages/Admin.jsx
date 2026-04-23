@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { 
   ShieldAlert, Check, X, FileSearch, Info, AlertTriangle, 
-  CheckCircle, Fingerprint, Gauge, Clock, Search, ChevronDown, ListCheck
+  CheckCircle, Fingerprint, Gauge, Clock, Search, ChevronDown, ListCheck 
 } from 'lucide-react';
+import { Skeleton, SkeletonTableRow, SkeletonCard } from '../components/common/Skeleton';
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('review');
@@ -156,7 +157,11 @@ export default function Admin() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
-                    {pending.map((m) => (
+                    {loading && pending.length === 0 ? (
+                      [...Array(5)].map((_, i) => (
+                        <tr key={i}><td colSpan="5"><SkeletonTableRow columns={5} /></td></tr>
+                      ))
+                    ) : pending.map((m) => (
                       <tr key={m.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                         <td className="whitespace-nowrap py-5 pl-5 pr-3 text-sm font-extrabold text-slate-900 dark:text-white sm:pl-6">{m.title}</td>
                         <td className="whitespace-nowrap px-3 py-5 text-sm text-slate-500 dark:text-slate-400 font-bold">{m.category} / Sem {m.semester}</td>
@@ -221,7 +226,11 @@ export default function Admin() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
-                {logs.map((log) => (
+                {loading && logs.length === 0 ? (
+                  [...Array(10)].map((_, i) => (
+                    <tr key={i}><td colSpan="3"><SkeletonTableRow columns={3} /></td></tr>
+                  ))
+                ) : logs.map((log) => (
                   <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                     <td className="whitespace-nowrap py-5 pl-5 pr-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{new Date(log.timestamp).toLocaleString()}</td>
                     <td className="whitespace-nowrap px-3 py-5 text-sm font-extrabold text-slate-700 dark:text-slate-200">{log.action}</td>

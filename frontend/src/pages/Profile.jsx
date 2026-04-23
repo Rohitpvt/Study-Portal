@@ -5,6 +5,7 @@ import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../utils/
 import { Check, Mail, User, ShieldCheck, Upload, Book, Info, Calendar, User2 } from 'lucide-react';
 import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
+import { Skeleton, SkeletonCircle, SkeletonTitle, SkeletonText, SkeletonCard } from '../components/common/Skeleton';
 
 export default function Profile() {
   const { userProfile, updateProfile } = useAuth();
@@ -109,7 +110,7 @@ export default function Profile() {
     setTimeout(() => setFeedback(null), 5000);
   };
 
-  if (!userProfile) return null;
+  if (!userProfile) return <ProfileSkeleton />;
 
   const isOnline = getOnlineStatus(userProfile.last_seen);
   const presets = AVATARS.filter(a => a.type === 'preset');
@@ -335,6 +336,47 @@ export default function Profile() {
 
           </div>
 
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfileSkeleton() {
+  return (
+    <div className="max-w-5xl mx-auto py-8 px-4">
+      <div className="glass rounded-[40px] p-8 shadow-2xl">
+        <div className="flex items-center justify-between mb-8">
+           <Skeleton width="200px" height="2rem" />
+           <Skeleton width="120px" height="2.5rem" className="rounded-2xl" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <div className="lg:col-span-5 space-y-8">
+            <div className="flex items-center gap-6 p-6 glass rounded-3xl">
+              <SkeletonCircle size="6rem" />
+              <div className="flex-1 space-y-2">
+                <Skeleton width="70%" height="1.5rem" />
+                <Skeleton width="40%" height="0.8rem" />
+              </div>
+            </div>
+            <div className="space-y-6">
+               {[...Array(3)].map((_, i) => (
+                 <div key={i} className="space-y-2">
+                   <Skeleton width="30%" height="0.6rem" />
+                   <Skeleton height="3rem" className="rounded-2xl" />
+                 </div>
+               ))}
+            </div>
+          </div>
+          <div className="lg:col-span-7 space-y-6">
+            <Skeleton width="40%" height="1.5rem" />
+            <Skeleton height="3.5rem" className="rounded-2xl" />
+            <div className="grid grid-cols-4 gap-4">
+              {[...Array(12)].map((_, i) => (
+                <Skeleton key={i} height="80px" className="rounded-3xl" />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

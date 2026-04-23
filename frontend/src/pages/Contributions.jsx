@@ -3,6 +3,7 @@ import api from '../services/api';
 import { UploadIcon, Activity, CheckCircle2, XCircle, Clock, FileText, Info, RotateCw, Trash2 } from 'lucide-react';
 import { ACADEMIC_DATA, CATEGORIES, SEMESTERS } from '../constants/academicData';
 import { useNotification } from '../context/NotificationContext';
+import { Skeleton, SkeletonTableRow, SkeletonCard } from '../components/common/Skeleton';
 
 export default function Contributions() {
   const { success, error: toastError, info } = useNotification();
@@ -78,10 +79,13 @@ export default function Contributions() {
       setStatuses(prev => ({ ...prev, ...initialStatuses }));
     } catch (err) {
       console.error(err);
+    } finally {
+      if (contributions[0] === 'polling_skeleton') setContributions([]);
     }
   };
 
   useEffect(() => {
+    setContributions(['polling_skeleton']);
     fetchMine();
   }, []);
 
@@ -261,6 +265,12 @@ export default function Contributions() {
             <h3 className="text-xl font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">No Active Submissions</h3>
             <p className="text-slate-400 dark:text-slate-500 text-sm mt-2 font-semibold">Start building the knowledge base today.</p>
           </div>
+        ) : contributions.length === 1 && contributions[0] === 'polling_skeleton' ? (
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <SkeletonTableRow key={i} columns={4} />
+            ))}
+          </div>
         ) : (
           <div className="overflow-hidden glass dark:bg-slate-900/30 border-white/60 dark:border-slate-800/50 rounded-[2rem] shadow-xl">
             <table className="min-w-full divide-y divide-white/20 dark:divide-slate-800/50">
@@ -370,4 +380,3 @@ export default function Contributions() {
     </div>
   );
 }
-

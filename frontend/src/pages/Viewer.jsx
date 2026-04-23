@@ -26,6 +26,8 @@ import {
 import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
 import ErrorPage from '../components/common/ErrorPage';
+import MaterialLoader from '../components/common/MaterialLoader';
+import { Skeleton, SkeletonText, SkeletonCircle, SkeletonTableRow, SkeletonCard } from '../components/common/Skeleton';
 
 // Set up the worker for react-pdf using a reliable CDN and fixed version matching react-pdf's dependency
 // pdfjs-dist version 5.4.296 is required by react-pdf@10.4.1
@@ -549,14 +551,25 @@ export default function DocumentViewer() {
   // Loading Metadata State
   if (loading && !material) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[80vh] gap-6">
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-slate-100 dark:border-slate-800 border-t-indigo-600 rounded-full animate-spin" />
-          <Loader2 className="w-6 h-6 text-indigo-600 absolute inset-0 m-auto" />
+      <div className="flex flex-col h-screen max-h-screen overflow-hidden bg-slate-100/50 dark:bg-slate-950">
+        <div className="bg-white/90 dark:bg-slate-900/90 h-20 px-10 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-5">
+            <SkeletonCircle size="2.5rem" />
+            <div className="space-y-2">
+              <Skeleton width="150px" height="1.5rem" />
+              <Skeleton width="100px" height="0.5rem" />
+            </div>
+          </div>
+          <Skeleton width="300px" height="2.5rem" className="rounded-2xl hidden lg:block" />
+          <div className="flex gap-3">
+             <Skeleton width="40px" height="2.5rem" className="rounded-xl" />
+             <Skeleton width="100px" height="2.5rem" className="rounded-xl" />
+          </div>
         </div>
-        <div className="text-center">
-          <p className="text-slate-900 dark:text-white font-black uppercase tracking-[0.2em] text-sm">Initializing Hub Connection</p>
-          <p className="text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase mt-1">Verifying Credentials & Syncing Stream...</p>
+        <div className="flex-1 p-8 flex justify-center">
+          <div className="w-full max-w-4xl h-full glass rounded-[2.5rem] p-12 flex flex-col items-center justify-center space-y-6">
+            <Skeleton width="80%" height="90%" className="rounded-xl" />
+          </div>
         </div>
       </div>
     );
@@ -787,73 +800,43 @@ export default function DocumentViewer() {
       >
         <div className="relative">
           {!blobUrl || pdfLoading ? (
-            <div className="flex flex-col items-center justify-center p-32 gap-6 bg-white dark:bg-slate-900 rounded-[2rem] shadow-inner min-w-[60vw] border border-slate-200 dark:border-slate-800">
-              <div className="relative">
-                 <div className="w-12 h-12 border-2 border-slate-100 dark:border-slate-800 border-t-indigo-600 rounded-full animate-spin" />
-                 <Layers className="w-4 h-4 text-indigo-600 absolute inset-0 m-auto opacity-40" />
-              </div>
-              <p className="text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-[0.3em]">Fragmenting Binary Stream...</p>
+            <div className="flex flex-col items-center justify-center p-32 bg-white dark:bg-slate-900 rounded-[2rem] shadow-inner min-w-[60vw] border border-slate-200 dark:border-slate-800">
+               <Skeleton width="100%" height="400px" className="rounded-xl" />
+               <div className="mt-8 w-full space-y-4">
+                  <SkeletonText lines={10} />
+               </div>
             </div>
           ) : (
             <Document
               file={blobUrl}
               onLoadSuccess={onDocumentLoadSuccess}
               onLoadError={onDocumentLoadError}
-              loading={null}
+              loading={<MaterialLoader />}
+              className="flex flex-col items-center"
             >
               {viewMode === 'single' ? (
-                <div className={`shadow-[0_40px_100px_-20px_rgba(0,0,0,0.2)] rounded-sm overflow-hidden bg-white border-2 transition-all duration-300 ${
-                  currentPageMatch 
-                    ? 'border-indigo-400 ring-4 ring-indigo-100 dark:ring-indigo-900/30' 
-                    : 'border-slate-300/50 dark:border-slate-800'
-                }`}>
-                  {currentPageMatch && (
-                    <div className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 flex items-center gap-2">
-                      <Search className="w-3 h-3" />
-                      {currentPageMatch.count} match{currentPageMatch.count > 1 ? 'es' : ''} on this page
-                    </div>
-                  )}
-                  <Page 
+                <div className="shadow-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 transition-all duration-300 rounded-sm overflow-hidden">
+                   {currentPageMatch && (
+                     <div className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 flex items-center gap-2">
+                        <Search className="w-3 h-3" />
+                        {currentPageMatch.count} match{currentPageMatch.count > 1 ? 'es' : ''} on this page
+                     </div>
+                   )}
+                   <Page 
                     pageNumber={pageNumber} 
                     scale={scale} 
                     rotate={rotate}
                     renderTextLayer={true}
                     renderAnnotationLayer={true}
-                    className="max-w-full"
                   />
                 </div>
-              ) : (
-                <div className="flex flex-col gap-10 pb-48">
-                  {renderAllPages()}
-                </div>
-              )}
+              ) : renderAllPages()}
             </Document>
-          )}
-          
-          {/* Quick Nav Floating (Single page mode, mobile) */}
-          {viewMode === 'single' && (
-            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-4 z-10 lg:hidden">
-              <button 
-                onClick={() => changePage(-1)}
-                disabled={pageNumber <= 1}
-                className="bg-slate-900/95 dark:bg-indigo-600/95 backdrop-blur text-white p-5 rounded-[2rem] shadow-2xl disabled:opacity-40 active:scale-95 transition-all"
-              >
-                <ChevronLeft className="w-7 h-7" />
-              </button>
-              <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur px-8 py-4 rounded-[2rem] shadow-2xl border border-white dark:border-slate-800 font-black text-slate-900 dark:text-white text-sm flex items-center gap-2">
-                {pageNumber} <span className="text-slate-300 dark:text-slate-700 font-bold">/</span> {numPages}
-              </div>
-              <button 
-                onClick={() => changePage(1)}
-                disabled={pageNumber >= (numPages || 1)}
-                className="bg-slate-900/95 dark:bg-indigo-600/95 backdrop-blur text-white p-5 rounded-[2rem] shadow-2xl disabled:opacity-40 active:scale-95 transition-all"
-              >
-                <ChevronRight className="w-7 h-7" />
-              </button>
-            </div>
           )}
         </div>
       </div>
     </div>
+  );
+}
   );
 }

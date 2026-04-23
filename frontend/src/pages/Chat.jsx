@@ -5,6 +5,7 @@ import { Send, Bot, User, BookOpen, FileText, Info, ExternalLink, Plus, MessageS
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../utils/avatarUtils';
+import { Skeleton, SkeletonCircle, SkeletonTitle, SkeletonText } from '../components/common/Skeleton';
 
 const INITIAL_GREETING = { 
   role: 'assistant', 
@@ -214,7 +215,19 @@ export default function Chat() {
               </span>
             </div>
             
-            {sessions.filter(s => s.title?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+            {sessions.length === 0 ? (
+              <div className="space-y-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="p-4 glass rounded-3xl flex gap-3">
+                    <SkeletonCircle size="2.5rem" />
+                    <div className="flex-1 space-y-2">
+                       <Skeleton width="60%" height="0.8rem" />
+                       <Skeleton width="30%" height="0.5rem" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : sessions.filter(s => s.title?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
               <div className="px-6 py-10 text-center space-y-3 opacity-40">
                 <MessageSquare className="w-8 h-8 mx-auto text-slate-400" />
                 <p className="text-[11px] font-bold text-slate-500 uppercase tracking-tighter">
@@ -331,9 +344,17 @@ export default function Chat() {
           </div>
           
           {(isFetchingHistory) ? (
-            <div className="flex flex-col items-center justify-center h-full space-y-4 opacity-40">
-              <Bot className="w-16 h-16 text-indigo-400 animate-bounce" />
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600">Retrieving History...</p>
+            <div className="space-y-10">
+               {[...Array(3)].map((_, i) => (
+                 <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
+                    <div className={`flex gap-4 max-w-[70%] ${i % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}>
+                      <SkeletonCircle size="3.5rem" />
+                      <div className={`p-8 rounded-[2.5rem] glass min-w-[200px] space-y-3 ${i % 2 === 0 ? 'rounded-tl-none' : 'rounded-tr-none'}`}>
+                        <SkeletonText lines={i === 1 ? 4 : 2} />
+                      </div>
+                    </div>
+                 </div>
+               ))}
             </div>
           ) : (
             messages.map((msg, idx) => (

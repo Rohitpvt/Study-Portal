@@ -6,6 +6,8 @@ import { jwtDecode } from 'jwt-decode';
 import { ACADEMIC_DATA, CATEGORIES, SEMESTERS } from '../constants/academicData';
 import { useNotification } from '../context/NotificationContext';
 import ErrorPage from '../components/common/ErrorPage';
+import MaterialLoader from '../components/common/MaterialLoader';
+import { Skeleton, SkeletonCard, SkeletonTitle, SkeletonText, SkeletonTableRow } from '../components/common/Skeleton';
 
 export default function Materials() {
   const navigate = useNavigate();
@@ -532,7 +534,6 @@ export default function Materials() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
           <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter flex items-center gap-4">
             Curated Assets
-            {isFetching && <span className="w-6 h-6 border-3 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin" />}
           </h2>
           {!isFetching && materials.length > 0 && (
             <div className="px-5 py-2 glass dark:bg-slate-800/60 rounded-2xl text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest shadow-sm">
@@ -541,7 +542,9 @@ export default function Materials() {
           )}
         </div>
 
-        {materials.length === 0 ? (
+        {isFetching && materials.length === 0 ? (
+          <MaterialsSkeleton />
+        ) : materials.length === 0 ? (
           <div className="text-center py-24 glass dark:bg-slate-900/40 rounded-[2.5rem] border-0">
             <div className="bg-slate-100 dark:bg-slate-800 w-20 h-20 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-inner">
                <Search className="w-10 h-10 text-slate-300 dark:text-slate-600" />
@@ -754,6 +757,39 @@ export default function Materials() {
             </button>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function MaterialsSkeleton() {
+  return (
+    <div className="space-y-10">
+      {/* desktop table skeleton */}
+      <div className="hidden md:block overflow-hidden glass border-white/60 dark:border-slate-800 rounded-[2rem] shadow-xl">
+        <div className="bg-slate-900/5 dark:bg-slate-800/10 py-6 px-8 border-b border-white/20 dark:border-slate-800">
+           <Skeleton width="100px" height="0.6rem" />
+        </div>
+        <div className="divide-y divide-white/20 dark:divide-slate-800">
+          {[...Array(5)].map((_, i) => (
+            <SkeletonTableRow key={i} columns={4} />
+          ))}
+        </div>
+      </div>
+
+      {/* mobile card skeleton */}
+      <div className="md:hidden space-y-6">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="glass-card shadow-xl border-white/40 dark:border-slate-800 p-6 space-y-4">
+            <Skeleton width="40%" height="1rem" />
+            <SkeletonTitle />
+            <SkeletonText lines={2} />
+            <div className="flex gap-3 pt-2">
+               <Skeleton height="3rem" className="flex-1 rounded-2xl" />
+               <Skeleton height="3rem" className="flex-1 rounded-2xl" />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

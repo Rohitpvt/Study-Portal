@@ -1,0 +1,83 @@
+/* Skeleton.css - Premium Apple/Linear-style shimmer animations */
+
+:root {
+  --skeleton-light-bg: #f3f4f6;
+  --skeleton-light-shimmer: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  
+  --skeleton-dark-bg: #1e293b; /* Slate-800 matches the theme's glass-card base */
+  --skeleton-dark-shimmer: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+.skeleton-base {
+  display: block;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--skeleton-light-bg);
+  border-radius: 0.5rem;
+}
+
+.dark .skeleton-base {
+  background-color: var(--skeleton-dark-bg);
+}
+
+.skeleton-base::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background: var(--skeleton-light-shimmer);
+  animation: skeleton-shimmer 2s infinite;
+}
+
+.dark .skeleton-base::after {
+  background: var(--skeleton-dark-shimmer);
+}
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Variant styles */
+.skeleton-circle {
+  border-radius: 9999px;
+}
+
+.skeleton-text {
+  height: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-text:last-child {
+  margin-bottom: 0;
+  width: 80%;
+}
+
+.skeleton-title {
+  height: 1.25rem;
+  margin-bottom: 1rem;
+  width: 60%;
+}
+
+/* Container for specific page layouts */
+.skeleton-card-container {
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
