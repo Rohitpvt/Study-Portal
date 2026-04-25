@@ -10,7 +10,7 @@ from fastapi import HTTPException, UploadFile, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.material import Category, Material
+from app.models.material import Category, Material, MaterialIntegrityStatus
 from app.models.base import generate_uuid
 from app.models.user import User, Role
 from app.schemas.material import MaterialCreate, PaginatedMaterials
