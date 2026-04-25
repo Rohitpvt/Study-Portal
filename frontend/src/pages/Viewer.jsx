@@ -27,7 +27,7 @@ import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
 import ErrorPage from '../components/common/ErrorPage';
 import MaterialLoader from '../components/common/MaterialLoader';
-import { Skeleton, SkeletonText, SkeletonCircle, SkeletonTableRow, SkeletonCard } from '../components/common/Skeleton';
+import { usePseudoProgress } from '../hooks/usePseudoProgress';
 
 // Set up the worker for react-pdf using a reliable CDN and fixed version matching react-pdf's dependency
 // pdfjs-dist version 5.4.296 is required by react-pdf@10.4.1
@@ -142,6 +142,11 @@ export default function DocumentViewer() {
   const [searchMessage, setSearchMessage] = useState('');
   const [textExtractionProgress, setTextExtractionProgress] = useState(0);
   const [highlightVersion, setHighlightVersion] = useState(0); // triggers re-highlight
+  const [blobUrl, setBlobUrl] = useState(null);
+
+  // Hyper-Speed Loading logic
+  const isGlobalLoading = loading || pdfLoading || !blobUrl;
+  const { progress: hyperProgress, phase: hyperPhase } = usePseudoProgress(isGlobalLoading);
 
   // Get file URL and page from search params
   const directUrl = searchParams.get('url');
@@ -149,7 +154,6 @@ export default function DocumentViewer() {
   const targetExcerpt = searchParams.get('excerpt');
   const [chatSourceBanner, setChatSourceBanner] = useState(!!searchParams.get('page'));
   const [autoHighlightDone, setAutoHighlightDone] = useState(false);
-  const [blobUrl, setBlobUrl] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -548,28 +552,17 @@ export default function DocumentViewer() {
     return pages;
   };
 
-  // Loading Metadata State
+  // Loading Metadata State - Replaced skeletons with Hyper-Speed Loader
   if (loading && !material) {
     return (
-      <div className="flex flex-col h-screen max-h-screen overflow-hidden bg-slate-100/50 dark:bg-slate-950">
-        <div className="bg-white/90 dark:bg-slate-900/90 h-20 px-10 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-5">
-            <SkeletonCircle size="2.5rem" />
-            <div className="space-y-2">
-              <Skeleton width="150px" height="1.5rem" />
-              <Skeleton width="100px" height="0.5rem" />
-            </div>
-          </div>
-          <Skeleton width="300px" height="2.5rem" className="rounded-2xl hidden lg:block" />
-          <div className="flex gap-3">
-             <Skeleton width="40px" height="2.5rem" className="rounded-xl" />
-             <Skeleton width="100px" height="2.5rem" className="rounded-xl" />
-          </div>
-        </div>
-        <div className="flex-1 p-8 flex justify-center">
-          <div className="w-full max-w-4xl h-full glass rounded-[2.5rem] p-12 flex flex-col items-center justify-center space-y-6">
-            <Skeleton width="80%" height="90%" className="rounded-xl" />
-          </div>
+      <div className="flex flex-col h-screen max-h-screen overflow-hidden bg-slate-100/50 dark:bg-slate-950 items-center justify-center">
+        <div className="max-w-md w-full p-12 glass dark:bg-slate-900 rounded-[3rem] shadow-2xl relative overflow-hidden">
+           <MaterialLoader 
+             message="Initializing Secure Stream..." 
+             showProgress={true}
+             progress={hyperProgress}
+             phase={hyperPhase}
+           />
         </div>
       </div>
     );
@@ -796,51 +789,55 @@ export default function DocumentViewer() {
       {/* ── Document Canvas ────────────────────────────────────────────────── */}
       <div 
         ref={containerRef}
-        className="flex-1 overflow-auto bg-slate-200/40 dark:bg-slate-900/20 p-4 md:p-8 flex justify-center scrollbar-hide py-10 transition-colors duration-300"
+        className="flex-1 overflow-auto bg-slate-200/40 dark:bg-slate-900/20 p-4 md:p-8 flex justify-center scrollbar-hide py-10 transition-colors duration-300 relative"
       >
-        {pdfLoading && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-100/40 dark:bg-slate-900/40 backdrop-blur-md">
-            <div className="max-w-md w-full p-10 glass dark:bg-slate-900 rounded-[3rem] shadow-2xl relative overflow-hidden h-[300px]">
-              <MaterialLoader message="Streaming Secure Fragment..." />
+        {isGlobalLoading ? (
+            <div className="flex flex-col items-center justify-center w-full h-full">
+              <div className="max-w-md w-full p-12 glass dark:bg-slate-900 rounded-[3rem] shadow-2xl relative overflow-hidden">
+                <MaterialLoader 
+                  message="Reconstructing Neural Path..." 
+                  showProgress={true}
+                  progress={hyperProgress}
+                  phase={hyperPhase}
+                />
+              </div>
             </div>
-          </div>
-        )}
-        <div className="relative">
-          {!blobUrl || pdfLoading ? (
-            <div className="flex flex-col items-center justify-center p-32 bg-white dark:bg-slate-900 rounded-[2rem] shadow-inner min-w-[60vw] border border-slate-200 dark:border-slate-800">
-               <Skeleton width="100%" height="400px" className="rounded-xl" />
-               <div className="mt-8 w-full space-y-4">
-                  <SkeletonText lines={10} />
-               </div>
-            </div>
-          ) : (
-            <Document
-              file={blobUrl}
-              onLoadSuccess={onDocumentLoadSuccess}
-              onLoadError={onDocumentLoadError}
-              loading={<MaterialLoader />}
-              className="flex flex-col items-center"
-            >
-              {viewMode === 'single' ? (
-                <div className="shadow-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 transition-all duration-300 rounded-sm overflow-hidden">
-                   {currentPageMatch && (
-                     <div className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 flex items-center gap-2">
-                        <Search className="w-3 h-3" />
-                        {currentPageMatch.count} match{currentPageMatch.count > 1 ? 'es' : ''} on this page
-                     </div>
-                   )}
-                   <Page 
-                    pageNumber={pageNumber} 
-                    scale={scale} 
-                    rotate={rotate}
-                    renderTextLayer={true}
-                    renderAnnotationLayer={true}
+        ) : (
+            <div className="relative">
+              <Document
+                file={blobUrl}
+                onLoadSuccess={onDocumentLoadSuccess}
+                onLoadError={onDocumentLoadError}
+                loading={
+                  <MaterialLoader 
+                    message="Finalizing View..." 
+                    showProgress={true}
+                    progress={hyperProgress}
+                    phase={hyperPhase}
                   />
-                </div>
-              ) : renderAllPages()}
-            </Document>
-          )}
-        </div>
+                }
+                className="flex flex-col items-center"
+              >
+                {viewMode === 'single' ? (
+                  <div className="shadow-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 transition-all duration-300 rounded-sm overflow-hidden">
+                     {currentPageMatch && (
+                       <div className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 flex items-center gap-2">
+                          <Search className="w-3 h-3" />
+                          {currentPageMatch.count} match{currentPageMatch.count > 1 ? 'es' : ''} on this page
+                       </div>
+                     )}
+                     <Page 
+                      pageNumber={pageNumber} 
+                      scale={scale} 
+                      rotate={rotate}
+                      renderTextLayer={true}
+                      renderAnnotationLayer={true}
+                    />
+                  </div>
+                ) : renderAllPages()}
+              </Document>
+            </div>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 """
 app/core/dependencies.py
 ─────────────────────────
-Reusable FastAPI dependencies: DB session, current user, admin guard.
+Reusable FastAPI dependencies: DB session, current user, admin guard, developer guard.
 """
 
 from typing import Annotated
@@ -57,9 +57,18 @@ async def get_current_user(
 
 
 async def require_admin(current_user: Annotated[User, Depends(get_current_user)]) -> User:
-    if current_user.role != Role.ADMIN:
+    """Allow access for ADMIN and DEVELOPER roles (admin-level privilege)."""
+    if not current_user.role.is_privileged:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to perform this action")
     return current_user
+
+
+async def require_developer(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    """Allow access for DEVELOPER role only."""
+    if current_user.role != Role.DEVELOPER:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Developer-level access required.")
+    return current_user
+
 
 async def require_student(current_user: Annotated[User, Depends(get_current_user)]) -> User:
     if current_user.role != Role.STUDENT:
@@ -68,7 +77,8 @@ async def require_student(current_user: Annotated[User, Depends(get_current_user
 
 
 # ── Type aliases used in route signatures ─────────────────────────────────────
-CurrentUser = Annotated[User, Depends(get_current_user)]
-AdminUser   = Annotated[User, Depends(require_admin)]
-StudentUser = Annotated[User, Depends(require_student)]
-DBSession   = Annotated[AsyncSession, Depends(get_db)]
+CurrentUser   = Annotated[User, Depends(get_current_user)]
+AdminUser     = Annotated[User, Depends(require_admin)]
+DeveloperUser = Annotated[User, Depends(require_developer)]
+StudentUser   = Annotated[User, Depends(require_student)]
+DBSession     = Annotated[AsyncSession, Depends(get_db)]

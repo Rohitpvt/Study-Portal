@@ -19,7 +19,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.routes import auth, users, materials, contributions, chat, admin, favorites, metadata, support
+from app.routes import auth, users, materials, contributions, chat, admin, favorites, metadata, support, developer
 
 # ── Structured Production Logging ─────────────────────────────────────────────
 logging.basicConfig(
@@ -66,6 +66,42 @@ async def lifespan(app: FastAPI):
     asyncio.create_task(integrity_worker_loop())
     logger.info("✅ Background workers started.")
 
+    # Seed Developer account from environment
+    try:
+        from app.core.database import AsyncSessionLocal
+        from app.models.user import User, Role
+        from app.core.security import hash_password
+        from sqlalchemy import select
+
+        async with AsyncSessionLocal() as seed_db:
+            dev_email = settings.DEVELOPER_EMAIL
+            dev_password = settings.DEVELOPER_PASSWORD
+
+            if dev_email and dev_password:
+                result = await seed_db.execute(select(User).where(User.email == dev_email))
+                existing = result.scalar_one_or_none()
+
+                if existing:
+                    if existing.role != Role.DEVELOPER:
+                        existing.role = Role.DEVELOPER
+                        await seed_db.commit()
+                        logger.info(f"✅ Promoted existing user '{dev_email}' to DEVELOPER role.")
+                    else:
+                        logger.info(f"✅ Developer account '{dev_email}' already exists.")
+                else:
+                    new_dev = User(
+                        email=dev_email,
+                        full_name="Developer",
+                        hashed_password=hash_password(dev_password),
+                        role=Role.DEVELOPER,
+                        is_active=True,
+                    )
+                    seed_db.add(new_dev)
+                    await seed_db.commit()
+                    logger.info(f"✅ Created new Developer account: '{dev_email}'")
+    except Exception as e:
+        logger.warning(f"⚠️  Developer seeding skipped: {e}")
+
     yield
 
     # Shutdown
@@ -96,7 +132,7 @@ app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permissive for development
+    allow_origins=settings.ALLOWED_ORIGINS,  # Use configured environment origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -115,6 +151,7 @@ app.include_router(admin.router,         prefix=API_PREFIX)
 app.include_router(favorites.router,     prefix=API_PREFIX)
 app.include_router(metadata.router,      prefix=API_PREFIX)
 app.include_router(support.router,       prefix=API_PREFIX)
+app.include_router(developer.router,     prefix=API_PREFIX)
 
 # ── Static file serving (with isolated CORS sub-app) ───────────────────────────
 os.makedirs("uploads", exist_ok=True)
@@ -129,3 +166,22 @@ app.mount(f"{API_PREFIX}/uploads", uploads_app, name="uploads")
 @app.get("/health", tags=["Health"], summary="Health check")
 async def health():
     return {"status": "ok", "version": settings.APP_VERSION}
+
+# ── 404 Redirect Handler ──────────────────────────────────────────────────────
+from fastapi.responses import RedirectResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request, exc):
+    if exc.status_code == 404:
+        # If it's a browser request, redirect to the frontend 404 page
+        accept = request.headers.get("accept", "")
+        if "text/html" in accept:
+            return RedirectResponse(url="/404")
+    
+    # Otherwise, return a standard JSON error for API clients
+    return Response(
+        content=f'{{"detail": "{exc.detail}"}}',
+        status_code=exc.status_code,
+        media_type="application/json"
+    )

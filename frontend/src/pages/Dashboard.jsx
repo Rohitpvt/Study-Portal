@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { BookOpen, Upload, MessageSquare, ShieldCheck, Star, Cake, Sparkles, PartyPopper, Gift } from 'lucide-react';
+import { BookOpen, Upload, MessageSquare, ShieldCheck, Star, Cake, Sparkles, PartyPopper, Gift, Crown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ErrorPage from '../components/common/ErrorPage';
 import { Skeleton, SkeletonCard, SkeletonCircle, SkeletonTitle, SkeletonText } from '../components/common/Skeleton';
@@ -126,7 +126,11 @@ export default function Dashboard() {
               Ready to excel? Explore your tailored study dashboard for <span className="text-indigo-600 dark:text-indigo-400 font-bold">Christ University</span> academic success.
             </p>
             <div className="mt-6 flex items-center gap-3">
-               <span className={`px-5 py-2 text-[10px] md:text-xs font-black rounded-2xl uppercase tracking-widest shadow-sm transition-colors ${user.role?.toLowerCase() === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400'}`}>
+               <span className={`px-5 py-2 text-[10px] md:text-xs font-black rounded-2xl uppercase tracking-widest shadow-sm transition-colors ${
+                 user.role?.toLowerCase() === 'developer' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
+                 user.role?.toLowerCase() === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 
+                 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400'
+               }`}>
                 {user.role} Account
                </span>
                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -162,7 +166,7 @@ export default function Dashboard() {
           />
         )}
 
-        {user.role?.toLowerCase() === 'admin' && (
+        {['admin', 'developer'].includes(user.role?.toLowerCase()) && (
           <DashboardCard 
             to="/admin" 
             index={3}
@@ -170,6 +174,17 @@ export default function Dashboard() {
             gradient="bg-gradient-to-br from-rose-500 to-red-600"
             title="Admin Review"
             description="Review student submissions and authorize uploads into the global database."
+          />
+        )}
+        
+        {user.role?.toLowerCase() === 'developer' && (
+          <DashboardCard 
+            to="/profile-control" 
+            index={3}
+            icon={<Crown className="w-10 h-10 text-white" />}
+            gradient="bg-gradient-to-br from-amber-500 to-amber-700"
+            title="Profile Control"
+            description="Manage user roles, elevate students to admins, and monitor platform access."
           />
         )}
 

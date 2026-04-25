@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Home, RefreshCw, ArrowLeft, AlertTriangle, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Home, RefreshCw, ArrowLeft, AlertTriangle, Loader2, Sparkles } from 'lucide-react';
 
 export default function ErrorPage({ 
   type = '404', 
@@ -51,10 +51,97 @@ export default function ErrorPage({
     }
   };
 
+  const location = useLocation();
+  const [themeIndex, setThemeIndex] = useState(null);
+  const [isThemeLoading, setIsThemeLoading] = useState(true);
+
+  // Random Theme Selection Logic (Bonus: Prevent same theme repeating twice)
+  useEffect(() => {
+    if (type === '404') {
+      // Small reset to trigger re-fade on path change
+      setThemeIndex(null); 
+      setIsThemeLoading(true);
+
+      const timer = setTimeout(() => {
+        const themesCount = 3;
+        const lastTheme = sessionStorage.getItem('last_404_theme');
+        let newIndex;
+        
+        do {
+          newIndex = Math.floor(Math.random() * themesCount) + 1;
+        } while (themesCount > 1 && lastTheme && parseInt(lastTheme) === newIndex);
+
+        sessionStorage.setItem('last_404_theme', newIndex.toString());
+        setThemeIndex(newIndex);
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [type, location.pathname]);
+
+  const currentThemeUrl = useMemo(() => {
+    if (!themeIndex) return null;
+    return `/404-themes/theme${themeIndex}/index.html`;
+  }, [themeIndex]);
+
   const currentConfig = config[type] || config['404'];
   const displayTitle = title || currentConfig.defaultTitle;
   const displayMessage = message || currentConfig.defaultMessage;
   const displaySubtitle = currentConfig.defaultSubtitle;
+
+  // Optimized for 404 Random Themes
+  if (type === '404' && themeIndex) {
+    return (
+      <div className="fixed inset-0 w-full h-full bg-slate-950 overflow-hidden flex flex-col">
+        {/* Animated Iframe Container */}
+        <div className={`flex-1 relative transition-opacity duration-700 ${isThemeLoading || !themeIndex ? 'opacity-0' : 'opacity-100'}`}>
+          {themeIndex && (
+            <iframe 
+              key={`${location.pathname}-${themeIndex}`}
+              src={currentThemeUrl}
+              className="w-full h-full border-none"
+              title={`404 Error Theme ${themeIndex}`}
+              onLoad={() => setIsThemeLoading(false)}
+            />
+          )}
+          
+          {/* Overlay Dynamic HUD */}
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-6 pointer-events-none w-full max-w-xl px-6">
+             <div className="bg-slate-950/80 backdrop-blur-2xl px-10 py-6 rounded-[2.5rem] border border-white/20 shadow-[0_30px_60px_rgba(0,0,0,0.5)] flex flex-col items-center pointer-events-auto animate-fade-in-up">
+                <h3 className="text-white font-black text-2xl uppercase tracking-[0.1em] mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">{displaySubtitle}</h3>
+                <p className="text-slate-200 text-sm font-semibold mb-6 text-center drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">{displayMessage}</p>
+                <div className="flex gap-4">
+                  <button 
+                    onClick={() => navigate(-1)}
+                    className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-white transition-all border border-white/10 flex items-center gap-2 group"
+                  >
+                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                    <span className="text-xs font-black uppercase tracking-widest">Go Back</span>
+                  </button>
+                  <Link 
+                    to="/dashboard"
+                    className="px-8 py-3 premium-gradient rounded-2xl text-white text-xs font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all flex items-center gap-2"
+                  >
+                    <Home className="w-4 h-4" />
+                    Return Home
+                  </Link>
+                </div>
+             </div>
+          </div>
+        </div>
+
+        {/* Loading State during theme switch */}
+        {isThemeLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-950 z-50">
+             <div className="flex flex-col items-center gap-4">
+                <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
+                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.5em]">Calibrating Dimension...</span>
+             </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const content = (
     <div className="w-full bg-white text-black py-10 overflow-hidden text-center">

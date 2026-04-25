@@ -38,7 +38,8 @@ class ChatResponse(BaseModel):
 
     session_id: str
     answer: str
-    mode: str = "document"  # "general" or "document"
+    mode: str = "document"  # "general" | "document" | "library"
+    response_type: str = "text"  # "text" | "code"
     sources: List[SourceMeta] = []  # Detailed document citations
 
 
@@ -63,6 +64,7 @@ class ChatMessageOut(BaseModel):
     role: str  # 'user' | 'assistant'
     content: str
     mode: Optional[str] = None
+    response_type: Optional[str] = "text"  # "text" | "code"
     sources: Optional[List[SourceMeta]] = []
     created_at: datetime
 

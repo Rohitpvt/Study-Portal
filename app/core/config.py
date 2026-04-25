@@ -49,6 +49,12 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 525600
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    INITIAL_ADMIN_EMAIL: str = "admin@christuniversity.in"
+    INITIAL_ADMIN_PASSWORD: str = "AdminPass1!"
+
+    # ── Developer Seeding ─────────────────────────────────────────────────────
+    DEVELOPER_EMAIL: str = "rohit.ghosh@mca.christuniversity.in"
+    DEVELOPER_PASSWORD: str = "Rockstar@00112233"
 
     # ── Email Domain ──────────────────────────────────────────────────────────
     ALLOWED_EMAIL_DOMAIN: str = "christuniversity.in"
@@ -77,17 +83,18 @@ class Settings(BaseSettings):
     # Support for multiple keys (comma-separated env string)
     NVIDIA_API_KEYS: Any = []
     
+    # Gemma Keys for Code Generation
+    GEMMA_API_KEYS: Any = []
+    
     NVIDIA_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
     NVIDIA_EMBEDDING_MODEL: str = "nvidia/nv-embedqa-e5-v5"
 
-    @field_validator("NVIDIA_API_KEYS", mode="before")
+    @field_validator("NVIDIA_API_KEYS", "GEMMA_API_KEYS", mode="before")
     @classmethod
-    def assemble_nvidia_keys(cls, v, info) -> List[str]:
-        # info.data might not have all keys yet, so we'll merge manually in a post-validator if needed
-        # but BaseSettings runs validators in order. 
-        # Actually, let's use a simpler approach: parse string to list
+    def assemble_keys(cls, v, info) -> List[str]:
         if isinstance(v, str):
-            return [k.strip() for k in v.split(",") if k.strip()]
+            # Support both comma-separated and space-separated for flexibility
+            return [k.strip() for k in v.replace(",", " ").split() if k.strip()]
         return v or []
 
     # ── FAISS ─────────────────────────────────────────────────────────────────

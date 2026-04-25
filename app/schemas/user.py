@@ -7,7 +7,7 @@ Pydantic schemas for user profile endpoints.
 from datetime import date, datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 
 from app.models.user import Role
 
@@ -69,3 +69,18 @@ class UserListOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class RoleChangeRequest(BaseModel):
+    """Payload for PATCH /developer/users/{user_id}/role."""
+
+    new_role: str
+
+    @field_validator("new_role")
+    @classmethod
+    def validate_role(cls, v: str) -> str:
+        allowed = {"STUDENT", "ADMIN"}
+        normalized = v.strip().upper()
+        if normalized not in allowed:
+            raise ValueError(f"Role must be one of: {', '.join(sorted(allowed))}")
+        return normalized

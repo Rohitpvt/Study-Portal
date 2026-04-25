@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { Send, Bot, User, BookOpen, FileText, Info, ExternalLink, Plus, MessageSquare, Menu, X, Trash2, Clock, Search, Edit3, Check } from 'lucide-react';
+import { Send, Bot, User, BookOpen, FileText, Info, ExternalLink, Plus, MessageSquare, Menu, X, Trash2, Clock, Search, Edit3, Check, Square, Code } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../utils/avatarUtils';
@@ -23,6 +23,7 @@ export default function Chat() {
   const [messages, setMessages] = useState([INITIAL_GREETING]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const abortControllerRef = useRef(null);
   const [sessions, setSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -64,6 +65,7 @@ export default function Chat() {
         role: m.role,
         text: m.content,
         mode: m.mode || 'general',
+        response_type: m.response_type || 'text',
         sources: m.sources || [] // Validator in backend handles JSON parsing
       }));
       
@@ -128,6 +130,12 @@ export default function Chat() {
     }
   };
 
+  const handleStopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  };
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -145,16 +153,21 @@ export default function Chat() {
     setLoading(true);
 
     try {
-      const response = await api.post('/chat/ask', { 
-        query: queryText,
-        session_id: activeSessionId 
-      });
-      const { answer, mode, sources, session_id } = response.data;
+      abortControllerRef.current = new AbortController();
+      const response = await api.post('/chat/ask', 
+        { 
+          query: queryText,
+          session_id: activeSessionId 
+        },
+        { signal: abortControllerRef.current.signal }
+      );
+      const { answer, mode, sources, session_id, response_type } = response.data;
       
       const newMessage = { 
         role: 'assistant', 
         text: answer,
         mode: mode || 'general',
+        response_type: response_type || 'text',
         sources: sources || []
       };
 
@@ -171,16 +184,21 @@ export default function Chat() {
       // Always refresh sidebar to update title, preview, and timestamps
       fetchSessions();
     } catch (err) {
-      const msg = err.response?.data?.detail || "Connection lost. Please check your network.";
-      setMessages(prev => [...prev, { role: 'assistant', text: "Error connecting to AI: " + msg }]);
-      toastError("AI response failed.");
+      if (err.name === 'CanceledError' || (err.name === 'AbortError') || (err.message && err.message.includes('abort'))) {
+        info("Generation stopped by user.");
+      } else {
+        const msg = err.response?.data?.detail || "Connection lost. Please check your network.";
+        setMessages(prev => [...prev, { role: 'assistant', text: "Error connecting to AI: " + msg }]);
+        toastError("AI response failed.");
+      }
     } finally {
       setLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
   return (
-    <div className="flex h-[85vh] gap-4 max-w-[1600px] mx-auto my-4 px-4 relative overflow-hidden">
+    <div className="flex h-[88vh] gap-6 max-w-full mx-auto my-4 px-2 relative overflow-hidden">
       {/* ── SIDEBAR (History) ────────────────────────────────────────────────── */}
       <aside className={`
         fixed inset-0 z-50 transition-all duration-500 lg:relative lg:inset-auto lg:z-10
@@ -349,7 +367,7 @@ export default function Chat() {
 
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-10 space-y-10 relative bg-white/30 dark:bg-slate-950/20 backdrop-blur-sm scroll-smooth"
+          className="flex-1 overflow-y-auto p-12 space-y-12 relative bg-white/30 dark:bg-slate-950/20 backdrop-blur-sm scroll-smooth"
         >
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-[0.03] dark:opacity-[0.05] pointer-events-none">
              <Bot className="w-96 h-96 dark:text-indigo-400" />
@@ -371,7 +389,7 @@ export default function Chat() {
           ) : (
             messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
-                <div className={`flex flex-col gap-2 max-w-[80%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                <div className={`flex flex-col gap-2 ${msg.role === 'user' ? 'max-w-[75%] items-end' : 'max-w-[92%] items-start'}`}>
                   <div className={`flex gap-6 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                     <div className={`relative w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center shadow-xl interactive-scale ${
                       msg.role === 'user' 
@@ -391,9 +409,11 @@ export default function Chat() {
                          )
                       ) : <Bot className="w-7 h-7"/>}
                     </div>
-                      <div className={`p-8 rounded-[2.5rem] text-[15px] font-semibold leading-relaxed shadow-xl animate-fade-in-up premium-hover-physics ${
+                      <div className={`p-10 rounded-[2.8rem] text-[15.5px] font-semibold leading-[1.7] shadow-2xl animate-fade-in-up premium-hover-physics ${
                         msg.role === 'user' 
                           ? 'premium-gradient text-white rounded-tr-none border-0 shadow-indigo-200 dark:shadow-none' 
+                          : msg.response_type === 'code'
+                          ? 'bg-[#0d1117] text-slate-300 rounded-tl-none border border-slate-800 shadow-indigo-500/10 min-w-[320px] max-w-full'
                           : 'glass dark:bg-[#0a0a0a] text-slate-700 dark:text-slate-200 rounded-tl-none border-white/60 dark:border-white/5'
                       }`}>
                         {msg.role === 'assistant' ? (
@@ -439,13 +459,20 @@ export default function Chat() {
                         </div>
                       )}
 
+                      {msg.response_type === 'code' && (
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border backdrop-blur-md shadow-sm transition-all premium-hover-physics bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800">
+                          <Code className="w-3 h-3" />
+                          <span>Gemma 2 High-Accuracy Code Runner Active</span>
+                        </div>
+                      )}
+
                       {msg.mode === 'document' && msg.sources && msg.sources.length > 0 && (
                         <div className="mt-4 animate-in fade-in slide-in-from-left-4 duration-700 delay-300">
                           <div className="flex items-center gap-2 mb-3 px-1 text-slate-400 dark:text-slate-500">
                             <FileText className="w-4 h-4" />
-                            <span className="text-[11px] font-black uppercase tracking-[0.15em]">Verified Sources</span>
+                            <span className="text-[11px] font-black uppercase tracking-[0.15em] opacity-80">Verified Sources</span>
                           </div>
-                          <div className="flex flex-wrap gap-3">
+                          <div className="flex flex-wrap gap-4">
                             {msg.sources.map((src, sIdx) => {
                               const canNavigate = !!src.material_id;
                               const handleSourceClick = () => {
@@ -500,8 +527,15 @@ export default function Chat() {
                   <div className="w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center glass dark:bg-slate-900 dark:border-slate-800">
                      <Bot className="w-7 h-7 text-indigo-600 dark:text-indigo-400"/>
                   </div>
-                  <div className="p-10 rounded-[2.5rem] glass dark:bg-slate-900 dark:border-slate-800 rounded-tl-none flex items-center justify-center min-w-[320px] min-h-[180px] overflow-hidden relative">
+                  <div className="p-10 rounded-[2.5rem] glass dark:bg-slate-900 dark:border-slate-800 rounded-tl-none flex flex-col items-center justify-center min-w-[320px] min-h-[180px] overflow-hidden relative group">
                     <BrainLoader message="Synthesizing Knowledge..." subtext="Neural Engine Active" />
+                    <button 
+                      onClick={handleStopGeneration}
+                      className="mt-6 flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 transition-all active:scale-95 text-xs font-black uppercase tracking-widest group/btn"
+                    >
+                      <Square className="w-3.5 h-3.5 fill-current" />
+                      <span>Stop Generating</span>
+                    </button>
                   </div>
                </div>
             </div>

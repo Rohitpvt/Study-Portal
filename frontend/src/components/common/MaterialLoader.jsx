@@ -14,12 +14,7 @@ const MaterialLoader = ({
   const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
-    // 150ms delay threshold: smoother entry than prior 250ms
-    const timer = setTimeout(() => {
-      setShouldRender(true);
-    }, 150);
-
-    return () => clearTimeout(timer);
+    setShouldRender(true);
   }, []);
 
   if (!shouldRender) return null;

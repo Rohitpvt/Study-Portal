@@ -464,7 +464,32 @@ async def ask(
             "Do not cite any sources."
         )
 
-    # Construct the full message list for NVIDIA NIM
+    # ── 6.5 Code Intent Detection ───────────────────────────────────────────────
+    # Identify if the user wants code generation, debugging, or programming examples
+    q_lower = query.lower()
+    code_patterns = [
+        r"\b(write|generate|build|create|implement|make|provide|show|give).*(code|script|function|class|method|snippet|example|logic|query|program|component)\b",
+        r"\b(python|react|java|c\+\+|javascript|typescript|flutter|sql|html|css|go|rust|c#|golang|php|swift|kotlin)\b.*(code|script|query|component|example|logic|implementation|function)",
+        r"\b(fix|debug|refactor|optimize|explain|trace).*(code|script|error|logic|bug)\b",
+        r"\bconvert.*to\b.*\b(python|java|javascript|c\+\+|react|typescript|html|css)\b",
+        r"\b(how to (write|code|program|implement|build))\b"
+    ]
+    
+    is_code_intent = False
+    for pattern in code_patterns:
+        if re.search(pattern, q_lower):
+            is_code_intent = True
+            break
+
+    if is_code_intent:
+        system_content += (
+            "\n\n### CODE GENERATION RULES:\n"
+            "You are in CODE MODE. Focus on technical accuracy and efficient implementation.\n"
+            "Always use clean, well-documented markdown code blocks.\n"
+            "If the user asks to implement something based on the context, synthesize the logic carefully.\n"
+            "Prioritize code quality and follow language-specific best practices."
+        )
+
     messages = [
         {"role": "system", "content": system_content}
     ]
@@ -472,8 +497,14 @@ async def ask(
     messages.extend(history)
     messages.append({"role": "user", "content": formatted_query})
 
+    response_type = "code" if is_code_intent else "text"
+    logger.info(f"[CHAT] Intent routing determined response_type={response_type}")
+
     # ── 7. LLM Invocation ──────────────────────────────────────────────────────
-    answer = await llm_service.get_chat_response(messages)
+    if is_code_intent:
+        answer = await llm_service.get_code_response(messages)
+    else:
+        answer = await llm_service.get_chat_response(messages)
 
     # ── 7.5 Quality Control: Detect Context Mismatch Post-Generation ───────────
     # If the LLM explicitly states the context was missing/irrelevant, hide sources.
@@ -504,7 +535,8 @@ async def ask(
         session_id=session.id, 
         role="user",      
         content=query,
-        mode=mode
+        mode=mode,
+        response_type=response_type
     ))
     db.add(ChatMessage(
         id=generate_uuid(), 
@@ -512,6 +544,7 @@ async def ask(
         role="assistant", 
         content=answer,
         mode=mode,
+        response_type=response_type,
         sources=json.dumps(source_labels) if source_labels else None
     ))
     await db.flush()
@@ -520,7 +553,13 @@ async def ask(
     if mode != "document":
         source_labels = []
     
-    return ChatResponse(session_id=session.id, answer=answer, mode=mode, sources=source_labels)
+    return ChatResponse(
+        session_id=session.id, 
+        answer=answer, 
+        mode=mode, 
+        response_type=response_type,
+        sources=source_labels
+    )
 
 
 async def summarize(material_id: str, db: AsyncSession) -> SummarizeResponse:

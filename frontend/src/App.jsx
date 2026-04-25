@@ -9,6 +9,8 @@ import Favorites from './pages/Favorites';
 import Contributions from './pages/Contributions';
 import Chat from './pages/Chat';
 import Admin from './pages/Admin';
+import AdminFileHealth from './pages/AdminFileHealth';
+import ProfileControl from './pages/ProfileControl';
 import DocumentViewer from './pages/Viewer';
 import Profile from './pages/Profile';
 import About from './pages/About';
@@ -59,9 +61,15 @@ const AppContent = () => {
               <Route path="/contributions" element={<Contributions />} />
             </Route>
 
-            {/* Restricted Route: Admins Only */}
-            <Route element={<AuthGuard allowedRoles={['admin']} />}>
+            {/* Restricted Route: Admins AND Developers */}
+            <Route element={<AuthGuard allowedRoles={['admin', 'developer']} />}>
               <Route path="/admin" element={<Admin />} />
+              <Route path="/admin/health" element={<AdminFileHealth />} />
+            </Route>
+
+            {/* Restricted Route: Developer Only */}
+            <Route element={<AuthGuard allowedRoles={['developer']} />}>
+              <Route path="/profile-control" element={<ProfileControl />} />
             </Route>
           </Route>
         </Route>
@@ -84,13 +92,17 @@ const AppContent = () => {
 const AppLayout = () => {
   const location = useLocation();
   const hideFooterOn = ['/viewer', '/chat'];
+  const isChatPage = location.pathname.startsWith('/chat');
+  const isViewerPage = location.pathname.startsWith('/viewer');
   const shouldHideFooter = hideFooterOn.some(path => location.pathname.startsWith(path));
 
   return (
     <AuthProvider>
       <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-transparent transition-colors duration-300">
         <Navbar />
-        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-8">
+        <main className={`flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-8 transition-all duration-500 ${
+          isChatPage ? 'max-w-[1800px]' : isViewerPage ? 'max-w-screen-2xl' : 'max-w-7xl'
+        }`}>
           <Outlet />
         </main>
         {!shouldHideFooter && <Footer />}

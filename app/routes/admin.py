@@ -32,6 +32,16 @@ async def dashboard_stats(db: DBSession, _: AdminUser):
     return await admin_service.get_dashboard_stats(db)
 
 
+@router.get("/material-health", summary="Get library-wide file health analytics")
+async def material_health_stats(db: DBSession, _: AdminUser):
+    """
+    Detailed analytics on document integrity, processing failures,
+    and missing files across the entire library.
+    """
+    from app.services import material_service
+    return await material_service.get_material_health_stats(db)
+
+
 @router.patch(
     "/contributions/{contribution_id}/review",
     response_model=ContributionOut,

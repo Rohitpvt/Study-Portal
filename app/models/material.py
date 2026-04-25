@@ -25,6 +25,8 @@ class MaterialIntegrityStatus(str, enum.Enum):
     missing_file     = "missing_file"
     corrupted_file   = "corrupted_file"
     invalid_metadata = "invalid_metadata"
+    processing_failed = "processing_failed"
+    indexing_failed   = "indexing_failed"
     pending          = "pending"
 
 
@@ -55,7 +57,12 @@ class Material(Base, TimestampMixin):
         index=True
     )
     integrity_message: Mapped[str|None] = mapped_column(String(512), nullable=True)
+    repair_suggestion: Mapped[str|None] = mapped_column(String(512), nullable=True)
     last_reconciliation_at: Mapped[datetime|None] = mapped_column(nullable=True)
+
+    # Pipeline retry stats
+    last_pipeline_retry_at: Mapped[datetime|None] = mapped_column(nullable=True)
+    pipeline_retry_count:   Mapped[int]           = mapped_column(Integer, default=0, nullable=False)
 
     is_approved: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     view_count:  Mapped[int]  = mapped_column(Integer, default=0, nullable=False, index=True)

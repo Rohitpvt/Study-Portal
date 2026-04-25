@@ -26,6 +26,7 @@ async def register(payload: RegisterRequest, db: DBSession):
     Register with a valid @christuniversity.in email.
     Returns the created user profile.
     """
+    payload.email = payload.email.lower()
     user = await auth_service.register_user(payload, db)
     return user
 
@@ -44,7 +45,7 @@ async def login(
     Compatible with Swagger UI "Authorize" button.
     """
     return await auth_service.authenticate_user(
-        email=form_data.username,
+        email=form_data.username.lower(),
         password=form_data.password,
         db=db,
     )
@@ -65,6 +66,7 @@ async def send_otp(payload: SendOTPRequest, db: DBSession):
     if payload.purpose != "register":
         # Login OTP is dispatched securely through /login-init
         return MessageResponse(message="System restriction. Please use /login-init for login keys.")
+    payload.email = payload.email.lower()
     await otp_service.request_otp_db(db, payload.email, payload.purpose)
     return MessageResponse(message="OTP sent successfully")
 
@@ -72,12 +74,14 @@ async def send_otp(payload: SendOTPRequest, db: DBSession):
 async def resend_otp(payload: SendOTPRequest, db: DBSession):
     """Resend mechanism that overrides previous unused OTP bounds."""
     # We allow resending for both registering and securely cached logins
+    payload.email = payload.email.lower()
     await otp_service.request_otp_db(db, payload.email, payload.purpose)
     return MessageResponse(message="OTP resent successfully")
 
 @router.post("/verify-otp", response_model=MessageResponse, summary="Verify submitted OTP code")
 async def verify_otp(payload: VerifyOTPRequest, db: DBSession):
     """Validates the input code against the specific purpose logic and sets verified flags."""
+    payload.email = payload.email.lower()
     await otp_service.verify_otp_db(db, payload.email, payload.otp, payload.purpose)
     return MessageResponse(message="OTP verified successfully.")
 
@@ -85,6 +89,7 @@ async def verify_otp(payload: VerifyOTPRequest, db: DBSession):
 async def login_init(payload: LoginInitRequest, db: DBSession):
     """Stage 1 Login: Password matches, send the email OTP payload limit."""
     # Assert password is valid BEFORE we even send an OTP. This blocks enumeration loops.
+    payload.email = payload.email.lower()
     user = await auth_service.validate_credentials_only(payload.email, payload.password, db)
     await otp_service.request_otp_db(db, payload.email, "login")
     return MessageResponse(message="Credentials verified. OTP securely dispatched.")

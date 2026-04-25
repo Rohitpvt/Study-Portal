@@ -4,7 +4,7 @@ uvicorn[standard]==0.29.0
 
 # ── Database ───────────────────────────────────────────────────────────────────
 sqlalchemy[asyncio]==2.0.29
-# asyncpg==0.29.0  # Only needed for PostgreSQL (requires MSVC C++ build tools on Windows)
+asyncpg==0.29.0
 aiosqlite==0.20.0
 alembic==1.13.1
 

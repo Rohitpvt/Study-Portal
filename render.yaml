@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: intel-ai-backend
+    env: python
+    region: singapore # Adjust based on target audience
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: "/health"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0 # Standardize python version for Render
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: "HS256"
+      - key: ALLOWED_ORIGINS
+        sync: false # e.g. https://your-netlify-url.netlify.app
+      - key: STORAGE_BACKEND
+        value: "s3"
+      # S3 / AWS
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        sync: false
+      - key: AWS_BUCKET_NAME
+        sync: false
+      # AI Integrations
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMMA_API_KEYS
+        sync: false
+      - key: NVIDIA_BASE_URL
+        value: "https://integrate.api.nvidia.com/v1"
+      # Mail
+      - key: SMTP_EMAIL
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: DEVELOPER_EMAIL
+        sync: false

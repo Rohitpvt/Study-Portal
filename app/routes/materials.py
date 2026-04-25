@@ -199,3 +199,17 @@ async def get_material_download_url(
         url = f"/api/v1/materials/{material_id}/file?download=1"
     
     return {"download_url": url}
+
+
+@router.post("/{material_id}/redo-pipeline", summary="Rerun processing pipeline for a material")
+async def redo_pipeline(
+    material_id: str,
+    db: DBSession,
+    current_user: AdminUser,
+    background_tasks: BackgroundTasks
+):
+    """
+    Admins can manually trigger a reprocessing of a failed or old material.
+    Useful for healing broken AI indexes or re-extracting text if extraction failed.
+    """
+    return await material_service.redo_material_pipeline(material_id, db, background_tasks)

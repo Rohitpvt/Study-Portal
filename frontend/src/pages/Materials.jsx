@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import api from '../services/api';
-import { Download, UploadIcon, Search, Filter, X, Star, Lock, SlidersHorizontal, ChevronDown, Eye, Trash2 } from 'lucide-react';
+import { Download, UploadIcon, Search, Filter, X, Star, Lock, SlidersHorizontal, ChevronDown, Eye, Trash2, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { ACADEMIC_DATA, CATEGORIES, SEMESTERS } from '../constants/academicData';
@@ -51,6 +51,7 @@ export default function Materials() {
   const [uploadData, setUploadData] = useState({ title: '', description: '', course: '', subject: '', category: 'notes', semester: 1 });
   const [uploading, setUploading] = useState(false);
   const [role, setRole] = useState(null);
+  const [retryingIds, setRetryingIds] = useState(new Set());
 
   // Count active filters for badge
   const activeFilterCount = [courseFilter, subjectFilter, semesterFilter, categoryFilter].filter(Boolean).length;
@@ -146,6 +147,24 @@ export default function Materials() {
       console.error("Delete failed:", err);
       const msg = err.response?.data?.detail || "Authorization Failed: Only administrators can purge library assets.";
       toastError(msg);
+    }
+  };
+
+  const handleRedoPipeline = async (materialId) => {
+    try {
+      setRetryingIds(prev => new Set(prev).add(materialId));
+      await api.post(`/materials/${materialId}/redo-pipeline`);
+      success("Pipeline recovery triggered successfully.");
+      fetchMaterials();
+    } catch (err) {
+      console.error('Failed to redo pipeline:', err);
+      toastError(err.response?.data?.detail || "Failed to trigger pipeline redo.");
+    } finally {
+      setRetryingIds(prev => {
+        const next = new Set(prev);
+        next.delete(materialId);
+        return next;
+      });
     }
   };
 
@@ -267,7 +286,7 @@ export default function Materials() {
       )}
 
       {/* ── Admin Upload ──────────────────────────────────────────────────── */}
-      {role === 'admin' ? (
+      {['admin', 'developer'].includes(role) ? (
         <div className="glass-card relative overflow-hidden group interactive-scale border-0 shadow-2xl mt-4">
           <div className="absolute top-0 left-0 w-2 h-full premium-gradient" />
           <h2 className="text-xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-4 tracking-tight">
@@ -599,7 +618,7 @@ export default function Materials() {
                                       m.integrity_status === 'corrupted_file' ? 'Corrupted' : 
                                       m.integrity_status === 'pending' ? 'Verification Pending' : 'Metadata Issue'}
                                    </span>
-                                   {role === 'admin' && m.integrity_message && (
+                                   {['admin', 'developer'].includes(role) && m.integrity_message && (
                                      <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 italic max-w-[200px] leading-tight truncate" title={m.integrity_message}>
                                        {m.integrity_message}
                                      </span>
@@ -650,15 +669,27 @@ export default function Materials() {
                           >
                             <Download className="w-5 h-5" />
                           </button>
-                          {role === 'admin' && (
-                            <button
-                              className="bg-red-500 dark:bg-red-600 p-3 rounded-2xl text-white shadow-lg shadow-red-100 dark:shadow-none opacity-0 group-hover:opacity-100 transition-all interactive-scale flex items-center justify-center hover:bg-red-600 dark:hover:bg-red-700"
-                              onClick={() => handleDelete(m.id, m.title)}
-                              title="Delete Material (Admin)"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          )}
+                          {['admin', 'developer'].includes(role) && (
+                             <div className="flex items-center justify-end gap-3">
+                               {['processing_failed', 'indexing_failed'].includes(m.integrity_status) && (
+                                 <button
+                                   className="bg-amber-500 dark:bg-amber-600 p-3 rounded-2xl text-white shadow-lg shadow-amber-100 dark:shadow-none transition-all interactive-scale flex items-center justify-center hover:bg-amber-600 disabled:opacity-50"
+                                   onClick={(e) => { e.stopPropagation(); handleRedoPipeline(m.id); }}
+                                   disabled={retryingIds.has(m.id)}
+                                   title="Redo Processing Pipeline"
+                                 >
+                                   <RefreshCw className={`w-5 h-5 ${retryingIds.has(m.id) ? 'animate-spin' : ''}`} />
+                                 </button>
+                               )}
+                               <button
+                                 className="bg-red-500 dark:bg-red-600 p-3 rounded-2xl text-white shadow-lg shadow-red-100 dark:shadow-none opacity-0 group-hover:opacity-100 transition-all interactive-scale flex items-center justify-center hover:bg-red-600 dark:hover:bg-red-700"
+                                 onClick={() => handleDelete(m.id, m.title)}
+                                 title="Delete Material (Admin)"
+                               >
+                                 <Trash2 className="w-5 h-5" />
+                               </button>
+                             </div>
+                           )}
                         </div>
                       </td>
                     </tr>
@@ -694,7 +725,7 @@ export default function Materials() {
                           </div>
                         )}
                       </div>
-                      {role === 'admin' && m.integrity_status !== 'available' && m.integrity_message && (
+                      {['admin', 'developer'].includes(role) && m.integrity_status !== 'available' && m.integrity_message && (
                         <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 italic mt-1 leading-tight">
                           {m.integrity_message}
                         </p>
@@ -728,14 +759,26 @@ export default function Materials() {
                     >
                       <Download className="w-4 h-4" /> DOWNLOAD
                     </button>
-                    {role === 'admin' && (
-                      <button
-                        className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 border border-red-100 dark:border-red-900/50 active:scale-95 transition-all"
-                        onClick={() => handleDelete(m.id, m.title)}
-                        title="Delete Material"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                    {['admin', 'developer'].includes(role) && (
+                      <div className="flex gap-2">
+                        {['processing_failed', 'indexing_failed'].includes(m.integrity_status) && (
+                           <button
+                             className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 text-amber-500 dark:text-amber-400 border border-amber-100 dark:border-amber-900/50 active:scale-95 transition-all disabled:opacity-50"
+                             onClick={() => handleRedoPipeline(m.id)}
+                             disabled={retryingIds.has(m.id)}
+                             title="Redo Processing"
+                           >
+                             <RefreshCw className={`w-5 h-5 ${retryingIds.has(m.id) ? 'animate-spin' : ''}`} />
+                           </button>
+                        )}
+                        <button
+                          className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 border border-red-100 dark:border-red-900/50 active:scale-95 transition-all"
+                          onClick={() => handleDelete(m.id, m.title)}
+                          title="Delete Material"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

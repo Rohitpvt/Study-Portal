@@ -14,8 +14,9 @@ from app.models.base import TimestampMixin, generate_uuid
 
 
 class Role(str, enum.Enum):
-    STUDENT = "STUDENT"
-    ADMIN   = "ADMIN"
+    STUDENT   = "STUDENT"
+    ADMIN     = "ADMIN"
+    DEVELOPER = "DEVELOPER"
 
     @classmethod
     def _missing_(cls, value) -> Optional["Role"]:
@@ -25,6 +26,11 @@ class Role(str, enum.Enum):
                 if member.value.lower() == value.lower():
                     return member
         return None
+
+    @property
+    def is_privileged(self) -> bool:
+        """Returns True for roles with admin-level access (ADMIN and DEVELOPER)."""
+        return self in (Role.ADMIN, Role.DEVELOPER)
 
 
 class User(Base, TimestampMixin):

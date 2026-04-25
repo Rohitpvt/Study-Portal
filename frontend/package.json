@@ -12,9 +12,10 @@
   },
   "dependencies": {
     "axios": "^1.13.6",
+    "gsap": "^3.15.0",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
-    "lucide-react": "^1.7.0",
+    "lucide-react": "^1.9.0",
     "pdfjs-dist": "5.6.205",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

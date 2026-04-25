@@ -15,7 +15,8 @@ import {
   Settings,
   Sun,
   Moon,
-  LogIn
+  LogIn,
+  Crown
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
@@ -79,7 +80,8 @@ export default function Navbar() {
 
   const isLoggedIn = !!(token && userProfile);
 
-  const isAdmin = userProfile && userProfile.role?.toLowerCase() === 'admin';
+  const isAdmin = userProfile && ['admin', 'developer'].includes(userProfile.role?.toLowerCase());
+  const isDeveloper = userProfile && userProfile.role?.toLowerCase() === 'developer';
 
   const primaryLinks = isLoggedIn ? [
     { to: '/dashboard', label: 'Terminal', icon: LayoutDashboard },
@@ -90,13 +92,15 @@ export default function Navbar() {
   if (isLoggedIn) {
     if (!isAdmin) {
       primaryLinks.push({ to: '/contributions', label: 'Contribute', icon: UploadCloud });
-    } else {
-      primaryLinks.push({ to: '/admin', label: 'Admin Panel', icon: ShieldCheck });
+    }
+    if (isDeveloper) {
+      primaryLinks.push({ to: '/profile-control', label: 'Profile Control', icon: Crown });
     }
   }
 
   const secondaryLinks = [
     ...(isLoggedIn ? [{ to: '/favorites', label: 'Favorites', icon: Star }] : []),
+    ...(isAdmin ? [{ to: '/admin', label: 'Admin Panel', icon: ShieldCheck }] : []),
     { to: '/about', label: 'About Us', icon: Info },
     { to: '/contact', label: 'Contact Us', icon: Mail },
   ];
@@ -209,7 +213,7 @@ export default function Navbar() {
                         {userProfile?.display_name || userProfile?.full_name?.split(' ')[0]}
                       </span>
                       <span className="text-[9px] uppercase font-black tracking-widest text-indigo-500 dark:text-indigo-400 leading-none opacity-80">
-                        {userProfile?.role?.toUpperCase() === 'ADMIN' ? 'SYS ADMIN' : (userProfile?.course?.substring(0, 15) || 'STUDENT')}
+                        {userProfile?.role?.toUpperCase() === 'DEVELOPER' ? '⚡ DEVELOPER' : userProfile?.role?.toUpperCase() === 'ADMIN' ? 'SYS ADMIN' : (userProfile?.course?.substring(0, 15) || 'STUDENT')}
                       </span>
                     </div>
                     <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-500 ${isProfileOpen ? "rotate-180" : ""}`} />

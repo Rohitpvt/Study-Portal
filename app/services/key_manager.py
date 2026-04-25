@@ -65,5 +65,6 @@ class KeyManager:
     def get_all_keys(self) -> List[str]:
         return self.keys
 
-# Singleton instance
+# Singleton instances for different model providers/pools
 nvidia_key_manager = KeyManager(settings.NVIDIA_API_KEYS)
+gemma_key_manager = KeyManager(settings.GEMMA_API_KEYS)
