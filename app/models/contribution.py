@@ -67,7 +67,7 @@ class Contribution(Base, TimestampMixin):
     # File metadata
     category:    Mapped[Category]           = mapped_column(
         Enum(Category, name="materialcategory"),
-        nullable=False, server_default="notes"
+        nullable=False, server_default="NOTES"
     )
     file_path:   Mapped[str|None] = mapped_column(String(512), nullable=True)
     file_key:    Mapped[str|None] = mapped_column(String(512), nullable=True)
