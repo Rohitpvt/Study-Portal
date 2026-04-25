@@ -5,6 +5,7 @@ Enhanced FAISS Vector Store subsystem with real NVIDIA embeddings,
 word-based chunking with overlap, and page-aware metadata.
 """
 
+from typing import Optional, Dict, Any, List
 import logging
 import os
 import pickle
