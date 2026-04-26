@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { Send, Bot, User, BookOpen, FileText, Info, ExternalLink, Plus, MessageSquare, Menu, X, Trash2, Clock, Search, Edit3, Check, Square, Code } from 'lucide-react';
+import { Send, Bot, User, BookOpen, FileText, Info, ExternalLink, Plus, MessageSquare, Menu, X, Trash2, Clock, Search, Edit3, Check, Square, Code, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../utils/avatarUtils';
@@ -523,8 +523,39 @@ export default function Chat() {
                               );
                             })}
                           </div>
+                          </div>
                         </div>
                       )}
+                      
+                      {/* Feedback Buttons */}
+                      {idx > 0 && typeof msg.id !== 'undefined' && !msg.feedback && (
+                         <div className="flex items-center gap-3 mt-4 px-2 translate-y-1">
+                           <button
+                             title="Helpful"
+                             onClick={() => handleFeedback(msg.id, 'helpful')}
+                             className="p-2 rounded-xl text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all border border-transparent hover:border-emerald-200 dark:hover:border-emerald-800"
+                           >
+                             <ThumbsUp className="w-4 h-4" />
+                           </button>
+                           <button
+                             title="Not Helpful"
+                             onClick={() => handleFeedback(msg.id, 'not_helpful')}
+                             className="p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all border border-transparent hover:border-rose-200 dark:hover:border-rose-800"
+                           >
+                             <ThumbsDown className="w-4 h-4" />
+                           </button>
+                         </div>
+                      )}
+                      {msg.feedback && (
+                         <div className="flex items-center gap-2 mt-4 px-2">
+                           {msg.feedback === 'helpful' ? (
+                             <span className="text-[10px] font-black uppercase tracking-wider text-emerald-500 flex items-center gap-1"><ThumbsUp className="w-3 h-3"/> You found this helpful</span>
+                           ) : (
+                             <span className="text-[10px] font-black uppercase tracking-wider text-rose-500 flex items-center gap-1"><ThumbsDown className="w-3 h-3"/> You found this unhelpful</span>
+                           )}
+                         </div>
+                      )}
+                      
                     </div>
                   )}
                 </div>
