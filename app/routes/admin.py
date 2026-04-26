@@ -211,3 +211,12 @@ async def get_audit_logs(
     
     return {"logs": logs}
 
+
+@router.get("/alerts", summary="Get admin alert summary for navbar badge")
+async def get_alerts(db: DBSession, _: AdminUser):
+    """
+    Lightweight aggregation of actionable alerts:
+    broken files, failed pipelines, pending reviews, contact queries, negative feedback.
+    """
+    return await admin_service.get_alert_summary(db)
+

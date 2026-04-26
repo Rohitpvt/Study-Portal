@@ -3,8 +3,9 @@ app/models/chat.py — Chat sessions and message history.
 """
 
 from datetime import datetime
-from sqlalchemy import ForeignKey, String, Text, DateTime, func
+from sqlalchemy import ForeignKey, String, Text, DateTime, func, event
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import VARCHAR
 
 from app.core.database import Base
 from app.models.base import TimestampMixin, generate_uuid
@@ -48,6 +49,8 @@ class ChatMessage(Base, TimestampMixin):
     content:    Mapped[str] = mapped_column(Text, nullable=False)
     mode:       Mapped[str|None] = mapped_column(String(20), nullable=True)
     response_type: Mapped[str|None] = mapped_column(String(20), default="text", nullable=True)
-    sources:    Mapped[str|None] = mapped_column(Text, nullable=True) # JSON serialized string
+    sources:    Mapped[str|None] = mapped_column(Text, nullable=True)  # JSON serialized string
+    # Chat feedback: 'helpful' | 'not_helpful' | NULL (not yet rated)
+    feedback:   Mapped[str|None] = mapped_column(String(20), nullable=True, default=None)
 
     session = relationship("ChatSession", back_populates="messages")

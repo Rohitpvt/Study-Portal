@@ -66,6 +66,7 @@ class ChatMessageOut(BaseModel):
     mode: Optional[str] = None
     response_type: Optional[str] = "text"  # "text" | "code"
     sources: Optional[List[SourceMeta]] = []
+    feedback: Optional[str] = None  # 'helpful' | 'not_helpful' | None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -79,6 +80,11 @@ class ChatMessageOut(BaseModel):
             except json.JSONDecodeError:
                 return []
         return v or []
+
+
+class ChatFeedbackRequest(BaseModel):
+    """Payload for POST /chat/messages/{message_id}/feedback."""
+    feedback: str = Field(..., pattern="^(helpful|not_helpful)$")
 
 
 class ChatSessionCreate(BaseModel):

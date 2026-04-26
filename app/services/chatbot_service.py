@@ -678,3 +678,30 @@ async def delete_chat_session(session_id: str, user_id: str, db: AsyncSession) -
     await db.delete(session)
     await db.flush()
 
+
+async def submit_feedback(message_id: str, user_id: str, feedback: str, db: AsyncSession) -> ChatMessage:
+    """
+    Record user feedback ('helpful' / 'not_helpful') on an assistant message.
+    Only allows feedback on assistant messages within the user's own sessions.
+    """
+    result = await db.execute(
+        select(ChatMessage)
+        .join(ChatSession, ChatMessage.session_id == ChatSession.id)
+        .where(
+            ChatMessage.id == message_id,
+            ChatMessage.role == "assistant",
+            ChatSession.user_id == user_id,
+        )
+    )
+    message = result.scalar_one_or_none()
+    if not message:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Message not found or not an assistant message."
+        )
+    
+    message.feedback = feedback
+    await db.flush()
+    logger.info(f"[FEEDBACK] user={user_id} message={message_id} feedback={feedback}")
+    return message
+

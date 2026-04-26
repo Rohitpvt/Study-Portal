@@ -66,3 +66,68 @@ async def toggle_user_active(user_id: str, db: AsyncSession) -> User:
     user.is_active = not user.is_active
     await db.flush()
     return user
+
+
+async def get_alert_summary(db: AsyncSession) -> dict:
+    """
+    Lightweight aggregation of actionable alerts for admin/developer navbar.
+    Returns counts for: broken files, failed pipelines, pending contacts, negative feedback.
+    """
+    from app.models.material import Material, MaterialIntegrityStatus
+    from app.models.contribution import Contribution, ProcessingStatus
+    from app.models.support import ContactSubmission
+    from app.models.chat import ChatMessage
+
+    # Broken files (not available)
+    broken_files = (
+        await db.execute(
+            select(func.count(Material.id)).where(
+                Material.integrity_status != MaterialIntegrityStatus.available,
+                Material.is_approved == True,  # noqa
+            )
+        )
+    ).scalar_one()
+
+    # Failed pipelines
+    failed_pipelines = (
+        await db.execute(
+            select(func.count(Contribution.id)).where(
+                Contribution.processing_status == ProcessingStatus.PROCESSING_FAILED
+            )
+        )
+    ).scalar_one()
+
+    # Pending contributions waiting for admin review
+    pending_reviews = (
+        await db.execute(
+            select(func.count(Contribution.id)).where(
+                Contribution.status == ContributionStatus.AI_REVIEWED
+            )
+        )
+    ).scalar_one()
+
+    # Unread contact submissions (count all — no read/unread flag yet)
+    contact_queries = (
+        await db.execute(select(func.count(ContactSubmission.id)))
+    ).scalar_one()
+
+    # Negative feedback on AI responses
+    negative_feedback = (
+        await db.execute(
+            select(func.count(ChatMessage.id)).where(
+                ChatMessage.feedback == "not_helpful"
+            )
+        )
+    ).scalar_one()
+
+    total = broken_files + failed_pipelines + pending_reviews
+    
+    return {
+        "total": total,
+        "broken_files": broken_files,
+        "failed_pipelines": failed_pipelines,
+        "pending_reviews": pending_reviews,
+        "contact_queries": contact_queries,
+        "negative_feedback": negative_feedback,
+    }
+

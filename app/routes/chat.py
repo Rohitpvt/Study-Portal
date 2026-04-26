@@ -9,7 +9,8 @@ from fastapi import APIRouter
 from app.core.dependencies import CurrentUser, DBSession
 from app.schemas.chat import (
     ChatRequest, ChatResponse, SummarizeRequest, SummarizeResponse,
-    ChatSessionCreate, ChatSessionOut, ChatHistoryResponse, ChatSessionUpdate
+    ChatSessionCreate, ChatSessionOut, ChatHistoryResponse, ChatSessionUpdate,
+    ChatFeedbackRequest
 )
 from app.services import chatbot_service
 
@@ -125,4 +126,27 @@ async def delete_session(
     """Permanently remove a chat session and its history."""
     await chatbot_service.delete_chat_session(session_id, current_user.id, db)
     await db.commit()
+
+
+# ── CHAT FEEDBACK ────────────────────────────────────────────────────────────
+
+@router.post(
+    "/messages/{message_id}/feedback",
+    summary="Submit feedback on an AI response",
+)
+async def submit_feedback(
+    message_id: str,
+    payload: ChatFeedbackRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+):
+    """Rate an AI-generated response as helpful or unhelpful."""
+    await chatbot_service.submit_feedback(
+        message_id=message_id,
+        user_id=current_user.id,
+        feedback=payload.feedback,
+        db=db,
+    )
+    await db.commit()
+    return {"status": "ok", "message_id": message_id, "feedback": payload.feedback}
 

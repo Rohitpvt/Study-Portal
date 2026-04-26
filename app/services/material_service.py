@@ -123,6 +123,8 @@ async def get_materials(
                 or_(
                     func.lower(Material.title).like(term),
                     func.lower(Material.description).like(term),
+                    func.lower(Material.subject).like(term),
+                    func.lower(Material.course).like(term),
                 )
             )
     
