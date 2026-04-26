@@ -197,6 +197,17 @@ export default function Chat() {
     }
   };
 
+  const handleFeedback = async (messageId, feedbackVal) => {
+    if (!messageId) return;
+    try {
+      await api.post(`/chat/messages/${messageId}/feedback`, { feedback: feedbackVal });
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, feedback: feedbackVal } : m));
+      success('Thank you for your feedback!');
+    } catch (err) {
+      toastError('Failed to save feedback.');
+    }
+  };
+
   return (
     <div className="flex h-[88vh] gap-6 max-w-full mx-auto my-4 px-2 relative overflow-hidden">
       {/* ── SIDEBAR (History) ────────────────────────────────────────────────── */}

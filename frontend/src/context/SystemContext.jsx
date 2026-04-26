@@ -59,9 +59,19 @@ export function SystemProvider({ children }) {
         setIsServerDown(true);
       }
     };
+    
+    const handleServerWakingUp = () => setIsWakingUp(true);
+    const handleServerAwake = () => setIsWakingUp(false);
 
     window.addEventListener('server-error', handleServerError);
-    return () => window.removeEventListener('server-error', handleServerError);
+    window.addEventListener('server-waking-up', handleServerWakingUp);
+    window.addEventListener('server-awake', handleServerAwake);
+    
+    return () => {
+        window.removeEventListener('server-error', handleServerError);
+        window.removeEventListener('server-waking-up', handleServerWakingUp);
+        window.removeEventListener('server-awake', handleServerAwake);
+    };
   }, [isServerDown, isOffline]);
 
   // 3. Auto-Retry Loop when server is down but browser is online
@@ -90,6 +100,7 @@ export function SystemProvider({ children }) {
       isOffline,
       isServerDown,
       isRetrying,
+      isWakingUp,
       checkHealth
     }}>
       {children}

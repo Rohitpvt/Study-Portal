@@ -36,10 +36,31 @@ const AppContent = () => {
     return <ErrorPage type="server" onRetry={checkHealth} isRetrying={isRetrying} />;
   }
 
+  const WakingUpBanner = () => {
+    if (!isWakingUp || isServerDown) return null;
+    return (
+      <div className="fixed top-0 left-0 right-0 h-1 bg-christ-blue/20 z-50 overflow-hidden">
+        <div className="absolute top-0 left-0 h-full bg-christ-blue animate-[progressBar_2s_ease-in-out_infinite]" style={{width: '30%'}}></div>
+        <div className="absolute top-1 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 text-christ-blue dark:text-blue-400 px-6 py-2 rounded-b-xl shadow-lg border border-t-0 border-christ-blue/20 dark:border-slate-700 font-medium text-sm flex items-center gap-3 z-50 flex flex-row">
+            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            Waking up AI servers... this may take a few seconds.
+        </div>
+        <style>{`
+            @keyframes progressBar {
+                0% { left: -30%; }
+                100% { left: 100%; }
+            }
+        `}</style>
+      </div>
+    );
+  };
+
   return (
-      <ErrorBoundary>
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <>
+        <WakingUpBanner />
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
           
           {/* Public Routes - No Navbar */}
           <Route path="/login" element={<Login />} />
@@ -85,6 +106,7 @@ const AppContent = () => {
 
         </Routes>
       </ErrorBoundary>
+      </>
   );
 };
 

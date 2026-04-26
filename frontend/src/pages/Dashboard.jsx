@@ -3,6 +3,7 @@ import api from '../services/api';
 import { BookOpen, Upload, MessageSquare, ShieldCheck, Star, Cake, Sparkles, PartyPopper, Gift, Crown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ErrorPage from '../components/common/ErrorPage';
+import Onboarding from '../components/common/Onboarding';
 import { Skeleton, SkeletonCard, SkeletonCircle, SkeletonTitle, SkeletonText } from '../components/common/Skeleton';
 
 export default function Dashboard() {
@@ -206,6 +207,7 @@ export default function Dashboard() {
           description="Access all your saved notes and materials quickly from one place."
         />
       </div>
+      <Onboarding />
     </div>
   );
 }

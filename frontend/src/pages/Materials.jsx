@@ -7,6 +7,7 @@ import { ACADEMIC_DATA, CATEGORIES, SEMESTERS } from '../constants/academicData'
 import { useNotification } from '../context/NotificationContext';
 import ErrorPage from '../components/common/ErrorPage';
 import MaterialLoader from '../components/common/MaterialLoader';
+import EmptyState from '../components/common/EmptyState';
 import { Skeleton, SkeletonCard, SkeletonTitle, SkeletonText, SkeletonTableRow } from '../components/common/Skeleton';
 import { usePseudoProgress } from '../hooks/usePseudoProgress';
 
@@ -580,13 +581,13 @@ export default function Materials() {
         {isFetching && materials.length === 0 ? (
           <MaterialsSkeleton />
         ) : materials.length === 0 ? (
-          <div className="text-center py-24 glass dark:bg-slate-900/40 rounded-[2.5rem] border-0">
-            <div className="bg-slate-100 dark:bg-slate-800 w-20 h-20 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-inner">
-               <Search className="w-10 h-10 text-slate-300 dark:text-slate-600" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">No materials found for selected filters</h3>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mt-2 font-semibold">Try adjusting your Discovery Matrix parameters or reset the view.</p>
-          </div>
+          <EmptyState 
+             title="No materials found"
+             description="We couldn't find any resources matching your exact discovery parameters. Try resetting your filters."
+             actionLabel="Clear Matrix"
+             actionTo="javascript:void(0)"
+             secondaryActionOnClick={handleClearFilters}
+          />
         ) : (
           <>
             {/* DESKTOP table */}
