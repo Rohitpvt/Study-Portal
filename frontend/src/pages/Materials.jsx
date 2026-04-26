@@ -9,6 +9,7 @@ import ErrorPage from '../components/common/ErrorPage';
 import MaterialLoader from '../components/common/MaterialLoader';
 import { Skeleton, SkeletonCard, SkeletonTitle, SkeletonText, SkeletonTableRow } from '../components/common/Skeleton';
 import { usePseudoProgress } from '../hooks/usePseudoProgress';
+import EmptyState from '../components/common/EmptyState';
 
 export default function Materials() {
   const navigate = useNavigate();
@@ -580,12 +581,14 @@ export default function Materials() {
         {isFetching && materials.length === 0 ? (
           <MaterialsSkeleton />
         ) : materials.length === 0 ? (
-          <div className="text-center py-24 glass dark:bg-slate-900/40 rounded-[2.5rem] border-0">
-            <div className="bg-slate-100 dark:bg-slate-800 w-20 h-20 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-inner">
-               <Search className="w-10 h-10 text-slate-300 dark:text-slate-600" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">No materials found for selected filters</h3>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mt-2 font-semibold">Try adjusting your Discovery Matrix parameters or reset the view.</p>
+          <div className="py-20 glass dark:bg-slate-900/40 rounded-[2.5rem] border-0">
+            <EmptyState
+              icon={Search}
+              title="Matrix Mismatch"
+              description="No resources detected for the active filtering profile. Adjust your discovery parameters or reset the matrix."
+              ctaText="Reset Discovery Matrix"
+              ctaAction={handleClearFilters}
+            />
           </div>
         ) : (
           <>

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { UploadIcon, Activity, CheckCircle2, XCircle, Clock, FileText, Info, RotateCw, Trash2 } from 'lucide-react';
+import { UploadIcon, Activity, CheckCircle2, XCircle, Clock, FileText, Info, RotateCw, Trash2, Send } from 'lucide-react';
 import { ACADEMIC_DATA, CATEGORIES, SEMESTERS } from '../constants/academicData';
 import { useNotification } from '../context/NotificationContext';
 import { Skeleton, SkeletonTableRow, SkeletonCard } from '../components/common/Skeleton';
 import MaterialLoader from '../components/common/MaterialLoader';
+import EmptyState from '../components/common/EmptyState';
 
 export default function Contributions() {
   const { success, error: toastError, info } = useNotification();
@@ -274,12 +275,12 @@ export default function Contributions() {
         <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter mb-10 transition-colors">Data Submission Ledger</h2>
         
         {contributions.length === 0 ? (
-          <div className="text-center py-24 glass dark:bg-slate-900/30 rounded-[2.5rem] border-0">
-            <div className="bg-slate-100 dark:bg-slate-800 w-20 h-20 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-inner">
-               <FileText className="w-10 h-10 text-slate-300 dark:text-slate-600" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">No Active Submissions</h3>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mt-2 font-semibold">Start building the knowledge base today.</p>
+          <div className="p-10 glass dark:bg-slate-900/30 rounded-[2.5rem] border-0 mt-4">
+            <EmptyState
+              icon={FileText}
+              title="No Active Submissions"
+              description="Start building the collective knowledge base by sharing your study materials today."
+            />
           </div>
         ) : contributions.length === 1 && contributions[0] === 'polling_skeleton' ? (
           <div className="space-y-4">

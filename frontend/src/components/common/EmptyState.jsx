@@ -6,10 +6,11 @@ import { useNavigate } from 'react-router-dom';
  * @param {string} title - Main heading
  * @param {string} description - Helpful text
  * @param {string} ctaLabel - Button text (optional)
+ * @param {string} ctaText - Button text alternative (optional)
  * @param {string} ctaTo - Navigation target (optional)
  * @param {Function} ctaAction - Click handler alternative to navigation (optional)
  */
-export default function EmptyState({ icon: Icon, title, description, ctaLabel, ctaTo, ctaAction }) {
+export default function EmptyState({ icon: Icon, title, description, ctaLabel, ctaText, ctaTo, ctaAction }) {
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -36,12 +37,12 @@ export default function EmptyState({ icon: Icon, title, description, ctaLabel, c
       </p>
 
       {/* CTA */}
-      {ctaLabel && (
+      {(ctaLabel || ctaText) && (
         <button
           onClick={handleClick}
           className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
         >
-          {ctaLabel}
+          {ctaLabel || ctaText}
         </button>
       )}
     </div>
