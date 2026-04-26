@@ -8,6 +8,7 @@ export function SystemProvider({ children }) {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [isServerDown, setIsServerDown] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [isWakingUp, setIsWakingUp] = useState(false);
 
   // Dynamically derive backend origin from the main API configuration
   const derivedOrigin = new URL(api.defaults.baseURL || 'http://127.0.0.1:8000/api/v1').origin;
