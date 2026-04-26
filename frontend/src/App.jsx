@@ -24,20 +24,24 @@ import { SystemProvider, useSystem } from './context/SystemContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ErrorPage from './components/common/ErrorPage';
 import MouseGlow from './components/common/MouseGlow';
+import ColdStartBanner from './components/common/ColdStartBanner';
+import Onboarding from './components/common/Onboarding';
 
 const AppContent = () => {
-  const { isOffline, isServerDown, isRetrying, checkHealth } = useSystem();
+  const { isOffline, isServerDown, isRetrying, isWakingUp, checkHealth } = useSystem();
 
   if (isOffline) {
     return <ErrorPage type="offline" onRetry={checkHealth} isRetrying={isRetrying} />;
   }
   
-  if (isServerDown) {
+  if (isServerDown && !isWakingUp) {
     return <ErrorPage type="server" onRetry={checkHealth} isRetrying={isRetrying} />;
   }
 
   return (
       <ErrorBoundary>
+        {isWakingUp && <ColdStartBanner />}
+        <Onboarding />
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           

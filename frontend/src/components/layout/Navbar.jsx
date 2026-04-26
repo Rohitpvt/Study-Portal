@@ -16,7 +16,8 @@ import {
   Sun,
   Moon,
   LogIn,
-  Crown
+  Crown,
+  Bell
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
@@ -38,6 +39,23 @@ export default function Navbar() {
   const token = localStorage.getItem('access_token');
   const moreRef = useRef(null);
   const profileRef = useRef(null);
+
+  // ── Admin Alert Badge State ────────────────────────────────────────────────
+  const [alertCount, setAlertCount] = useState(0);
+
+  useEffect(() => {
+    if (!userProfile || !['admin', 'developer'].includes(userProfile.role?.toLowerCase())) return;
+    const fetchAlerts = async () => {
+      try {
+        const { default: api } = await import('../../services/api');
+        const res = await api.get('/admin/alerts');
+        setAlertCount(res.data.total || 0);
+      } catch (_) { /* silent */ }
+    };
+    fetchAlerts();
+    const interval = setInterval(fetchAlerts, 60000); // Poll every 60s
+    return () => clearInterval(interval);
+  }, [userProfile]);
 
   // ── Throttled Scroll Handling ──────────────────────────────────────────────
   useEffect(() => {
@@ -188,6 +206,22 @@ export default function Navbar() {
               >
                 {theme === 'dark' ? <Sun className="w-5 h-5 fill-current" /> : <Moon className="w-5 h-5 fill-current" />}
               </button>
+
+              {/* Admin Alert Bell */}
+              {isAdmin && (
+                <button
+                  onClick={() => navigate('/admin')}
+                  className="relative w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:scale-110 transition-all duration-300 shadow-sm border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+                  title="Admin Alerts"
+                >
+                  <Bell className="w-5 h-5" />
+                  {alertCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-black px-1 shadow-lg shadow-red-500/30 animate-pulse">
+                      {alertCount > 99 ? '99+' : alertCount}
+                    </span>
+                  )}
+                </button>
+              )}
 
               {!isLoggedIn && (
                 <Link 
