@@ -57,6 +57,9 @@ class SummarizeResponse(BaseModel):
     summary: str
 
 
+class ChatFeedbackRequest(BaseModel):
+    feedback: str = Field(..., pattern="^(helpful|not_helpful)$")
+
 class ChatMessageOut(BaseModel):
     """Single message in chat history."""
 
@@ -65,6 +68,7 @@ class ChatMessageOut(BaseModel):
     content: str
     mode: Optional[str] = None
     response_type: Optional[str] = "text"  # "text" | "code"
+    feedback: Optional[str] = None
     sources: Optional[List[SourceMeta]] = []
     created_at: datetime
 
