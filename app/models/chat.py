@@ -48,6 +48,7 @@ class ChatMessage(Base, TimestampMixin):
     content:    Mapped[str] = mapped_column(Text, nullable=False)
     mode:       Mapped[str|None] = mapped_column(String(20), nullable=True)
     response_type: Mapped[str|None] = mapped_column(String(20), default="text", nullable=True)
+    feedback:   Mapped[str|None] = mapped_column(String(20), nullable=True) # 'helpful' | 'not_helpful'
     sources:    Mapped[str|None] = mapped_column(Text, nullable=True) # JSON serialized string
 
     session = relationship("ChatSession", back_populates="messages")
