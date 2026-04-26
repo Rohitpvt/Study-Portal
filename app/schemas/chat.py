@@ -37,6 +37,7 @@ class ChatResponse(BaseModel):
     """AI answer response."""
 
     session_id: str
+    message_id: str
     answer: str
     mode: str = "document"  # "general" | "document" | "library"
     response_type: str = "text"  # "text" | "code"

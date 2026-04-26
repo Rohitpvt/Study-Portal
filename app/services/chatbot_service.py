@@ -538,8 +538,10 @@ async def ask(
         mode=mode,
         response_type=response_type
     ))
+    
+    assistant_msg_id = generate_uuid()
     db.add(ChatMessage(
-        id=generate_uuid(), 
+        id=assistant_msg_id, 
         session_id=session.id, 
         role="assistant", 
         content=answer,
@@ -555,6 +557,7 @@ async def ask(
     
     return ChatResponse(
         session_id=session.id, 
+        message_id=assistant_msg_id,
         answer=answer, 
         mode=mode, 
         response_type=response_type,

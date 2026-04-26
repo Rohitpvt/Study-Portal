@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { Send, Bot, User, BookOpen, FileText, Info, ExternalLink, Plus, MessageSquare, Menu, X, Trash2, Clock, Search, Edit3, Check, Square, Code } from 'lucide-react';
+import { Send, Bot, User, BookOpen, FileText, Info, ExternalLink, Plus, MessageSquare, Menu, X, Trash2, Clock, Search, Edit3, Check, Square, Code, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../utils/avatarUtils';
@@ -9,6 +9,7 @@ import { Skeleton, SkeletonCircle, SkeletonTitle, SkeletonText } from '../compon
 import MaterialLoader from '../components/common/MaterialLoader';
 import Typewriter from '../components/common/Typewriter';
 import BrainLoader from '../components/common/BrainLoader';
+import EmptyState from '../components/common/EmptyState';
 
 const INITIAL_GREETING = { 
   role: 'assistant', 
@@ -28,6 +29,7 @@ export default function Chat() {
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isFetchingHistory, setIsFetchingHistory] = useState(false);
+  const [isFetchingSessions, setIsFetchingSessions] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
@@ -41,11 +43,14 @@ export default function Chat() {
   }, []);
 
   const fetchSessions = async () => {
+    setIsFetchingSessions(true);
     try {
       const response = await api.get('/chat/sessions');
       setSessions(response.data.sessions);
     } catch (err) {
       console.error("Error fetching sessions:", err);
+    } finally {
+      setIsFetchingSessions(false);
     }
   };
 
@@ -62,11 +67,13 @@ export default function Chat() {
       
       // Map backend messages to frontend format
       const formatted = historyMessages.map(m => ({
+        id: m.id,
         role: m.role,
         text: m.content,
         mode: m.mode || 'general',
         response_type: m.response_type || 'text',
-        sources: m.sources || [] // Validator in backend handles JSON parsing
+        sources: m.sources || [], // Validator in backend handles JSON parsing
+        feedback: m.feedback
       }));
       
       setMessages(formatted.length > 0 ? formatted : [INITIAL_GREETING]);
@@ -161,14 +168,16 @@ export default function Chat() {
         },
         { signal: abortControllerRef.current.signal }
       );
-      const { answer, mode, sources, session_id, response_type } = response.data;
+      const { answer, mode, sources, session_id, response_type, message_id } = response.data;
       
       const newMessage = { 
+        id: message_id,
         role: 'assistant', 
         text: answer,
         mode: mode || 'general',
         response_type: response_type || 'text',
-        sources: sources || []
+        sources: sources || [],
+        feedback: null
       };
 
       setMessages(prev => {
@@ -194,6 +203,24 @@ export default function Chat() {
     } finally {
       setLoading(false);
       abortControllerRef.current = null;
+    }
+  };
+
+  const handleFeedback = async (messageId, type) => {
+    if (!messageId) return;
+
+    try {
+      await api.post(`/chat/messages/${messageId}/feedback`, { feedback: type });
+      
+      // Update local state to reflect feedback selection
+      setMessages(prev => prev.map(m => 
+        m.id === messageId ? { ...m, feedback: type } : m
+      ));
+      
+      success(type === 'helpful' ? "Glad it was helpful!" : "Thanks for the feedback. We'll improve.");
+    } catch (err) {
+      console.error("Feedback failed:", err);
+      toastError("Failed to submit feedback.");
     }
   };
 
@@ -245,7 +272,7 @@ export default function Chat() {
               </span>
             </div>
             
-            {sessions.length === 0 ? (
+            {isFetchingSessions ? (
               <div className="space-y-3">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="p-4 glass rounded-3xl flex gap-3">
@@ -256,6 +283,14 @@ export default function Chat() {
                     </div>
                   </div>
                 ))}
+              </div>
+            ) : sessions.length === 0 ? (
+              <div className="p-2">
+                <EmptyState
+                  icon={MessageSquare}
+                  title="No Chat History"
+                  description="Start a new conversation to ask questions and summarize study materials."
+                />
               </div>
             ) : sessions.filter(s => s.title?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
               <div className="px-6 py-10 text-center space-y-3 opacity-40">
@@ -514,6 +549,39 @@ export default function Chat() {
                           </div>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {/* Trust Badges & Feedback Controls */}
+                  {msg.role === 'assistant' && !loading && msg.id && idx !== newAssistantMessageIndex && (
+                    <div className="flex items-center gap-3 mt-3 ml-20 animate-in fade-in duration-500">
+                      <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-xl p-1 shadow-sm border border-slate-200 dark:border-slate-700">
+                        <button 
+                          onClick={() => handleFeedback(msg.id, 'helpful')}
+                          disabled={msg.feedback === 'helpful'}
+                          className={`p-2 rounded-lg transition-all flex items-center justify-center ${
+                            msg.feedback === 'helpful' 
+                              ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400 cursor-default' 
+                              : 'text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 active:scale-95'
+                          }`}
+                          title="Helpful"
+                        >
+                          <ThumbsUp className={`w-4 h-4 ${msg.feedback === 'helpful' ? 'fill-current' : ''}`} />
+                        </button>
+                        <div className="w-px h-4 bg-slate-200 dark:bg-slate-700"></div>
+                        <button 
+                          onClick={() => handleFeedback(msg.id, 'not_helpful')}
+                          disabled={msg.feedback === 'not_helpful'}
+                          className={`p-2 rounded-lg transition-all flex items-center justify-center ${
+                            msg.feedback === 'not_helpful' 
+                              ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400 cursor-default' 
+                              : 'text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 active:scale-95'
+                          }`}
+                          title="Not Helpful"
+                        >
+                          <ThumbsDown className={`w-4 h-4 ${msg.feedback === 'not_helpful' ? 'fill-current' : ''}`} />
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
