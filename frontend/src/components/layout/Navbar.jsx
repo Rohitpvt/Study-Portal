@@ -22,8 +22,6 @@ import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { useTheme } from '../../context/ThemeContext';
 import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../../utils/avatarUtils';
-import api from '../../services/api';
-import { Bell } from 'lucide-react';
 
 export default function Navbar() {
   const { userProfile } = useAuth();
@@ -36,19 +34,10 @@ export default function Navbar() {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [adminAlerts, setAdminAlerts] = useState({ total_alerts: 0, pending_contributions: 0, broken_materials: 0, active_tickets: 0 });
   
   const token = localStorage.getItem('access_token');
   const moreRef = useRef(null);
   const profileRef = useRef(null);
-
-  useEffect(() => {
-    if (userProfile && ['admin', 'developer'].includes(userProfile.role?.toLowerCase())) {
-      api.get('/admin/alerts')
-        .then(res => setAdminAlerts(res.data))
-        .catch(console.error);
-    }
-  }, [userProfile]);
 
   // ── Throttled Scroll Handling ──────────────────────────────────────────────
   useEffect(() => {
@@ -199,21 +188,6 @@ export default function Navbar() {
               >
                 {theme === 'dark' ? <Sun className="w-5 h-5 fill-current" /> : <Moon className="w-5 h-5 fill-current" />}
               </button>
-
-              {/* Admin Alerts Bell */}
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  className="relative w-10 h-10 hidden md:flex items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:scale-110 transition-all duration-300 shadow-sm border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
-                >
-                  <Bell className="w-5 h-5" />
-                  {adminAlerts.total_alerts > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white ring-2 ring-white dark:ring-[#050505]">
-                      {adminAlerts.total_alerts > 9 ? '9+' : adminAlerts.total_alerts}
-                    </span>
-                  )}
-                </Link>
-              )}
 
               {!isLoggedIn && (
                 <Link 

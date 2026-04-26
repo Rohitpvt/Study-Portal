@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Download, Star, Bookmark } from 'lucide-react';
-import EmptyState from '../components/common/EmptyState';
 
 export default function Favorites() {
   const [materials, setMaterials] = useState([]);
@@ -57,13 +56,9 @@ export default function Favorites() {
         <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 transition-colors">Access your privately saved documents and assignments.</p>
         
         {materials.length === 0 && !isFetching ? (
-          <EmptyState 
-            title="No Favorites Yet"
-            description="You haven't bookmarked any study materials. Head over to the Library to discover and save resources for quick access."
-            actionLabel="Browse Library"
-            actionTo="/materials"
-            icon={Bookmark}
-          />
+          <div className="text-center py-20 text-slate-400 dark:text-slate-500 font-bold bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 uppercase tracking-widest text-xs transition-colors">
+            You haven't favorited any materials yet.
+          </div>
         ) : (
           <div className="overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 rounded-2xl transition-colors">
             <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">

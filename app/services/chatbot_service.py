@@ -678,22 +678,3 @@ async def delete_chat_session(session_id: str, user_id: str, db: AsyncSession) -
     await db.delete(session)
     await db.flush()
 
-
-async def save_feedback(message_id: str, user_id: str, feedback_val: str, db: AsyncSession) -> ChatMessage:
-    """Save user feedback (helpful/not_helpful) to an assistant message."""
-    query = select(ChatMessage).join(ChatSession).where(
-        ChatMessage.id == message_id,
-        ChatMessage.role == "assistant",
-        ChatSession.user_id == user_id
-    )
-    result = await db.execute(query)
-    msg = result.scalar_one_or_none()
-    
-    if not msg:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found or unauthorized.")
-        
-    msg.feedback = feedback_val
-    await db.commit()
-    await db.refresh(msg)
-    return msg
-

@@ -126,25 +126,3 @@ async def delete_session(
     await chatbot_service.delete_chat_session(session_id, current_user.id, db)
     await db.commit()
 
-
-from app.schemas.chat import ChatFeedbackRequest, ChatMessageOut
-
-@router.post(
-    "/messages/{message_id}/feedback",
-    response_model=ChatMessageOut,
-    summary="Submit feedback for an AI response",
-)
-async def submit_feedback(
-    message_id: str,
-    payload: ChatFeedbackRequest,
-    current_user: CurrentUser,
-    db: DBSession
-):
-    """Record whether a chatbot response was helpful or not."""
-    return await chatbot_service.save_feedback(
-        message_id=message_id,
-        user_id=current_user.id,
-        feedback_val=payload.feedback,
-        db=db
-    )
-

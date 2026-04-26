@@ -209,33 +209,5 @@ async def get_audit_logs(
     result = await db.execute(query)
     logs = result.scalars().all()
     
-    
     return {"logs": logs}
 
-
-@router.get("/alerts", summary="Admin Notification Alerts")
-async def get_admin_alerts(db: DBSession, _: AdminUser):
-    """Aggregate alert counts for the admin notification badge."""
-    from app.models.support import ContactSubmission
-    from app.models.material import Material
-    from app.models.contribution import Contribution, ProcessingStatus
-    from sqlalchemy import func
-
-    # 1. Unread/New support tickets
-    tickets_q = select(func.count(ContactSubmission.id)).where(ContactSubmission.status == 'new')
-    tickets_count = (await db.execute(tickets_q)).scalar() or 0
-
-    # 2. Materials with broken integrity
-    integrity_q = select(func.count(Material.id)).where(Material.integrity_status != 'available')
-    integrity_count = (await db.execute(integrity_q)).scalar() or 0
-
-    # 3. Failed contribution pipelines
-    failed_q = select(func.count(Contribution.id)).where(Contribution.processing_status == ProcessingStatus.PROCESSING_FAILED)
-    failed_count = (await db.execute(failed_q)).scalar() or 0
-
-    return {
-        "total": tickets_count + integrity_count + failed_count,
-        "new_support_tickets": tickets_count,
-        "broken_materials": integrity_count,
-        "failed_contributions": failed_count
-    }

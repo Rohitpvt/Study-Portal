@@ -127,11 +127,11 @@ async def get_materials(
             )
     
     if title:
-        query = query.where(Material.title.ilike(f"%{title.strip()}%"))
+        query = query.where(func.lower(Material.title).like(f"%{title.strip().lower()}%"))
     if course:
-        query = query.where(Material.course.ilike(f"%{course.strip()}%"))
+        query = query.where(func.lower(func.trim(Material.course)) == course.strip().lower())
     if subject:
-        query = query.where(Material.subject.ilike(f"%{subject.strip()}%"))
+        query = query.where(func.lower(func.trim(Material.subject)) == subject.strip().lower())
     if category:
         query = query.where(Material.category == category)
     if semester:
