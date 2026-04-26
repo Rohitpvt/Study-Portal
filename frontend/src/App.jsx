@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import AuthGuard from './components/layout/AuthGuard';
@@ -26,6 +27,15 @@ import ErrorPage from './components/common/ErrorPage';
 import MouseGlow from './components/common/MouseGlow';
 import ColdStartBanner from './components/common/ColdStartBanner';
 import Onboarding from './components/common/Onboarding';
+import { trackPageView } from './services/analytics';
+
+const RouteTracker = () => {
+  const location = useLocation();
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location]);
+  return null;
+};
 
 const AppContent = () => {
   const { isOffline, isServerDown, isRetrying, isWakingUp, checkHealth } = useSystem();
@@ -123,6 +133,7 @@ function App() {
           <ToastContainer />
           <MouseGlow />
           <BrowserRouter>
+            <RouteTracker />
             <AppContent />
           </BrowserRouter>
         </NotificationProvider>

@@ -10,6 +10,7 @@ import MaterialLoader from '../components/common/MaterialLoader';
 import Typewriter from '../components/common/Typewriter';
 import BrainLoader from '../components/common/BrainLoader';
 import EmptyState from '../components/common/EmptyState';
+import { trackEvent } from '../services/analytics';
 
 const INITIAL_GREETING = { 
   role: 'assistant', 
@@ -168,6 +169,7 @@ export default function Chat() {
         },
         { signal: abortControllerRef.current.signal }
       );
+      trackEvent('ai_query', { mode: response.data.mode || 'general' });
       const { answer, mode, sources, session_id, response_type, message_id } = response.data;
       
       const newMessage = { 
@@ -211,6 +213,7 @@ export default function Chat() {
 
     try {
       await api.post(`/chat/messages/${messageId}/feedback`, { feedback: type });
+      trackEvent(type === 'helpful' ? 'ai_feedback_helpful' : 'ai_feedback_not_helpful');
       
       // Update local state to reflect feedback selection
       setMessages(prev => prev.map(m => 

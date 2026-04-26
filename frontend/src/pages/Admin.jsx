@@ -8,6 +8,7 @@ import { Skeleton, SkeletonTableRow, SkeletonCard } from '../components/common/S
 import MaterialLoader from '../components/common/MaterialLoader';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../context/NotificationContext';
+import { trackEvent } from '../services/analytics';
 
 export default function Admin() {
   const { success, error: toastError } = useNotification();
@@ -40,6 +41,7 @@ export default function Admin() {
     try {
       await api.patch(`/admin/contributions/${id}/review`, { approved: isApproved, admin_notes: "Reviewed" });
       success(isApproved ? "Approved! Document has been published to the global library." : "Rejected successfully.");
+      trackEvent('admin_action', { action: isApproved ? 'approve' : 'reject' });
       setShowReport(false);
       fetchPending();
     } catch (err) {

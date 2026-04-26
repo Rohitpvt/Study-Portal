@@ -16,6 +16,7 @@ import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
+import { trackEvent } from '../services/analytics';
 
 export default function Contact() {
   const { userProfile } = useAuth();
@@ -64,6 +65,7 @@ export default function Contact() {
     try {
       // 1. Internal Backend Submission (Primary/Record)
       await api.post('/support/contact', formData);
+      trackEvent('contact_submit', { subject: formData.subject });
       
       // 2. Formspree Submission (Secondary/Email Notifications)
       let emailSuccess = true;

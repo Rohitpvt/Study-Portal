@@ -37,6 +37,9 @@ async def integrity_worker_loop():
             
         except Exception as e:
             logger.error(f"[WORKER] Fatal error in integrity loop: {e}")
+            import sentry_sdk
+            sentry_sdk.set_tag("subsystem", "integrity_worker")
+            sentry_sdk.capture_exception(e)
             # Wait a bit before retrying to avoid tight error loops
             await asyncio.sleep(60)
             

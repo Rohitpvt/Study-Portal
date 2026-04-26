@@ -8,6 +8,7 @@ import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
 import { resolveUserAvatar, handleAvatarError } from '../utils/avatarUtils';
+import { trackEvent } from '../services/analytics';
 
 export default function ProfileControl() {
   const { success, error: toastError, info } = useNotification();
@@ -81,6 +82,7 @@ export default function ProfileControl() {
     try {
       await api.patch(`/developer/users/${userId}/role`, { new_role: newRole });
       success(`Role updated to ${newRole} successfully.`);
+      trackEvent('developer_role_change', { new_role: newRole });
       // Update local state
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
       setPendingChanges(prev => { const next = { ...prev }; delete next[userId]; return next; });

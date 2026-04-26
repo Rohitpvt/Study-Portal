@@ -48,10 +48,16 @@ async def get_current_user(
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account deactivated.")
         
+    import time
     now = int(time.time())
     if not user.last_seen or (now - user.last_seen > 60):
         user.last_seen = now
         await db.commit()
+        
+    # Inject user into Sentry context
+    import sentry_sdk
+    sentry_sdk.set_user({"id": user.id, "email": user.email, "role": user.role.value})
+    sentry_sdk.set_tag("user_role", user.role.value)
         
     return user
 

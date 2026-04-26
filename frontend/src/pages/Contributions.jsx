@@ -6,6 +6,7 @@ import { useNotification } from '../context/NotificationContext';
 import { Skeleton, SkeletonTableRow, SkeletonCard } from '../components/common/Skeleton';
 import MaterialLoader from '../components/common/MaterialLoader';
 import EmptyState from '../components/common/EmptyState';
+import { trackEvent } from '../services/analytics';
 
 export default function Contributions() {
   const { success, error: toastError, info } = useNotification();
@@ -123,6 +124,10 @@ export default function Contributions() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       success("Contribution submitted successfully! AI Pipeline initialized.");
+      trackEvent('contribution_upload', { 
+        course: uploadData.course, 
+        category: uploadData.category 
+      });
       setFile(null);
       // Trigger immediate refresh and start polling
       await fetchMine();

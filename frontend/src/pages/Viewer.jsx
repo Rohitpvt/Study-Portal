@@ -28,6 +28,7 @@ import { useNotification } from '../context/NotificationContext';
 import ErrorPage from '../components/common/ErrorPage';
 import MaterialLoader from '../components/common/MaterialLoader';
 import { usePseudoProgress } from '../hooks/usePseudoProgress';
+import { trackEvent } from '../services/analytics';
 
 // Set up the worker for react-pdf using a reliable CDN and fixed version matching react-pdf's dependency
 // pdfjs-dist version 5.4.296 is required by react-pdf@10.4.1
@@ -170,6 +171,7 @@ export default function DocumentViewer() {
           if (isMounted) {
             setMaterial(res.data);
             info("Opening document...");
+            trackEvent('material_view', { id: materialId, title: res.data.title });
             setLoading(false);
           }
         })
@@ -482,6 +484,7 @@ export default function DocumentViewer() {
         let url = res.data.download_url;
         
         info("Download initiated...");
+        trackEvent('material_download', { id: materialId });
         
         // If the URL is relative (internal proxy), resolve it against the backend base
         if (url && !url.startsWith('http')) {

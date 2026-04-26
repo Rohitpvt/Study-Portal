@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { Mail, Lock, LogIn, ShieldCheck, Eye, EyeOff, Sun, Moon } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 import { useTheme } from '../../context/ThemeContext';
+import { trackEvent } from '../../services/analytics';
 
 export default function Login() {
   const { success, error: toastError } = useNotification();
@@ -41,6 +42,7 @@ export default function Login() {
       
       localStorage.setItem('access_token', response.data.access_token);
       success("Access Granted. Welcome back!");
+      trackEvent('login_success');
       navigate('/dashboard');
     } catch (err) {
       const msg = err.response?.data?.detail || "Access denied. Invalid credentials.";

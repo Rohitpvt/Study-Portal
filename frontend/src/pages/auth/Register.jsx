@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { UserPlus, Mail, Lock, User, ShieldPlus, KeyRound, CheckCircle2, RefreshCw, Send, Eye, EyeOff, Sun, Moon } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 import { useTheme } from '../../context/ThemeContext';
+import { trackEvent } from '../../services/analytics';
 
 export default function Register() {
   const { success, error: toastError, info } = useNotification();
@@ -118,6 +119,7 @@ export default function Register() {
 
       await api.post('/auth/register', payload);
       success("Account established successfully! Please verify your login credentials to enter the platform.");
+      trackEvent('register_success');
       navigate('/login');
     } catch (err) {
       let msg = "Registration rejected. System mismatch detected.";
