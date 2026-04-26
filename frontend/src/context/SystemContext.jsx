@@ -1,13 +1,17 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import api from '../services/api';
 
 const SystemContext = createContext();
 
+const COLD_START_THRESHOLD_MS = 5000;
+
 export function SystemProvider({ children }) {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [isServerDown, setIsServerDown] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [isWakingUp, setIsWakingUp] = useState(false);
+  const coldStartTimer = useRef(null);
 
   // Dynamically derive backend origin from the main API configuration
   const derivedOrigin = new URL(api.defaults.baseURL || 'http://127.0.0.1:8000/api/v1').origin;
@@ -17,14 +21,23 @@ export function SystemProvider({ children }) {
     if (!navigator.onLine) return false;
     
     setIsRetrying(true);
+
+    // Start cold-start timer: if health check takes >5s, show waking banner
+    coldStartTimer.current = setTimeout(() => {
+      setIsWakingUp(true);
+    }, COLD_START_THRESHOLD_MS);
+
     try {
-      // Small timeout so it doesn't hang forever
-      await axios.get(healthCheckUrl, { timeout: 3000 });
+      await axios.get(healthCheckUrl, { timeout: 60000 }); // 60s timeout for cold starts
       setIsServerDown(false);
+      setIsWakingUp(false);
+      clearTimeout(coldStartTimer.current);
       setIsRetrying(false);
       return true;
     } catch (error) {
       setIsServerDown(true);
+      setIsWakingUp(false);
+      clearTimeout(coldStartTimer.current);
       setIsRetrying(false);
       return false;
     }
@@ -89,6 +102,7 @@ export function SystemProvider({ children }) {
       isOffline,
       isServerDown,
       isRetrying,
+      isWakingUp,
       checkHealth
     }}>
       {children}
@@ -103,3 +117,4 @@ export const useSystem = () => {
   }
   return context;
 };
+
