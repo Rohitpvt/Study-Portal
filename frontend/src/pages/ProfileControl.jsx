@@ -28,14 +28,27 @@ export default function ProfileControl() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [usersRes, statsRes] = await Promise.all([
+      // Fetch users and stats independently so one failure doesn't block the other
+      const [usersResult, statsResult] = await Promise.allSettled([
         api.get('/developer/users'),
         api.get('/developer/stats'),
       ]);
-      setUsers(usersRes.data);
-      setStats(statsRes.data);
+
+      if (usersResult.status === 'fulfilled') {
+        setUsers(usersResult.value.data);
+      } else {
+        toastError('Failed to load user list.');
+        console.error('Users fetch error:', usersResult.reason);
+      }
+
+      if (statsResult.status === 'fulfilled') {
+        setStats(statsResult.value.data);
+      } else {
+        // Don't show a toast for stats failure yet, as it might be a known DB enum migration issue
+        console.error('Stats fetch error:', statsResult.reason);
+      }
     } catch (err) {
-      toastError('Failed to load user data.');
+      toastError('System error during data retrieval.');
       console.error(err);
     } finally {
       setLoading(false);
