@@ -12,8 +12,19 @@ class RegisterRequest(BaseModel):
 
     email: EmailStr
     full_name: str = Field(..., min_length=2, max_length=255)
-    roll_no: str = Field(..., min_length=1, max_length=50)
+    roll_no: str | None = Field(default=None, max_length=50)
     password: str = Field(..., min_length=8, max_length=128)
+    role: str = Field("STUDENT", description="Must be 'STUDENT' or 'TEACHER'")
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, v: str) -> str:
+        """Only allow public registration as STUDENT or TEACHER."""
+        allowed = {"STUDENT", "TEACHER"}
+        normalized = v.strip().upper()
+        if normalized not in allowed:
+            raise ValueError(f"Public registration only allows: {', '.join(sorted(allowed))}")
+        return normalized
 
     @field_validator("password")
     @classmethod

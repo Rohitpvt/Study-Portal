@@ -689,14 +689,19 @@ async def run_validation_pipeline(contribution_id: str, db: AsyncSession) -> Non
 
     This function NEVER touches the legacy fields (status, ai_* scores).
     """
-    # ── Fetch contribution ────────────────────────────────────────────────────
+    # ── Fetch contribution and user role ────────────────────────────────────────
+    from app.models.user import User
     res = await db.execute(
-        select(Contribution).where(Contribution.id == contribution_id)
+        select(Contribution, User.role)
+        .join(User, Contribution.contributor_id == User.id)
+        .where(Contribution.id == contribution_id)
     )
-    contribution = res.scalar_one_or_none()
-    if contribution is None:
+    row = res.one_or_none()
+    if row is None:
         logger.error(f"run_validation_pipeline: contribution {contribution_id} not found")
         return
+    
+    contribution, user_role = row
 
     # ── Guard: skip if pipeline already ran or is running ─────────────────────
     if contribution.processing_status is not None and contribution.processing_status not in (
@@ -820,24 +825,77 @@ async def run_validation_pipeline(contribution_id: str, db: AsyncSession) -> Non
         # 3. Final Scoring & Decision
         quality_score, risk_score, recommendation, admin_summary = await final_scoring_step(collected_results, pipeline_context)
 
-        # 4. Map Admin Summary to a Student-Facing Message
-        if recommendation == FinalRecommendation.APPROVED_FOR_REVIEW:
-            student_msg = "Content check complete. Your submission is now under manual review by the administration."
-        elif recommendation == FinalRecommendation.REJECTED:
-            student_msg = "Your submission does not meet our content guidelines or is unreadable. Please review and try again."
-        else:
-            student_msg = "Your submission requires additional manual review due to content-safety or alignment checks."
+        # 4. Map Admin Summary to a Student-Facing Message and handle Fast-Track
+        is_teacher = (user_role == "TEACHER")
+        
+        if is_teacher and recommendation != FinalRecommendation.REJECTED:
+            # Teacher Fast-Track: Auto-Approve unless hard rejected by validation
+            student_msg = "Content check complete. Your materials have been auto-published (Teacher Fast-Track)."
+            
+            # Update Contribution as Approved
+            await update_contribution_status(db, contribution_id, ProcessingStatus.APPROVED, student_msg)
+            
+            contribution.status = ContributionStatus.APPROVED
+            contribution.final_recommendation = FinalRecommendation.APPROVED_FOR_REVIEW
+            
+            # Promote to Material
+            from app.models.material import Material
+            material = Material(
+                id=generate_uuid(),
+                title=contribution.title,
+                description=contribution.description,
+                subject=contribution.subject,
+                course=contribution.course,
+                semester=contribution.semester,
+                file_path=contribution.file_path,
+                file_key=contribution.file_key,
+                file_url=contribution.file_url,
+                file_name=contribution.file_name,
+                file_size=contribution.file_size,
+                file_type=contribution.file_type,
+                uploader_id=contribution.contributor_id,
+                category=contribution.category,
+                is_approved=True,
+            )
+            db.add(material)
+            
+            # Save the final validation report
+            await mark_processing_complete(
+                db, 
+                contribution_id, 
+                FinalRecommendation.APPROVED_FOR_REVIEW, 
+                quality_score, 
+                risk_score, 
+                admin_summary + " [AUTO-APPROVED: TEACHER]"
+            )
+            await db.commit() # Commit the material so the ID exists for indexing
 
-        # 5. Mark Complete
-        await update_contribution_status(db, contribution_id, ProcessingStatus.PROCESSING_COMPLETE, student_msg)
-        await mark_processing_complete(
-            db, 
-            contribution_id, 
-            recommendation, 
-            quality_score, 
-            risk_score, 
-            admin_summary
-        )
+            # Trigger indexing async
+            from app.background.ai_tasks import run_index_update_task
+            import asyncio
+            asyncio.create_task(run_index_update_task(material.id))
+            
+            logger.info(f"[{contribution_id[:8]}] Teacher Fast-Track: Auto-approved and published.")
+            
+        else:
+            # Standard Student Flow (or Teacher if rejected)
+            if recommendation == FinalRecommendation.APPROVED_FOR_REVIEW:
+                student_msg = "Content check complete. Your submission is now under manual review by the administration."
+            elif recommendation == FinalRecommendation.REJECTED:
+                student_msg = "Your submission does not meet our content guidelines or is unreadable. Please review and try again."
+            else:
+                student_msg = "Your submission requires additional manual review due to content-safety or alignment checks."
+
+            # 5. Mark Complete
+            await update_contribution_status(db, contribution_id, ProcessingStatus.PROCESSING_COMPLETE, student_msg)
+            await mark_processing_complete(
+                db, 
+                contribution_id, 
+                recommendation, 
+                quality_score, 
+                risk_score, 
+                admin_summary
+            )
 
     except Exception as exc:
         logger.error(

@@ -68,8 +68,8 @@ const AppContent = () => {
             <Route path="/viewer" element={<DocumentViewer />} />
             <Route path="/profile" element={<Profile />} />
             
-            {/* Restricted Route: Students Only */}
-            <Route element={<AuthGuard allowedRoles={['student']} />}>
+            {/* Restricted Route: Students and Teachers */}
+            <Route element={<AuthGuard allowedRoles={['student', 'teacher']} />}>
               <Route path="/contributions" element={<Contributions />} />
             </Route>
 

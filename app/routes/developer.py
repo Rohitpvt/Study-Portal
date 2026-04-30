@@ -24,6 +24,9 @@ async def developer_stats(db: DBSession, _: DeveloperUser):
     total_students = (await db.execute(
         select(func.count(User.id)).where(User.role == Role.STUDENT)
     )).scalar_one()
+    total_teachers = (await db.execute(
+        select(func.count(User.id)).where(User.role == Role.TEACHER)
+    )).scalar_one()
     total_admins = (await db.execute(
         select(func.count(User.id)).where(User.role == Role.ADMIN)
     )).scalar_one()
@@ -34,6 +37,7 @@ async def developer_stats(db: DBSession, _: DeveloperUser):
     return {
         "total_users": total_users,
         "total_students": total_students,
+        "total_teachers": total_teachers,
         "total_admins": total_admins,
         "total_developers": total_developers,
     }

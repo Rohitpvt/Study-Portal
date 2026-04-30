@@ -129,6 +129,7 @@ export default function Dashboard() {
                <span className={`px-5 py-2 text-[10px] md:text-xs font-black rounded-2xl uppercase tracking-widest shadow-sm transition-colors ${
                  user.role?.toLowerCase() === 'developer' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
                  user.role?.toLowerCase() === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 
+                 user.role?.toLowerCase() === 'teacher' ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400' :
                  'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400'
                }`}>
                 {user.role} Account
@@ -155,14 +156,17 @@ export default function Dashboard() {
           description="Browse and download approved study materials, notes, and past exams."
         />
         
-        {user.role?.toLowerCase() === 'student' && (
+        {['student', 'teacher'].includes(user.role?.toLowerCase()) && (
           <DashboardCard 
             to="/contributions" 
             index={3}
             icon={<Upload className="w-10 h-10 text-white" />}
             gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
             title="Contribute"
-            description="Upload your own notes to help others. Submissions are reviewed by administrators."
+            description={user.role?.toLowerCase() === 'teacher' 
+              ? "Upload lecture notes and materials for students. Submissions are reviewed by administrators."
+              : "Upload your own notes to help others. Submissions are reviewed by administrators."
+            }
           />
         )}
 

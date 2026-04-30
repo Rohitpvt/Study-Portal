@@ -7,7 +7,7 @@ Student contribution endpoints (submit, view own, admin list pending).
 from fastapi import APIRouter, BackgroundTasks, File, Form, Query, UploadFile
 from typing import Optional
 
-from app.core.dependencies import AdminUser, CurrentUser, StudentUser, DBSession
+from app.core.dependencies import AdminUser, CurrentUser, ContributorUser, DBSession
 from app.models.contribution import Contribution
 from app.models.material import Category
 from sqlalchemy import select, func
@@ -32,7 +32,7 @@ router = APIRouter(prefix="/contributions", tags=["Contributions"])
 async def submit_contribution(
     background_tasks: BackgroundTasks,
     db: DBSession,
-    current_user: StudentUser,
+    current_user: ContributorUser,
     file:        UploadFile      = File(...),
     title:       str             = Form(...),
     course:      str             = Form(...),
@@ -78,7 +78,7 @@ async def submit_contribution(
 )
 async def my_contributions(
     db: DBSession,
-    current_user: StudentUser,
+    current_user: ContributorUser,
     page:      int = Query(1,  ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):
@@ -110,7 +110,7 @@ async def pending_contributions(
 )
 async def my_contribution_statuses(
     db: DBSession,
-    current_user: StudentUser,
+    current_user: ContributorUser,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):
@@ -146,7 +146,7 @@ async def my_contribution_statuses(
 async def get_contribution_status(
     contribution_id: str,
     db: DBSession,
-    current_user: StudentUser,
+    current_user: ContributorUser,
 ):
     """
     Returns progress tracking details for a specific upload.
@@ -178,7 +178,7 @@ async def reprocess_failed_contribution(
     contribution_id: str,
     background_tasks: BackgroundTasks,
     db: DBSession,
-    current_user: StudentUser,
+    current_user: ContributorUser,
 ):
     """
     Reruns the AI validation pipeline for a contribution that is stuck in PROCESSING_FAILED.
@@ -196,7 +196,7 @@ async def reprocess_failed_contribution(
 async def delete_my_contribution(
     contribution_id: str,
     db: DBSession,
-    current_user: StudentUser,
+    current_user: ContributorUser,
 ):
     """
     Permanently removes a contribution record and its associated file.
@@ -222,7 +222,7 @@ async def serve_contribution_file(
         raise HTTPException(status_code=404, detail="Contribution not found")
         
     # Check permission (admin or owner)
-    if current_user.role != "ADMIN" and contribution.contributor_id != current_user.id:
+    if current_user.role not in ("ADMIN", "DEVELOPER", "TEACHER") and contribution.contributor_id != current_user.id:
         raise HTTPException(status_code=403, detail="Permission denied")
 
     from app.utils.file_handler import get_storage

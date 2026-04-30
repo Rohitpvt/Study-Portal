@@ -82,9 +82,25 @@ async def require_student(current_user: Annotated[User, Depends(get_current_user
     return current_user
 
 
+async def require_contributor(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    """Allow access for roles that can contribute materials (STUDENT and TEACHER)."""
+    if not current_user.role.can_contribute:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only students and teachers can submit contributions.")
+    return current_user
+
+
+async def require_teacher_or_above(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    """Allow access for TEACHER, ADMIN, and DEVELOPER roles."""
+    if not current_user.role.is_educator:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Teacher-level access or above required.")
+    return current_user
+
+
 # ── Type aliases used in route signatures ─────────────────────────────────────
-CurrentUser   = Annotated[User, Depends(get_current_user)]
-AdminUser     = Annotated[User, Depends(require_admin)]
-DeveloperUser = Annotated[User, Depends(require_developer)]
-StudentUser   = Annotated[User, Depends(require_student)]
-DBSession     = Annotated[AsyncSession, Depends(get_db)]
+CurrentUser      = Annotated[User, Depends(get_current_user)]
+AdminUser        = Annotated[User, Depends(require_admin)]
+DeveloperUser    = Annotated[User, Depends(require_developer)]
+StudentUser      = Annotated[User, Depends(require_student)]
+ContributorUser  = Annotated[User, Depends(require_contributor)]
+TeacherUser      = Annotated[User, Depends(require_teacher_or_above)]
+DBSession        = Annotated[AsyncSession, Depends(get_db)]

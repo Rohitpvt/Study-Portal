@@ -123,6 +123,7 @@ export default function ProfileControl() {
     const r = role?.toUpperCase();
     if (r === 'DEVELOPER') return { color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800', label: 'Developer (Protected)', icon: Crown };
     if (r === 'ADMIN') return { color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800', label: 'Admin', icon: ShieldCheck };
+    if (r === 'TEACHER') return { color: 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-800', label: 'Teacher', icon: BookOpenCheck };
     return { color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800', label: 'Student', icon: GraduationCap };
   };
 
@@ -138,6 +139,7 @@ export default function ProfileControl() {
   const statCards = stats ? [
     { label: 'Total Users', value: stats.total_users, icon: Users, color: 'from-slate-600 to-slate-800' },
     { label: 'Students', value: stats.total_students, icon: GraduationCap, color: 'from-indigo-500 to-indigo-700' },
+    { label: 'Teachers', value: stats.total_teachers, icon: BookOpenCheck, color: 'from-teal-500 to-teal-700' },
     { label: 'Admins', value: stats.total_admins, icon: ShieldCheck, color: 'from-emerald-500 to-emerald-700' },
     { label: 'Developers', value: stats.total_developers, icon: Crown, color: 'from-amber-500 to-amber-700' },
   ] : [];
@@ -209,6 +211,7 @@ export default function ProfileControl() {
           >
             <option value="ALL">All Roles</option>
             <option value="STUDENT">Students</option>
+            <option value="TEACHER">Teachers</option>
             <option value="ADMIN">Admins</option>
             <option value="DEVELOPER">Developers</option>
           </select>
@@ -308,6 +311,7 @@ export default function ProfileControl() {
                               className="px-3 py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-200 dark:focus:ring-amber-900/30 cursor-pointer transition-all"
                             >
                               <option value="STUDENT">Student</option>
+                              <option value="TEACHER">Teacher</option>
                               <option value="ADMIN">Admin</option>
                             </select>
                             {hasPendingChange && (

@@ -28,15 +28,27 @@ from sqlalchemy import delete
 
 async def register_user(payload: RegisterRequest, db: AsyncSession) -> User:
     """
-    Register a new student.
-    Enforces @christuniversity.in domain and rejects duplicate emails.
+    Register a new user (Student or Teacher).
+    - Students: Enforces @christuniversity.in domain and requires roll_no.
+    - Teachers: Accepts any valid email, roll_no is optional.
+    - Admin/Developer: Blocked from public registration.
     """
-    # 1. Domain and format check (Centralized)
-    if not is_christ_email(payload.email):
+    requested_role = Role(payload.role)
+
+    # 0. Block public registration as Admin or Developer
+    if requested_role in (Role.ADMIN, Role.DEVELOPER):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Please use your official Christ University email (firstname.lastname@course.christuniversity.in)"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin and Developer accounts cannot be created through public registration."
         )
+
+    # 1. Role-specific email validation
+    if requested_role == Role.STUDENT:
+        if not is_christ_email(payload.email):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Students must use their official Christ University email (firstname.lastname@course.christuniversity.in)"
+            )
 
     # 2. Duplicate email check
     result = await db.execute(select(User).where(User.email == payload.email))
@@ -46,12 +58,12 @@ async def register_user(payload: RegisterRequest, db: AsyncSession) -> User:
             detail="An account with this email already exists.",
         )
 
-    # 3. Roll Number validation
+    # 3. Roll Number validation (required for students only)
     roll_no = payload.roll_no.strip() if payload.roll_no else ""
-    if not roll_no:
+    if requested_role == Role.STUDENT and not roll_no:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Admission/Roll Number is required."
+            detail="Admission/Roll Number is required for student registration."
         )
 
     # 4. Enforce Registration OTP Verification
@@ -64,21 +76,24 @@ async def register_user(payload: RegisterRequest, db: AsyncSession) -> User:
     if not otp_record:
         raise HTTPException(status_code=403, detail="Email verification (OTP) required before registration.")
 
-    # 5. Create user
+    # 5. Determine department/course from email
+    department = extract_department(payload.email) if is_christ_email(payload.email) else None
+
+    # 6. Create user
     user = User(
         id=generate_uuid(),
         email=payload.email,
         full_name=payload.full_name,
-        roll_no=roll_no,
+        roll_no=roll_no if roll_no else None,
         hashed_password=hash_password(payload.password),
-        role=Role.STUDENT,
-        department=extract_department(payload.email),
-        course=extract_department(payload.email),
+        role=requested_role,
+        department=department,
+        course=department,
         is_active=True,
     )
     db.add(user)
     
-    # 6. Delete the OTP record securely so it cannot be rebroadcasted
+    # 7. Delete the OTP record securely so it cannot be rebroadcasted
     await db.execute(delete(OTPRecord).where(OTPRecord.id == otp_record.id))
 
     await db.flush()   # get the PK without committing

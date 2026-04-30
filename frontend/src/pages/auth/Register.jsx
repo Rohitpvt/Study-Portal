@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { UserPlus, Mail, Lock, User, ShieldPlus, KeyRound, CheckCircle2, RefreshCw, Send, Eye, EyeOff, Sun, Moon } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, ShieldPlus, KeyRound, CheckCircle2, RefreshCw, Send, Eye, EyeOff, Sun, Moon, GraduationCap, BookOpenCheck } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 import { useTheme } from '../../context/ThemeContext';
 import { trackEvent } from '../../services/analytics';
@@ -9,6 +9,7 @@ import { trackEvent } from '../../services/analytics';
 export default function Register() {
   const { success, error: toastError, info } = useNotification();
   const { theme, toggleTheme } = useTheme();
+  const [selectedRole, setSelectedRole] = useState('STUDENT');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -30,6 +31,8 @@ export default function Register() {
 
   const navigate = useNavigate();
 
+  const isStudent = selectedRole === 'STUDENT';
+
   // Redirect already-authenticated users to dashboard
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -38,14 +41,23 @@ export default function Register() {
     }
   }, [navigate]);
 
+  // Reset OTP state when role or email changes
+  const handleRoleChange = (role) => {
+    setSelectedRole(role);
+    setOtpSent(false);
+    setOtpVerified(false);
+    setOtpCode('');
+    setError(null);
+  };
+
   const handleSendOTP = async () => {
     if (!formData.email) {
-      toastError("Please enter your academic email first.");
+      toastError("Please enter your email first.");
       return;
     }
-    // simple pre-check if christuniversity email
-    if (!formData.email.includes("christuniversity.in")) {
-      toastError("Must be a valid @christuniversity.in email address.");
+    // Only enforce Christ email for students
+    if (isStudent && !formData.email.includes("christuniversity.in")) {
+      toastError("Students must use a valid @christuniversity.in email address.");
       return;
     }
     
@@ -92,6 +104,12 @@ export default function Register() {
       return;
     }
 
+    // Student-specific: require roll number
+    if (isStudent && !formData.roll_no.trim()) {
+      toastError("Admission/Roll Number is required for students.");
+      return;
+    }
+
     // Frontend Validation: Password confirmation
     if (!confirmPassword) {
       const msg = "Please re-enter your password to confirm.";
@@ -111,15 +129,20 @@ export default function Register() {
     try {
       const payload = {
         ...formData,
-        full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`
+        full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        role: selectedRole,
       };
       // Clean up the temporary fields
       delete payload.firstName;
       delete payload.lastName;
+      // Remove roll_no for teachers if empty
+      if (!isStudent && !payload.roll_no?.trim()) {
+        delete payload.roll_no;
+      }
 
       await api.post('/auth/register', payload);
       success("Account established successfully! Please verify your login credentials to enter the platform.");
-      trackEvent('register_success');
+      trackEvent('register_success', { role: selectedRole });
       navigate('/login');
     } catch (err) {
       let msg = "Registration rejected. System mismatch detected.";
@@ -154,14 +177,42 @@ export default function Register() {
           {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
         
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <div className="w-16 h-16 premium-gradient rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-xl shadow-indigo-100 dark:shadow-none transform group-hover:rotate-6 transition-transform duration-500">
              <ShieldPlus className="text-white w-8 h-8" />
           </div>
           <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter transition-colors">Researcher Indexing</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-bold opacity-80 transition-colors">
-            Authorization required via <span className="text-indigo-600 dark:text-indigo-400">@christuniversity.in</span>
+            Create your account to access the platform
           </p>
+        </div>
+
+        {/* ── ROLE SELECTOR ──────────────────────────────────────── */}
+        <div className="flex gap-3 mb-8">
+          <button
+            type="button"
+            onClick={() => handleRoleChange('STUDENT')}
+            className={`flex-1 flex items-center justify-center gap-2.5 py-4 rounded-2xl text-sm font-black uppercase tracking-wider border-2 transition-all duration-300 ${
+              isStudent
+                ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-300 dark:border-indigo-700 shadow-lg shadow-indigo-100 dark:shadow-none'
+                : 'bg-white/50 dark:bg-slate-800/30 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-800'
+            }`}
+          >
+            <GraduationCap className="w-5 h-5" />
+            Student
+          </button>
+          <button
+            type="button"
+            onClick={() => handleRoleChange('TEACHER')}
+            className={`flex-1 flex items-center justify-center gap-2.5 py-4 rounded-2xl text-sm font-black uppercase tracking-wider border-2 transition-all duration-300 ${
+              !isStudent
+                ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 border-teal-300 dark:border-teal-700 shadow-lg shadow-teal-100 dark:shadow-none'
+                : 'bg-white/50 dark:bg-slate-800/30 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 hover:border-teal-200 dark:hover:border-teal-800'
+            }`}
+          >
+            <BookOpenCheck className="w-5 h-5" />
+            Teacher
+          </button>
         </div>
         
         {error && (
@@ -209,7 +260,9 @@ export default function Register() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Academic Email</label>
+            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">
+              {isStudent ? 'Academic Email' : 'Email Address'}
+            </label>
             <div className="relative group/input flex gap-2">
               <div className="relative flex-1">
                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
@@ -221,7 +274,7 @@ export default function Register() {
                   disabled={otpVerified}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm disabled:opacity-50"
-                  placeholder="name@course.christuniversity.in"
+                  placeholder={isStudent ? "name@course.christuniversity.in" : "you@example.com"}
                   required
                 />
               </div>
@@ -236,6 +289,11 @@ export default function Register() {
                 </button>
               )}
             </div>
+            {isStudent && (
+              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 ml-1 mt-1">
+                Must be <span className="text-indigo-500">firstname.lastname@course.christuniversity.in</span>
+              </p>
+            )}
           </div>
 
           {otpSent && !otpVerified && (
@@ -275,22 +333,25 @@ export default function Register() {
              </div>
           )}
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Admission / Roll Number</label>
-            <div className="relative group/input">
-              <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
-                <ShieldPlus className="w-5 h-5" />
+          {/* Roll Number — only for Students */}
+          {isStudent && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Admission / Roll Number</label>
+              <div className="relative group/input">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
+                  <ShieldPlus className="w-5 h-5" />
+                </div>
+                <input
+                  type="text"
+                  value={formData.roll_no}
+                  onChange={(e) => setFormData({...formData, roll_no: e.target.value})}
+                  className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
+                  placeholder="Ex: 2522****"
+                  required
+                />
               </div>
-              <input
-                type="text"
-                value={formData.roll_no}
-                onChange={(e) => setFormData({...formData, roll_no: e.target.value})}
-                className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
-                placeholder="Ex: 2522****"
-                required
-              />
             </div>
-          </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Security Token</label>
@@ -370,4 +431,3 @@ export default function Register() {
     </div>
   );
 }
-

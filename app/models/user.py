@@ -15,6 +15,7 @@ from app.models.base import TimestampMixin, generate_uuid
 
 class Role(str, enum.Enum):
     STUDENT   = "STUDENT"
+    TEACHER   = "TEACHER"
     ADMIN     = "ADMIN"
     DEVELOPER = "DEVELOPER"
 
@@ -31,6 +32,16 @@ class Role(str, enum.Enum):
     def is_privileged(self) -> bool:
         """Returns True for roles with admin-level access (ADMIN and DEVELOPER)."""
         return self in (Role.ADMIN, Role.DEVELOPER)
+
+    @property
+    def is_educator(self) -> bool:
+        """Returns True for roles with educational elevated access (TEACHER, ADMIN, DEVELOPER)."""
+        return self in (Role.TEACHER, Role.ADMIN, Role.DEVELOPER)
+
+    @property
+    def can_contribute(self) -> bool:
+        """Returns True for roles that can submit study materials (STUDENT and TEACHER)."""
+        return self in (Role.STUDENT, Role.TEACHER)
 
 
 class User(Base, TimestampMixin):

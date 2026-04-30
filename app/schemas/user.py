@@ -79,7 +79,7 @@ class RoleChangeRequest(BaseModel):
     @field_validator("new_role")
     @classmethod
     def validate_role(cls, v: str) -> str:
-        allowed = {"STUDENT", "ADMIN"}
+        allowed = {"STUDENT", "TEACHER", "ADMIN"}
         normalized = v.strip().upper()
         if normalized not in allowed:
             raise ValueError(f"Role must be one of: {', '.join(sorted(allowed))}")

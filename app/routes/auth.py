@@ -19,11 +19,13 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
     "/register",
     response_model=UserOut,
     status_code=201,
-    summary="Register a new student account",
+    summary="Register a new student or teacher account",
 )
 async def register(payload: RegisterRequest, db: DBSession):
     """
-    Register with a valid @christuniversity.in email.
+    Register a new account.
+    - Students must use a valid @christuniversity.in email.
+    - Teachers can use any valid email address.
     Returns the created user profile.
     """
     payload.email = payload.email.lower()
