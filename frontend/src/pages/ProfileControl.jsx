@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { 
   Crown, Users, ShieldCheck, GraduationCap, Code2, 
   Search, Filter, ChevronDown, Check, X, AlertTriangle,
-  RefreshCw, ArrowUpDown, Trash2
+  RefreshCw, ArrowUpDown, Trash2, BookOpenCheck
 } from 'lucide-react';
 import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
