@@ -291,7 +291,7 @@ export default function Register() {
             </div>
             {isStudent && (
               <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 ml-1 mt-1">
-                Must be <span className="text-indigo-500">firstname.lastname@course.christuniversity.in</span>
+                Must use your official <span className="text-indigo-500">@*.christuniversity.in</span> email
               </p>
             )}
           </div>

@@ -13,7 +13,8 @@ def is_christ_email(email: str) -> bool:
     Required format: firstname.lastname@course.christuniversity.in
     Supports multi-part names: first.middle.last@course.christuniversity.in
     """
-    pattern = r"^[A-Za-z]+(?:\.[A-Za-z]+)+@[A-Za-z0-9]+\.christuniversity\.in$"
+    # Relaxed pattern to support all Christ subdomains and flexible names
+    pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]*christuniversity\.in$"
     return bool(re.match(pattern, email))
 
 def is_valid_christ_email(email: str) -> bool:
