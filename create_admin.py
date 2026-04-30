@@ -22,26 +22,28 @@ async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession
 async def main():
     try:
         async with async_session() as session:
-            stmt = sa.select(User).where(User.email == "admin@christuniversity.in")
-            result = await session.execute(stmt)
-            admin = result.scalar_one_or_none()
-            if not admin:
-                hashed_pw = hash_password("AdminPass1!")
-                new_admin = User(
-                    email="admin@christuniversity.in",
-                    hashed_password=hashed_pw,
-                    full_name="Global System Admin",
-                    role=Role.ADMIN,
-                    is_active=True
-                )
-                session.add(new_admin)
-                await session.commit()
-                print("SUCCESS: Admin 'admin@christuniversity.in' created.")
-            else:
-                admin.hashed_password = hash_password("AdminPass1!")
-                admin.role = Role.ADMIN
-                await session.commit()
-                print("SUCCESS: Admin 'admin@christuniversity.in' password reset to 'AdminPass1!' and verified as ADMIN.")
+            # Disabled admin creation as requested
+            pass
+            # stmt = sa.select(User).where(User.email == "admin@christuniversity.in")
+            # result = await session.execute(stmt)
+            # admin = result.scalar_one_or_none()
+            # if not admin:
+            #     hashed_pw = hash_password("AdminPass1!")
+            #     new_admin = User(
+            #         email="admin@christuniversity.in",
+            #         hashed_password=hashed_pw,
+            #         full_name="Global System Admin",
+            #         role=Role.ADMIN,
+            #         is_active=True
+            #     )
+            #     session.add(new_admin)
+            #     await session.commit()
+            #     print("SUCCESS: Admin 'admin@christuniversity.in' created.")
+            # else:
+            #     admin.hashed_password = hash_password("AdminPass1!")
+            #     admin.role = Role.ADMIN
+            #     await session.commit()
+            #     print("SUCCESS: Admin 'admin@christuniversity.in' password reset to 'AdminPass1!' and verified as ADMIN.")
     except Exception as e:
         print(f"FAILED: {str(e)}")
 

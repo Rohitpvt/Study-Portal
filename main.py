@@ -40,28 +40,6 @@ if os.getenv("SENTRY_DSN"):
         before_send=scrub_sentry_event
     )
 
-# ── Sentry Tagging Middleware ────────────────────────────────────────────────
-@app.middleware("http")
-async def sentry_tagging_middleware(request, call_next):
-    """Inject subsystem and user tags into Sentry context."""
-    path = request.url.path
-    subsystem = "unknown"
-    if path.startswith("/api/v1/auth"): subsystem = "auth"
-    elif path.startswith("/api/v1/chat"): subsystem = "chat"
-    elif path.startswith("/api/v1/materials"): subsystem = "materials"
-    elif path.startswith("/api/v1/contributions"): subsystem = "contribution"
-    elif path.startswith("/api/v1/admin"): subsystem = "admin"
-    elif path.startswith("/api/v1/developer"): subsystem = "developer"
-    elif path.startswith("/api/v1/favorites"): subsystem = "favorites"
-    
-    with sentry_sdk.configure_scope() as scope:
-        scope.set_tag("subsystem", subsystem)
-        scope.set_tag("endpoint", path)
-        # Role will be set inside the auth dependency if possible, or we can try to peek at the token here
-        # But peaked auth is risky/slow. Better to set role in the actual routes or a shared dependency.
-    
-    return await call_next(request)
-
 # ── Structured Production Logging ─────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
@@ -169,6 +147,28 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # ── Middlewares ─────────────────────────────────────────────────────────────
 # ── Middlewares ─────────────────────────────────────────────────────────────
+# ── Sentry Tagging Middleware ────────────────────────────────────────────────
+@app.middleware("http")
+async def sentry_tagging_middleware(request, call_next):
+    """Inject subsystem and user tags into Sentry context."""
+    path = request.url.path
+    subsystem = "unknown"
+    if path.startswith("/api/v1/auth"): subsystem = "auth"
+    elif path.startswith("/api/v1/chat"): subsystem = "chat"
+    elif path.startswith("/api/v1/materials"): subsystem = "materials"
+    elif path.startswith("/api/v1/contributions"): subsystem = "contribution"
+    elif path.startswith("/api/v1/admin"): subsystem = "admin"
+    elif path.startswith("/api/v1/developer"): subsystem = "developer"
+    elif path.startswith("/api/v1/favorites"): subsystem = "favorites"
+    
+    with sentry_sdk.configure_scope() as scope:
+        scope.set_tag("subsystem", subsystem)
+        scope.set_tag("endpoint", path)
+        # Role will be set inside the auth dependency if possible, or we can try to peek at the token here
+        # But peaked auth is risky/slow. Better to set role in the actual routes or a shared dependency.
+    
+    return await call_next(request)
+
 app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(

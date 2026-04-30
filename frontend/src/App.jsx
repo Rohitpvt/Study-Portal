@@ -25,7 +25,6 @@ import { SystemProvider, useSystem } from './context/SystemContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ErrorPage from './components/common/ErrorPage';
 import MouseGlow from './components/common/MouseGlow';
-import ColdStartBanner from './components/common/ColdStartBanner';
 import Onboarding from './components/common/Onboarding';
 import { trackPageView } from './services/analytics';
 
@@ -50,7 +49,6 @@ const AppContent = () => {
 
   return (
       <ErrorBoundary>
-        {isWakingUp && <ColdStartBanner />}
         <Onboarding />
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
