@@ -62,7 +62,7 @@ async def lifespan(app: FastAPI):
     Shutdown:
       - Dispose DB engine connections
     """
-    logger.info("🚀 Starting Christ University Study Platform...")
+    logger.info("🚀 Starting AI Study Portal...")
 
     # Create tables (safe for dev; use Alembic in production)
     async with engine.begin() as conn:

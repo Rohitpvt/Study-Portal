@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     )
 
     # ── Application ───────────────────────────────────────────────────────────
-    APP_NAME: str = "Christ University Study Platform"
+    APP_NAME: str = "AI Study Portal"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     ALLOWED_ORIGINS: Any = [

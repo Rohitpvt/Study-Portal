@@ -7,8 +7,8 @@ from sqlalchemy import select
 
 async def setup():
     # Source and Target paths
-    src = r"C:\Users\rghos\OneDrive - Vivekananda Institute of Professional Studies\PROJECTS\Intel AI Project\Temp Notes\Data Communication (Imp Notes).pdf"
-    target_dir = r"C:\Users\rghos\OneDrive - Vivekananda Institute of Professional Studies\PROJECTS\Intel AI Project\uploads\notes"
+    src = r"C:\Users\rghos\OneDrive - Vivekananda Institute of Professional Studies\PROJECTS\AI Study Portal\Temp Notes\Data Communication (Imp Notes).pdf"
+    target_dir = r"C:\Users\rghos\OneDrive - Vivekananda Institute of Professional Studies\PROJECTS\AI Study Portal\uploads\notes"
     target_file = os.path.join(target_dir, "data_comm_notes.pdf")
     
     os.makedirs(target_dir, exist_ok=True)

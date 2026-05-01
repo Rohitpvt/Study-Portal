@@ -1,4 +1,4 @@
-# Christ University Study Platform
+# AI Study Portal
 
 > A production-grade, full-stack academic resource hub for Christ University students and faculty — built with **FastAPI**, **React (Vite + Tailwind CSS)**, and an **AI-powered RAG engine** for intelligent syllabus querying.
 
@@ -24,7 +24,7 @@
 
 ## Overview
 
-The Christ University Study Platform is a collaborative academic library that allows students to discover, bookmark, and download vetted study materials — organized by course, subject, semester, and category. Administrators govern content quality via an AI-assisted review queue that scores submissions for plagiarism and grammar before publication.
+The AI Study Portal is a collaborative academic library that allows students to discover, bookmark, and download vetted study materials — organized by course, subject, semester, and category. Administrators govern content quality via an AI-assisted review queue that scores submissions for plagiarism and grammar before publication.
 
 ---
 
@@ -112,7 +112,7 @@ The Christ University Study Platform is a collaborative academic library that al
 ## Project Structure
 
 ```
-Intel AI Project/
+AI Study Portal/
 ├── main.py                     # FastAPI app entry point, middleware stack
 ├── requirements.txt
 ├── alembic/                    # DB migration history
@@ -183,7 +183,7 @@ Intel AI Project/
 
 ```bash
 # 1. Clone and enter project
-cd "Intel AI Project"
+cd "AI Study Portal"
 
 # 2. Create virtual environment
 python -m venv venv
@@ -398,4 +398,4 @@ app.add_middleware(SessionMiddleware, ...)   # 3rd
 
 ---
 
-*Developed as a high-performance academic resource hub for Christ University.*
+*Developed as a high-performance academic resource hub.*

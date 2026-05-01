@@ -82,7 +82,7 @@ async def perform_reset():
         # Write to file
         with open(OUTPUT_FILE, "w") as f:
             f.write("="*60 + "\n")
-            f.write(" CHRIST UNIVERSITY STUDY PLATFORM - CREDENTIALS\n")
+            f.write(" AI STUDY PORTAL - CREDENTIALS\n")
             f.write("="*60 + "\n\n")
             for cred in new_creds:
                 f.write(cred + "\n")

@@ -32,7 +32,7 @@ def send_otp_email(receiver_email: str, otp: str):
 
     msg = EmailMessage()
     msg.set_content(f"Your Verification Code is: {otp}\n\nThis code is valid for 2 minutes and is specifically generated for your university portal request.")
-    msg['Subject'] = "Intel AI Project - OTP Verification"
+    msg['Subject'] = "AI Study Portal - OTP Verification"
     msg['From'] = settings.SMTP_EMAIL
     msg['To'] = receiver_email
 

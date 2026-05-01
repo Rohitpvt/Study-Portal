@@ -77,7 +77,7 @@ export default function Login() {
              <ShieldCheck className="text-white w-10 h-10" />
           </div>
           <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter mb-3 transition-colors">Portal Access</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-bold opacity-80 uppercase tracking-[0.2em] transition-colors">Intel AI Platform</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-bold opacity-80 uppercase tracking-[0.2em] transition-colors">AI Study Portal</p>
         </div>
         
         {error && (

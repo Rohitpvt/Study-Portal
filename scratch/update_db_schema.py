@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-db_path = "C:/Users/rghos/OneDrive - Vivekananda Institute of Professional Studies/PROJECTS/Intel AI Project/christ_uni_dev.db"
+db_path = "C:/Users/rghos/OneDrive - Vivekananda Institute of Professional Studies/PROJECTS/AI Study Portal/christ_uni_dev.db"
 
 if not os.path.exists(db_path):
     print(f"Error: Database not found at {db_path}")
