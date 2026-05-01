@@ -157,7 +157,7 @@ const NotificationBell = () => {
 
           <div className="p-3 border-t border-white/5 text-center bg-white/[0.01]">
             <button 
-              onClick={() => { setIsOpen(false); navigate('/notifications'); }}
+              onClick={() => { setIsOpen(false); alert('Full Notification Center is under development.'); }}
               className="text-[9px] font-black text-slate-400 hover:text-indigo-500 uppercase tracking-widest transition-colors"
             >
               See all notifications
