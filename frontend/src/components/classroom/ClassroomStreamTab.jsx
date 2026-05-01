@@ -215,7 +215,7 @@ const ClassroomStreamTab = ({ classroom, canManage }) => {
                     <h4 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">{ann.creator_name}</h4>
                     <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                        <Clock className="w-3 h-3" />
-                       {new Date(ann.created_at).toLocaleDateString()}
+                       {ann.created_at ? new Date(ann.created_at).toLocaleDateString() : '—'}
                        {ann.updated_at !== ann.created_at && (
                          <>
                            <span className="w-1 h-1 bg-slate-400 rounded-full" />

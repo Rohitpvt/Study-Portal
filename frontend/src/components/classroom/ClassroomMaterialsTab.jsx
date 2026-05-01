@@ -42,7 +42,7 @@ const ClassroomMaterialsTab = ({ classroom, canManage }) => {
       
       // Expand all by default if small list
       const initialExpanded = {};
-      clRes.data.topics.forEach(t => initialExpanded[t.id] = true);
+      (clRes.data.topics || []).forEach(t => initialExpanded[t.id] = true);
       initialExpanded['general'] = true;
       setExpandedTopics(initialExpanded);
     } catch (err) {
@@ -94,7 +94,7 @@ const ClassroomMaterialsTab = ({ classroom, canManage }) => {
 
   const filteredMaterials = materials.filter(m => {
     const matchesSection = activeSectionFilter === 'all' || m.section_type === activeSectionFilter;
-    const matchesSearch = m.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (m.title || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSection && matchesSearch;
   });
 

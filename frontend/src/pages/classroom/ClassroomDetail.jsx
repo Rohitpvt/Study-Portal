@@ -93,7 +93,7 @@ const ClassroomDetail = () => {
     default: 'from-slate-700 to-slate-900'
   };
 
-  const currentBanner = bannerColors[classroom.banner_variant] || bannerColors.default;
+  const currentBanner = bannerColors[classroom?.banner_variant] || bannerColors.default;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -184,7 +184,7 @@ const ClassroomDetail = () => {
                 <span className="text-sm font-black text-indigo-500 uppercase tracking-widest">Faculty</span>
               </div>
               <div className="space-y-4">
-                {classroom.members.filter(m => m.role_in_class === 'teacher').map(teacher => (
+                {(classroom.members || []).filter(m => m.role_in_class === 'teacher').map(teacher => (
                   <div key={teacher.user_id} className="flex items-center justify-between p-6 glass dark:bg-[#0a0a0a] rounded-[2rem] border border-white/60 dark:border-white/5">
                     <div className="flex items-center gap-5">
                        <div className="w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-500 font-black text-xl shadow-sm border border-indigo-500/10">
@@ -214,8 +214,8 @@ const ClassroomDetail = () => {
                 </span>
               </div>
               <div className="space-y-4">
-                {classroom.members.filter(m => m.role_in_class === 'student').length > 0 ? (
-                  classroom.members.filter(m => m.role_in_class === 'student').map(student => (
+                {(classroom.members || []).filter(m => m.role_in_class === 'student').length > 0 ? (
+                  (classroom.members || []).filter(m => m.role_in_class === 'student').map(student => (
                     <div key={student.user_id} className="group flex items-center justify-between p-5 glass dark:bg-[#0a0a0a] rounded-[2rem] border border-white/60 dark:border-white/5 hover:border-indigo-500/30 transition-all">
                       <div className="flex items-center gap-5">
                          <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 font-black text-lg">

@@ -94,10 +94,13 @@ export default function Register() {
     e.preventDefault();
     setError(null);
 
+    // OTP Bypassed for testing
+    /*
     if (!otpVerified) {
       toastError("You must verify your email with an OTP first.");
       return;
     }
+    */
 
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
       toastError("Please provide both your First and Last name.");

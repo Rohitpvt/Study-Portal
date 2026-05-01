@@ -123,7 +123,7 @@ const ClassroomClassworkTab = ({ classroom, canManage }) => {
   };
 
   const filteredAssignments = assignments.filter(ass => {
-    const matchesSearch = ass.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (ass.title || '').toLowerCase().includes(searchQuery.toLowerCase());
     if (!matchesSearch) return false;
     
     if (activeFilter === 'all') return true;
@@ -133,7 +133,9 @@ const ClassroomClassworkTab = ({ classroom, canManage }) => {
     
     if (activeFilter === 'due_soon') {
         if (!ass.due_at) return false;
-        const diff = (new Date(ass.due_at) - new Date()) / (1000 * 60 * 60);
+        const due = new Date(ass.due_at);
+        if (isNaN(due.getTime())) return false;
+        const diff = (due - new Date()) / (1000 * 60 * 60);
         return diff > 0 && diff < 48;
     }
     
