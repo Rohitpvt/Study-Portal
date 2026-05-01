@@ -1,0 +1,10 @@
+Calculus I Summary Notes
+
+Chapter 1: Limits and Continuity
+The limit of a function f(x) as x approaches a value c is the value that f(x) approaches. Formally, lim(x→c) f(x) = L means for every ε > 0, there exists δ > 0 such that 0 < |x - c| < δ implies |f(x) - L| < ε. A function is continuous at a point c if f(c) is defined, lim(x→c) f(x) exists, and lim(x→c) f(x) = f(c). The Intermediate Value Theorem states that if f is continuous on [a,b] and k is between f(a) and f(b), then there exists some c in (a,b) such that f(c) = k.
+
+Chapter 2: Derivatives
+The derivative f'(x) represents the instantaneous rate of change of f at point x. Power rule: d/dx[x^n] = nx^(n-1). Product rule: d/dx[fg] = f'g + fg'. Quotient rule: d/dx[f/g] = (f'g - fg')/g^2. Chain rule: d/dx[f(g(x))] = f'(g(x)) * g'(x). Applications include finding velocity from position, optimization problems, and linear approximation. Critical points occur where f'(x) = 0 or f'(x) is undefined. The second derivative test: if f''(c) > 0 the point is a local minimum, if f''(c) < 0 it is a local maximum.
+
+Chapter 3: Integrals
+The definite integral ∫[a,b] f(x)dx represents the signed area under the curve. The Fundamental Theorem of Calculus connects derivatives and integrals: if F'(x) = f(x), then ∫[a,b] f(x)dx = F(b) - F(a). Common techniques include substitution (u-substitution), integration by parts, partial fractions, and trigonometric substitution. Applications include computing areas, volumes of revolution, arc length, and work done by a force.

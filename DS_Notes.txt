@@ -1,0 +1,16 @@
+Data Structures & Algorithms Notes
+
+Chapter 1: Arrays and Linked Lists
+An array is a contiguous block of memory that stores elements of the same type. Access time is O(1) for indexing but O(n) for insertion and deletion in the worst case. A linked list is a chain of nodes where each node contains data and a pointer to the next node. Singly linked lists allow forward traversal only, while doubly linked lists allow bidirectional traversal. Advantages of linked lists include dynamic sizing and efficient insertion/deletion at known positions. Disadvantages include O(n) access time and extra memory for pointers.
+
+Chapter 2: Stacks and Queues
+A stack is a Last-In-First-Out (LIFO) data structure. Operations include push, pop, and peek, all running in O(1) time. Stacks are used in expression evaluation, backtracking, and function call management. A queue is a First-In-First-Out (FIFO) data structure. Operations include enqueue, dequeue, and front. Circular queues solve the problem of wasted space in linear queues. Priority queues allow elements to be dequeued based on priority rather than insertion order.
+
+Chapter 3: Trees and Graphs
+A binary tree is a hierarchical structure where each node has at most two children. Binary Search Trees (BST) maintain the property that left child < parent < right child. AVL trees are self-balancing BSTs that maintain O(log n) height. Graphs consist of vertices and edges, which can be directed or undirected, weighted or unweighted. Common graph algorithms include BFS, DFS, Dijkstra's shortest path, and Kruskal's MST algorithm.
+
+Chapter 4: Sorting Algorithms
+Bubble sort: O(n^2) average and worst case. Simple but inefficient for large datasets. Merge sort: O(n log n) in all cases. Uses divide-and-conquer strategy. Requires O(n) extra space. Quick sort: O(n log n) average, O(n^2) worst case. In-place but not stable. Heap sort: O(n log n) in all cases. In-place and based on the binary heap data structure. Radix sort: O(nk) where k is the number of digits. Non-comparative sorting algorithm.
+
+Chapter 5: Hashing
+Hash tables provide O(1) average time for search, insert, and delete operations. Hash functions map keys to indices in the table. Collision resolution strategies include chaining (linked lists at each index) and open addressing (linear probing, quadratic probing). Load factor is the ratio of elements to table size and affects performance significantly.

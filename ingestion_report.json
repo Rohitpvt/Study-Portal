@@ -1,0 +1,21 @@
+{
+  "materials_created": 3,
+  "materials": [
+    {
+      "id": "fc6250a1-7103-46a4-a994-6038d396ece0",
+      "title": "Data Structures & Algorithms Notes",
+      "status": "available"
+    },
+    {
+      "id": "3500e9c0-6a67-443b-b934-dda5f3776f36",
+      "title": "Calculus I Summary Notes",
+      "status": "available"
+    },
+    {
+      "id": "006eca98-ca2f-4661-9893-3645aaad752a",
+      "title": "Classical Mechanics Summary",
+      "status": "available"
+    }
+  ],
+  "next_step": "Run: venv\\Scripts\\python scripts\\reindex_all.py --dry-run"
+}

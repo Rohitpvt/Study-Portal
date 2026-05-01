@@ -1,0 +1,13 @@
+Classical Mechanics Summary
+
+Chapter 1: Newton's Laws of Motion
+First Law (Inertia): An object at rest stays at rest, and an object in motion stays in motion with the same speed and direction, unless acted upon by an unbalanced force. Second Law: F = ma. The net force acting on an object equals the mass of the object multiplied by its acceleration. This is the most important equation in classical mechanics. Third Law: For every action, there is an equal and opposite reaction. Forces always come in pairs acting on different objects.
+
+Chapter 2: Work, Energy and Power
+Work done W = F·d·cos(θ) where F is force, d is displacement, and θ is the angle between them. Kinetic energy KE = (1/2)mv^2. Potential energy PE = mgh for gravitational potential energy. The Work-Energy Theorem states that net work done equals change in kinetic energy. Conservation of energy: in an isolated system, total energy remains constant. Power P = W/t = Fv, measured in Watts.
+
+Chapter 3: Momentum and Collisions
+Linear momentum p = mv. Newton's second law can be written as F = dp/dt. Conservation of momentum: in the absence of external forces, total momentum is conserved. Elastic collisions conserve both momentum and kinetic energy. Inelastic collisions conserve momentum but not kinetic energy. Perfectly inelastic collisions result in the objects sticking together.
+
+Chapter 4: Rotational Motion
+Angular velocity ω = dθ/dt. Angular acceleration α = dω/dt. Torque τ = r × F = Iα where I is the moment of inertia. Angular momentum L = Iω is conserved in the absence of external torques. Moment of inertia depends on mass distribution relative to the axis of rotation. For a solid cylinder I = (1/2)MR^2, for a solid sphere I = (2/5)MR^2.
