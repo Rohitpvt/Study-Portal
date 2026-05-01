@@ -388,6 +388,14 @@ class ClassroomService:
         await db.commit()
         await db.refresh(assignment)
 
+        # Reload with attachments to avoid lazy load in Pydantic validation
+        result = await db.execute(
+            select(ClassroomAssignment)
+            .options(selectinload(ClassroomAssignment.attachments))
+            .where(ClassroomAssignment.id == assignment.id)
+        )
+        assignment = result.scalar_one()
+
         # Notify Students if published
         if assignment.status == AssignmentStatus.PUBLISHED:
             try:
@@ -415,7 +423,11 @@ class ClassroomService:
 
     @staticmethod
     async def list_assignments(db: AsyncSession, classroom_id: str, is_manager: bool = False) -> List[ClassroomAssignment]:
-        query = select(ClassroomAssignment).where(ClassroomAssignment.classroom_id == classroom_id)
+        query = (
+            select(ClassroomAssignment)
+            .options(selectinload(ClassroomAssignment.attachments))
+            .where(ClassroomAssignment.classroom_id == classroom_id)
+        )
         if not is_manager:
             query = query.where(ClassroomAssignment.status != AssignmentStatus.DRAFT)
         
@@ -434,7 +446,11 @@ class ClassroomService:
 
     @staticmethod
     async def update_assignment(db: AsyncSession, assignment_id: str, data: ClassroomAssignmentUpdate) -> ClassroomAssignment:
-        result = await db.execute(select(ClassroomAssignment).where(ClassroomAssignment.id == assignment_id))
+        result = await db.execute(
+            select(ClassroomAssignment)
+            .options(selectinload(ClassroomAssignment.attachments))
+            .where(ClassroomAssignment.id == assignment_id)
+        )
         assignment = result.scalar_one_or_none()
         if not assignment:
             raise HTTPException(status_code=404, detail="Assignment not found.")
@@ -774,7 +790,9 @@ class ClassroomService:
         visibility: Optional[CommentVisibility] = None,
         status: Optional[CommentStatus] = None
     ) -> List[ClassroomComment]:
-        query = select(ClassroomComment).where(ClassroomComment.classroom_id == classroom_id)
+        query = select(ClassroomComment).where(ClassroomComment.classroom_id == classroom_id).options(
+            selectinload(ClassroomComment.sender)
+        )
         
         if assignment_id:
             query = query.where(ClassroomComment.assignment_id == assignment_id)

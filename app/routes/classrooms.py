@@ -27,7 +27,7 @@ from app.schemas.classroom import (
 )
 from app.schemas.classroom_comment import ClassroomCommentCreate, ClassroomCommentUpdate, ClassroomCommentOut
 from app.schemas.classroom_analytics import ClassroomAnalyticsOut
-from app.core.storage import get_storage
+from app.utils.file_handler import get_storage
 from app.services.classroom_service import ClassroomService
 
 router = APIRouter(prefix="/classrooms", tags=["Classrooms"])
@@ -351,7 +351,7 @@ async def list_assignments(
     await require_classroom_member(classroom_id, current_user, db)
     
     # Check if manager to show drafts
-    is_manager = await get_classroom_membership(classroom_id, current_user.id, db)
+    is_manager = await get_classroom_membership(classroom_id, current_user, db)
     is_manager = is_manager is not None and (is_manager.role_in_class == "teacher" or current_user.role.is_privileged)
 
     from app.models.user import User
@@ -623,7 +623,7 @@ async def get_submission_file(
     if not submission:
         raise HTTPException(status_code=404, detail="Submission not found.")
         
-    is_owner = await get_classroom_membership(classroom_id, current_user.id, db)
+    is_owner = await get_classroom_membership(classroom_id, current_user, db)
     is_owner = is_owner and is_owner.role_in_class == "teacher"
     
     if not (submission.student_id == current_user.id or is_owner or current_user.role.is_privileged):
@@ -678,7 +678,7 @@ async def list_comments(
     """List comments with privacy filtering (Members only)."""
     # Check membership
     is_manager = False
-    membership = await get_classroom_membership(classroom_id, current_user.id, db)
+    membership = await get_classroom_membership(classroom_id, current_user, db)
     if not membership and not current_user.role.is_privileged:
         raise HTTPException(status_code=403, detail="Not a member of this classroom.")
     
@@ -721,7 +721,7 @@ async def resolve_comment(
     db: DBSession
 ):
     """Mark a doubt as resolved (Teacher or Sender only)."""
-    membership = await get_classroom_membership(classroom_id, current_user.id, db)
+    membership = await get_classroom_membership(classroom_id, current_user, db)
     is_manager = current_user.role.is_privileged or (membership and membership.role_in_class == "teacher")
     
     return await ClassroomService.resolve_comment(db, comment_id, current_user.id, is_manager)
@@ -735,7 +735,7 @@ async def delete_comment(
     db: DBSession
 ):
     """Delete a comment (Sender or Manager only)."""
-    membership = await get_classroom_membership(classroom_id, current_user.id, db)
+    membership = await get_classroom_membership(classroom_id, current_user, db)
     is_manager = current_user.role.is_privileged or (membership and membership.role_in_class == "teacher")
     
     await ClassroomService.delete_comment(db, comment_id, current_user.id, is_manager)
@@ -750,7 +750,7 @@ async def get_classroom_analytics(
 ):
     """Fetch classroom analytics (Teacher/Admin/Dev only)."""
     # 1. Check access: Must be teacher-member with ownership OR Admin/Dev
-    membership = await get_classroom_membership(classroom_id, current_user.id, db)
+    membership = await get_classroom_membership(classroom_id, current_user, db)
     
     is_privileged = current_user.role.is_privileged
     is_owner = membership and membership.role_in_class == "teacher"
