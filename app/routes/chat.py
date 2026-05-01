@@ -34,6 +34,8 @@ async def ask(payload: ChatRequest, current_user: CurrentUser, db: DBSession):
         course=payload.course,
         subject=payload.subject,
         semester=payload.semester,
+        classroom_id=payload.classroom_id,
+        assignment_id=payload.assignment_id,
     )
 
 

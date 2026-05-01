@@ -17,7 +17,8 @@ import {
   Moon,
   LogIn,
   Crown,
-  Bell
+  Bell,
+  GraduationCap
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
@@ -106,6 +107,7 @@ export default function Navbar() {
     { to: '/dashboard', label: 'Terminal', icon: LayoutDashboard },
     { to: '/materials', label: 'Library', icon: BookOpen },
     { to: '/chat', label: 'Research AI', icon: Bot },
+    { to: '/classrooms', label: 'Classrooms', icon: GraduationCap },
   ] : [];
 
   if (isLoggedIn) {

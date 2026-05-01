@@ -16,6 +16,8 @@ import DocumentViewer from './pages/Viewer';
 import Profile from './pages/Profile';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import ClassroomList from './pages/classroom/ClassroomList';
+import ClassroomDetail from './pages/classroom/ClassroomDetail';
 import Footer from './components/layout/Footer';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -67,6 +69,10 @@ const AppContent = () => {
             <Route path="/viewer/:materialId" element={<DocumentViewer />} />
             <Route path="/viewer" element={<DocumentViewer />} />
             <Route path="/profile" element={<Profile />} />
+            
+            {/* Classroom Module - All authenticated users */}
+            <Route path="/classrooms" element={<ClassroomList />} />
+            <Route path="/classrooms/:id" element={<ClassroomDetail />} />
             
             {/* Restricted Route: Students and Teachers */}
             <Route element={<AuthGuard allowedRoles={['student', 'teacher']} />}>

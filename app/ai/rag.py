@@ -366,7 +366,8 @@ async def retrieve(
     top_k: int = 5,
     course: str = None,
     subject: str = None,
-    semester: int = None
+    semester: int = None,
+    include_material_ids: Optional[List[str]] = None
 ) -> tuple[str, list[dict], float]:
     """
     Retrieve top relevant chunks with improved depth, metadata filters, and size constraints.
@@ -399,6 +400,7 @@ async def retrieve(
             continue
         
         # 1. Metadata Filters
+        if include_material_ids and doc.get("material_id") not in include_material_ids: continue
         if course and doc.get("course") != course: continue
         if subject and doc.get("subject") != subject: continue
         if semester and doc.get("semester") != semester: continue

@@ -21,6 +21,7 @@ from app.models.material import Material
 from app.models.base import generate_uuid
 from app.schemas.chat import ChatResponse, SummarizeResponse
 from app.utils.text_extractor import extract_text 
+from app.models.classroom import Classroom, ClassroomMember, ClassroomAssignment, ClassroomMaterial, AssignmentStatus, AIHelpMode
 from app.ai import rag 
 from fastapi import HTTPException, status
 from sqlalchemy import func
@@ -121,6 +122,8 @@ async def ask(
     course: Optional[str] = None,
     subject: Optional[str] = None,
     semester: Optional[int] = None,
+    classroom_id: Optional[str] = None,
+    assignment_id: Optional[str] = None,
 ) -> ChatResponse:
     """
     Stateful study chatbot logic with conversation history, multi-turn memory, 
@@ -312,6 +315,63 @@ async def ask(
     logger.info(f"[CHAT] route={route_label} | query='{q_lower}'")
     logger.info(f"Chatbot Flow: query='{query}', is_library={is_library_query}, skip_faiss={skip_faiss}")
 
+    # ── 4.5 Classroom & Assignment Permission & Context Extraction ──────────────
+    allowed_material_ids = None
+    source_scope = "global"
+    assignment_ai_mode = AIHelpMode.ALLOWED
+    
+    if classroom_id:
+        # Check membership
+        from app.services.classroom_service import get_classroom_membership
+        membership = await get_classroom_membership(classroom_id, user_id, db)
+        if not membership and not user_id: # user_id should exist from CurrentUser
+             # Fallback check for admin/dev
+             pass
+        
+        # We need the user object for role check
+        from app.models.user import User
+        res = await db.execute(select(User).where(User.id == user_id))
+        current_user = res.scalar_one_or_none()
+        
+        if not membership and not (current_user and current_user.role.is_privileged):
+            raise HTTPException(status_code=403, detail="You are not a member of this classroom.")
+            
+        source_scope = "classroom"
+        
+        # Fetch classroom materials
+        from app.models.classroom import ClassroomMaterial
+        res = await db.execute(select(ClassroomMaterial.material_id).where(ClassroomMaterial.classroom_id == classroom_id))
+        allowed_material_ids = [row[0] for row in res.all()]
+        
+        if assignment_id:
+            res = await db.execute(select(ClassroomAssignment).where(ClassroomAssignment.id == assignment_id))
+            assignment = res.scalar_one_or_none()
+            if assignment:
+                if assignment.classroom_id != classroom_id:
+                    raise HTTPException(status_code=400, detail="Assignment does not belong to this classroom.")
+                
+                assignment_ai_mode = assignment.ai_help_mode
+                source_scope = "assignment"
+                
+                # Prioritize assignment attachments
+                from app.models.classroom import AssignmentAttachment
+                res = await db.execute(select(AssignmentAttachment.material_id).where(AssignmentAttachment.assignment_id == assignment_id, AssignmentAttachment.material_id != None))
+                att_ids = [row[0] for row in res.all()]
+                if att_ids:
+                    # For assignment scope, we ONLY look at attachments first
+                    allowed_material_ids = att_ids
+                
+                # Check AI Mode
+                if assignment_ai_mode == AIHelpMode.DISABLED:
+                    return ChatResponse(
+                        session_id=session_id or generate_uuid(),
+                        message_id=generate_uuid(),
+                        answer="AI assistance is strictly disabled for this assignment by your teacher. Please review the provided materials or contact your teacher for help.",
+                        mode="general",
+                        source_scope="assignment",
+                        sources=[]
+                    )
+
     # ── 5. RAG Retrieval & Context Formatting ──────────────────────────────────
     raw_context = ""
     source_labels = []
@@ -331,8 +391,31 @@ async def ask(
             top_k=5,
             course=course,
             subject=subject,
-            semester=semester
+            semester=semester,
+            include_material_ids=allowed_material_ids
         )
+        
+        # Hierarchical Fallback: If assignment/classroom search failed, try global if allowed
+        if not raw_context and classroom_id and not is_library_query:
+            # If we were in assignment scope and found nothing, try classroom scope
+            if source_scope == "assignment":
+                from app.models.classroom import ClassroomMaterial
+                res = await db.execute(select(ClassroomMaterial.material_id).where(ClassroomMaterial.classroom_id == classroom_id))
+                cl_ids = [row[0] for row in res.all()]
+                if cl_ids:
+                    raw_context, source_labels, min_distance = await rag.retrieve(
+                        query, top_k=5, include_material_ids=cl_ids
+                    )
+                    if raw_context:
+                        source_scope = "classroom"
+            
+            # If still nothing, try global (unless restricted - here we allow global fallback but mark it)
+            if not raw_context:
+                raw_context, source_labels, min_distance = await rag.retrieve(
+                    query, top_k=5, course=course, subject=subject, semester=semester
+                )
+                if raw_context:
+                    source_scope = "global"
         
         # ── 5.1 Multi-Signal Relevance Gating ──────────────────────────────────
         num_hits = len(source_labels)
@@ -450,6 +533,19 @@ async def ask(
             "If the answer is partially in the context and partially from your knowledge, "
             "prioritize the context but be helpful."
         )
+        
+        if assignment_id and assignment_ai_mode == AIHelpMode.HINT_ONLY:
+            system_content += (
+                "\n\n### ACADEMIC INTEGRITY MODE: HINT_ONLY\n"
+                "You must NOT provide the final answer, direct solutions, or complete assignment work. "
+                "Instead, provide conceptual guidance, hints, steps to follow, and references to relevant material sections. "
+                "Guide the student so they can arrive at the answer themselves."
+            )
+        
+        if source_scope == "classroom":
+            system_content += "\n\nNote: You are currently using materials from this specific classroom as your primary source."
+        elif source_scope == "assignment":
+            system_content += "\n\nNote: You are currently focusing on materials attached to this specific assignment."
     else:
         # Strict General Mode / Fallback Loop (HARD MODE SEPARATION)
         formatted_query = query
@@ -561,6 +657,7 @@ async def ask(
         answer=answer, 
         mode=mode, 
         response_type=response_type,
+        source_scope=source_scope,
         sources=source_labels
     )
 

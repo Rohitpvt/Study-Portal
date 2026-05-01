@@ -22,6 +22,10 @@ class ChatRequest(BaseModel):
     subject: Optional[str] = None
     semester: Optional[int] = None
 
+    # Classroom Scope (Phase 10)
+    classroom_id: Optional[str] = None
+    assignment_id: Optional[str] = None
+
 
 class SourceMeta(BaseModel):
     title: str
@@ -41,6 +45,7 @@ class ChatResponse(BaseModel):
     answer: str
     mode: str = "document"  # "general" | "document" | "library"
     response_type: str = "text"  # "text" | "code"
+    source_scope: str = "global" # "global" | "classroom" | "assignment"
     sources: List[SourceMeta] = []  # Detailed document citations
 
 

@@ -19,7 +19,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.routes import auth, users, materials, contributions, chat, admin, favorites, metadata, support, developer
+from app.routes import auth, users, materials, contributions, chat, admin, favorites, metadata, support, developer, classrooms
 
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
@@ -160,6 +160,7 @@ async def sentry_tagging_middleware(request, call_next):
     elif path.startswith("/api/v1/admin"): subsystem = "admin"
     elif path.startswith("/api/v1/developer"): subsystem = "developer"
     elif path.startswith("/api/v1/favorites"): subsystem = "favorites"
+    elif path.startswith("/api/v1/classrooms"): subsystem = "classroom"
     
     with sentry_sdk.configure_scope() as scope:
         scope.set_tag("subsystem", subsystem)
@@ -193,6 +194,7 @@ app.include_router(favorites.router,     prefix=API_PREFIX)
 app.include_router(metadata.router,      prefix=API_PREFIX)
 app.include_router(support.router,       prefix=API_PREFIX)
 app.include_router(developer.router,     prefix=API_PREFIX)
+app.include_router(classrooms.router,    prefix=API_PREFIX)
 
 # ── Static file serving (with isolated CORS sub-app) ───────────────────────────
 os.makedirs("uploads", exist_ok=True)

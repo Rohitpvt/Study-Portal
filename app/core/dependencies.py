@@ -9,7 +9,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 import time
 
@@ -95,6 +95,76 @@ async def require_teacher_or_above(current_user: Annotated[User, Depends(get_cur
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Teacher-level access or above required.")
     return current_user
 
+
+from typing import Annotated, Optional
+from app.models.classroom import Classroom, ClassroomMember, MembershipStatus
+
+async def get_classroom_membership(
+    classroom_id: str,
+    user: User,
+    db: AsyncSession
+) -> Optional[ClassroomMember]:
+    result = await db.execute(
+        select(ClassroomMember).where(
+            and_(
+                ClassroomMember.classroom_id == classroom_id,
+                ClassroomMember.user_id == user.id,
+                ClassroomMember.status == MembershipStatus.ACTIVE
+            )
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+async def require_classroom_member(
+    classroom_id: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Classroom:
+    """Allow access if user is a member, owner, or admin/dev."""
+    if current_user.role.is_privileged:
+        result = await db.execute(select(Classroom).where(Classroom.id == classroom_id))
+        classroom = result.scalar_one_or_none()
+        if not classroom:
+            raise HTTPException(status_code=404, detail="Classroom not found.")
+        return classroom
+
+    result = await db.execute(
+        select(Classroom, ClassroomMember)
+        .join(ClassroomMember)
+        .where(
+            and_(
+                Classroom.id == classroom_id,
+                ClassroomMember.user_id == current_user.id,
+                ClassroomMember.status == MembershipStatus.ACTIVE
+            )
+        )
+    )
+    row = result.first()
+    if not row:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not a member of this classroom.")
+    return row[0]
+
+
+async def require_classroom_owner(
+    classroom_id: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Classroom:
+    """Allow access if user is the owner or admin/dev."""
+    result = await db.execute(select(Classroom).where(Classroom.id == classroom_id))
+    classroom = result.scalar_one_or_none()
+    
+    if not classroom:
+        raise HTTPException(status_code=404, detail="Classroom not found.")
+        
+    if current_user.role.is_privileged:
+        return classroom
+        
+    if classroom.created_by_teacher_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the classroom owner can perform this action.")
+        
+    return classroom
 
 # ── Type aliases used in route signatures ─────────────────────────────────────
 CurrentUser      = Annotated[User, Depends(get_current_user)]
