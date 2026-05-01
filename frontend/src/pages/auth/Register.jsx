@@ -94,7 +94,6 @@ export default function Register() {
     e.preventDefault();
     setError(null);
 
-    // OTP Bypassed for testing
     /*
     if (!otpVerified) {
       toastError("You must verify your email with an OTP first.");
@@ -406,7 +405,7 @@ export default function Register() {
 
           <button
             type="submit"
-            disabled={loading || !otpVerified}
+            disabled={loading}
             className="w-full mt-6 flex justify-center items-center gap-3 py-5 px-4 border-transparent rounded-2xl shadow-xl shadow-indigo-100 dark:shadow-none text-sm font-black text-white premium-gradient hover:opacity-90 disabled:opacity-50 transition-all active:scale-[0.98]"
           >
             {loading ? (
