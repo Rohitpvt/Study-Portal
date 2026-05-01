@@ -4,7 +4,7 @@ Classroom Verification Tests (Fixed)
 Verifies Resource Packet, Classroom AI, and Assignment AI functionality.
 """
 
-import sys, os, json, asyncio
+import sys, os, json, asyncio, time
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi.testclient import TestClient
@@ -68,11 +68,14 @@ for q in queries:
     if resp.status_code == 200:
         data = resp.json()
         print(f"Q: {q}")
-        print(f"  A: {data['response'][:100]}...")
+        print(f"  A: {data['answer'][:100]}...")
+
         sources = data.get("sources", [])
         print(f"  Sources: {[s['title'] for s in sources]}")
     else:
         print(f"✗ FAILED Classroom AI: {q} -> {resp.status_code} {resp.text}")
+    time.sleep(2)
+
 
 # 5. Assignment AI Test
 print("\n[4] Assignment AI Test")
@@ -84,7 +87,8 @@ resp = client.post("/api/v1/chat/ask", headers=headers, json={
 if resp.status_code == 200:
     data = resp.json()
     print(f"Q: {q}")
-    print(f"  A: {data['response'][:100]}...")
+    print(f"  A: {data['answer'][:100]}...")
+
     print(f"  Sources: {[s['title'] for s in data.get('sources', [])]}")
 else:
     print(f"✗ FAILED Assignment AI -> {resp.status_code} {resp.text}")

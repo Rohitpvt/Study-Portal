@@ -50,9 +50,13 @@ async def get_current_user(
         
     import time
     now = int(time.time())
-    if not user.last_seen or (now - user.last_seen > 60):
+    if not user.last_seen or (now - user.last_seen > 3600):
         user.last_seen = now
-        await db.commit()
+        try:
+            await db.commit()
+        except Exception:
+            await db.rollback()
+
         
     # Inject user into Sentry context
     import sentry_sdk

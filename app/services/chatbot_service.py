@@ -457,22 +457,36 @@ async def ask(
                 "algorithms", "physics", "biology", "chemistry", "mathematics"
             ]
             
+            # Subject synonym mapping
+            synonyms = {
+                "dbms": ["database", "sql", "dbms"],
+                "os": ["operating system", "os"],
+                "ml": ["machine learning", "ml"],
+                "ai": ["artificial intelligence", "neural", "ai"],
+                "ds": ["data structure", "ds"],
+                "daa": ["algorithm", "complexity", "daa"],
+                "se": ["software engineering", "se"],
+                "cn": ["network", "tcp", "cn"]
+            }
+            
             query_focus = None
-            for subj in academic_subjects:
-                if re.search(r"\b" + re.escape(subj) + r"s?\b", q_lower):
-                    query_focus = subj
+            for subj, terms in synonyms.items():
+                pattern = r"\b(" + "|".join(re.escape(t) for t in terms) + r")s?\b"
+                if re.search(pattern, q_lower):
+                    query_focus = terms
                     break
                     
             if query_focus:
                 found_match = False
                 for title in top_titles:
-                    if query_focus in title:
+                    if any(term in title for term in query_focus):
                         found_match = True
                         break
                 
                 if not found_match:
                     relevance_pass = False
                     reason = "subject_mismatch_guard"
+
 
         logger.info(f"[RAG] Decision: {'document_mode' if relevance_pass else 'general_mode'} | reason={reason} | dist={min_distance:.4f} | hits={num_hits} | ctx={context_len} | sum_intent={is_summary_query}")
 

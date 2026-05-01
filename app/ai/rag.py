@@ -139,8 +139,12 @@ async def embed(text: str, input_type: str = "passage") -> list[float]:
     return None
 
 def is_ready() -> bool:
-    """Return True if the FAISS index has been built."""
-    return _index_built and _faiss_index is not None
+    """Return True if the FAISS index has been built or successfully loaded from disk."""
+    global _index_built, _faiss_index
+    if _index_built and _faiss_index is not None:
+        return True
+    return load_index()
+
 
 def get_word_chunks(text: str, chunk_size: int = 250, overlap: int = 50) -> list[str]:
     """Split text into overlapping word-based chunks safely below embedding limits."""
