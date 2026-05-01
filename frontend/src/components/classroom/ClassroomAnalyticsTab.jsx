@@ -182,7 +182,7 @@ const ClassroomAnalyticsTab = ({ classroomId }) => {
                              <div className="w-16 h-1 bg-white/5 rounded-full overflow-hidden">
                                 <div 
                                   className={`h-full rounded-full ${item.average_marks < 50 ? 'bg-rose-500' : 'bg-indigo-500'}`}
-                                  style={{ width: `${item.average_marks}%` }}
+                                  style={{ width: `${item.average_marks || 0}%` }}
                                 />
                              </div>
                            )}
@@ -279,7 +279,7 @@ const ClassroomAnalyticsTab = ({ classroomId }) => {
                       <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
                          <div 
                            className="h-full bg-rose-500 rounded-full" 
-                           style={{ width: `${topic.average_score}%` }}
+                           style={{ width: `${topic.average_score || 0}%` }}
                          />
                       </div>
                       <div className="flex items-center gap-4">

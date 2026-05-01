@@ -31,7 +31,7 @@ export default function Login() {
     
     try {
       const formData = new URLSearchParams();
-      formData.append('username', email);
+      formData.append('username', email.trim());
       formData.append('password', password);
       
       const response = await api.post('/auth/login', formData, {

@@ -28,7 +28,7 @@ import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
   const { userProfile } = useAuth();
-  const { info } = useNotification();
+  const { info, error } = useNotification();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
