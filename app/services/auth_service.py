@@ -75,7 +75,6 @@ async def register_user(payload: RegisterRequest, db: AsyncSession) -> User:
     # otp_record = otp_record_result.scalars().first()
     # if not otp_record:
     #     raise HTTPException(status_code=403, detail="Email verification (OTP) required before registration.")
-    otp_record = None
 
     # 5. Determine department/course from email
     department = extract_department(payload.email) if is_christ_email(payload.email) else None
@@ -94,8 +93,9 @@ async def register_user(payload: RegisterRequest, db: AsyncSession) -> User:
     )
     db.add(user)
     
-    # 7. Delete the OTP record securely so it cannot be rebroadcasted
-    await db.execute(delete(OTPRecord).where(OTPRecord.id == otp_record.id))
+    # 7. Delete the OTP record securely so it cannot be rebroadcasted (Bypassed for testing)
+    # if otp_record:
+    #     await db.execute(delete(OTPRecord).where(OTPRecord.id == otp_record.id))
 
     await db.flush()   # get the PK without committing
     return user
