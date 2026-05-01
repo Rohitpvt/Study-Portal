@@ -1,0 +1,55 @@
+{
+  "batch": 2,
+  "uploaded": 12,
+  "total_attempted": 12,
+  "materials": [
+    {
+      "id": "ae6552f4-e6bb-4646-a7bf-4393957c6592",
+      "title": "Database Management Systems"
+    },
+    {
+      "id": "b6400bbf-dc5f-4dcc-9dfd-c0b7ace83ccc",
+      "title": "Operating Systems Concepts"
+    },
+    {
+      "id": "36695f6c-84e6-47fa-82b8-a310f8fe7122",
+      "title": "Computer Networks Fundamentals"
+    },
+    {
+      "id": "fe6d3c70-922f-43b5-b4d3-34a74a438efc",
+      "title": "Design and Analysis of Algorithms"
+    },
+    {
+      "id": "30357d79-9321-43c9-9817-2f7a0caa18aa",
+      "title": "Software Engineering Principles"
+    },
+    {
+      "id": "98f5d075-aa3b-4799-be8f-297c9fec36f5",
+      "title": "Probability and Statistics"
+    },
+    {
+      "id": "3517e4f6-2c50-475e-b00b-2d5059da0793",
+      "title": "Discrete Mathematics"
+    },
+    {
+      "id": "33cee541-f0a6-4f6a-9d4a-cdf21fbd5d28",
+      "title": "Linear Algebra Essentials"
+    },
+    {
+      "id": "77c2fd34-087e-4db2-9354-3694ba2d11ea",
+      "title": "Introduction to Artificial Intelligence"
+    },
+    {
+      "id": "9ea5329c-f53b-4fba-950e-2c46503cf39c",
+      "title": "Web Development Technologies"
+    },
+    {
+      "id": "a0d77355-1344-439e-833f-257566806355",
+      "title": "Cybersecurity Fundamentals"
+    },
+    {
+      "id": "73528805-7933-44ff-bc10-eaa841df306a",
+      "title": "Cloud Computing Architecture"
+    }
+  ]
+}

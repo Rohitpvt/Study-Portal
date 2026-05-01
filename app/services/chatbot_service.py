@@ -322,16 +322,13 @@ async def ask(
     
     if classroom_id:
         # Check membership
-        from app.services.classroom_service import get_classroom_membership
-        membership = await get_classroom_membership(classroom_id, user_id, db)
-        if not membership and not user_id: # user_id should exist from CurrentUser
-             # Fallback check for admin/dev
-             pass
-        
-        # We need the user object for role check
         from app.models.user import User
         res = await db.execute(select(User).where(User.id == user_id))
         current_user = res.scalar_one_or_none()
+
+        from app.core.dependencies import get_classroom_membership
+        membership = await get_classroom_membership(classroom_id, current_user, db)
+
         
         if not membership and not (current_user and current_user.role.is_privileged):
             raise HTTPException(status_code=403, detail="You are not a member of this classroom.")
