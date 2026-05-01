@@ -26,6 +26,7 @@ const ClassroomMaterialsTab = ({ classroom, canManage }) => {
   const [editingTopic, setEditingTopic] = useState(null);
   const [isAttachModalOpen, setIsAttachModalOpen] = useState(false);
   const [attachToTopicId, setAttachToTopicId] = useState(null);
+  const [isResourcePacketView, setIsResourcePacketView] = useState(false);
 
   const [expandedTopics, setExpandedTopics] = useState({});
 
@@ -110,20 +111,22 @@ const ClassroomMaterialsTab = ({ classroom, canManage }) => {
   return (
     <div className="space-y-10">
       {/* Header & Filters */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="flex-1">
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Classroom Materials</h2>
-          <p className="text-slate-500 font-bold mb-6">Organized by topic and academic section.</p>
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+        <div className="flex-1 space-y-6">
+          <div>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Academic Materials</h2>
+            <p className="text-slate-500 font-bold">Access all shared resources and study packets.</p>
+          </div>
           
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex items-center gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
             {sectionFilters.map(f => (
               <button
                 key={f.id}
                 onClick={() => setActiveSectionFilter(f.id)}
-                className={`px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex-shrink-0 ${
+                className={`px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex-shrink-0 border-2 ${
                   activeSectionFilter === f.id 
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' 
-                  : 'bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10 hover:border-indigo-500'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xl shadow-indigo-500/20' 
+                  : 'bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 border-white/10 hover:border-indigo-500/50'
                 }`}
               >
                 {f.label}
@@ -132,29 +135,63 @@ const ClassroomMaterialsTab = ({ classroom, canManage }) => {
           </div>
         </div>
 
-        {canManage && (
-          <div className="flex items-center gap-3">
-             <button
-               onClick={() => { setEditingTopic(null); setIsTopicManagerOpen(true); }}
-               className="flex items-center gap-2 px-6 py-4 bg-white dark:bg-white/5 text-slate-700 dark:text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all border border-slate-200 dark:border-white/10 hover:border-indigo-500"
-             >
-               <Plus className="w-4 h-4" />
-               New Topic
-             </button>
-             <button
-               onClick={() => { setAttachToTopicId(null); setIsAttachModalOpen(true); }}
-               className="flex items-center gap-2 px-6 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20"
-             >
-               <Paperclip className="w-4 h-4" />
-               Attach Material
-             </button>
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-3">
+           <button
+             onClick={() => {
+               setIsResourcePacketView(!isResourcePacketView);
+               setActiveSectionFilter('all');
+             }}
+             className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border ${
+               isResourcePacketView 
+               ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg' 
+               : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
+             }`}
+             aria-label="Toggle Resource Packet View"
+           >
+             <BookOpen className="w-4 h-4" />
+             {isResourcePacketView ? 'Standard View' : 'Resource Packet'}
+           </button>
+           {canManage && (
+             <>
+               <button
+                 onClick={() => { setEditingTopic(null); setIsTopicManagerOpen(true); }}
+                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-4 bg-white dark:bg-white/5 text-slate-700 dark:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border border-slate-200 dark:border-white/10 hover:border-indigo-500"
+               >
+                 <Plus className="w-4 h-4" />
+                 New Topic
+               </button>
+               <button
+                 onClick={() => { setAttachToTopicId(null); setIsAttachModalOpen(true); }}
+                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-indigo-500/20"
+               >
+                 <Paperclip className="w-4 h-4" />
+                 Attach
+               </button>
+             </>
+           )}
+        </div>
       </div>
 
-      {/* Topics List */}
+      {/* Materials List */}
       <div className="space-y-6">
-        {topics.map(topic => {
+        {isResourcePacketView ? (
+          <div className="glass dark:bg-[#0a0a0a] rounded-[2.5rem] border border-white/60 dark:border-white/5 p-8 space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Full Resource Index</h3>
+              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{filteredMaterials.length} Items</span>
+            </div>
+            {filteredMaterials.map(mat => (
+              <ClassroomMaterialCard 
+                key={mat.id}
+                material={mat}
+                canManage={canManage}
+                onRemove={handleRemoveMaterial}
+              />
+            ))}
+          </div>
+        ) : (
+          <>
+            {topics.map(topic => {
           const topicMaterials = filteredMaterials.filter(m => m.topic_id === topic.id);
           if (activeSectionFilter !== 'all' && topicMaterials.length === 0) return null;
 
@@ -252,8 +289,10 @@ const ClassroomMaterialsTab = ({ classroom, canManage }) => {
             )}
           </div>
         )}
+        </>
+        )}
 
-        {topics.length === 0 && filteredMaterials.length === 0 && (
+        {!isResourcePacketView && topics.length === 0 && filteredMaterials.length === 0 && (
           <div className="py-32 text-center glass dark:bg-[#0a0a0a] rounded-[4rem] border border-white/60 dark:border-white/5">
              <AlertCircle className="w-16 h-16 text-slate-300 dark:text-white/10 mx-auto mb-6" />
              <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-2">No Materials Yet</h3>

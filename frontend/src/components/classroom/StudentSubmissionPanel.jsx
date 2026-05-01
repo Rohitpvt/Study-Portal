@@ -36,7 +36,7 @@ const StudentSubmissionPanel = ({ classroomId, assignment }) => {
   }, [assignment.id]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     if (!file && !textResponse.trim()) {
       error('Please provide a file or text response.');
       return;
@@ -55,7 +55,12 @@ const StudentSubmissionPanel = ({ classroomId, assignment }) => {
       fetchMySubmission();
       setFile(null);
     } catch (err) {
-      error(err.response?.data?.detail || 'Failed to submit assignment.');
+      const detail = err.response?.data?.detail;
+      if (err.code === 'ERR_NETWORK') {
+        error('Network connection error. Your response is saved, please try again.');
+      } else {
+        error(detail || 'Failed to submit assignment. Please try again.');
+      }
     } finally {
       setSubmitting(false);
     }

@@ -25,6 +25,9 @@ from app.schemas.classroom import (
     AssignmentSubmissionCreate, AssignmentSubmissionGradeRequest
 )
 from app.schemas.classroom_comment import ClassroomCommentCreate, ClassroomCommentUpdate
+from app.services.notification_service import NotificationService
+from app.schemas.notification import NotificationCreate
+from app.models.notification import NotificationType
 
 
 class ClassroomService:
@@ -38,6 +41,21 @@ class ClassroomService:
             result = await db.execute(select(Classroom).where(Classroom.join_code == code))
             if not result.scalar_one_or_none():
                 return code
+
+    @staticmethod
+    async def _get_active_student_ids(db: AsyncSession, classroom_id: str) -> List[str]:
+        """Fetch all active student IDs for a classroom."""
+        result = await db.execute(
+            select(ClassroomMember.user_id)
+            .where(
+                and_(
+                    ClassroomMember.classroom_id == classroom_id,
+                    ClassroomMember.role_in_class == "student",
+                    ClassroomMember.status == MembershipStatus.ACTIVE
+                )
+            )
+        )
+        return list(result.scalars().all())
 
     @staticmethod
     async def create_classroom(db: AsyncSession, creator: User, data: ClassroomCreate) -> Classroom:
@@ -239,6 +257,32 @@ class ClassroomService:
         db.add(cl_material)
         await db.commit()
         await db.refresh(cl_material)
+
+        # Notify Students
+        try:
+            student_ids = await ClassroomService._get_active_student_ids(db, classroom_id)
+            if student_ids:
+                # Fetch material title for the message
+                m_res = await db.execute(select(Material.title).where(Material.id == data.material_id))
+                m_title = m_res.scalar() or "New Material"
+                
+                cl_res = await db.execute(select(Classroom.name).where(Classroom.id == classroom_id))
+                cl_name = cl_res.scalar() or "Classroom"
+
+                notifications = [
+                    NotificationCreate(
+                        user_id=sid,
+                        type=NotificationType.MATERIAL_ADDED,
+                        title=f"New Material: {m_title}",
+                        message=f"A new material has been added to {cl_name}.",
+                        classroom_id=classroom_id,
+                        link_url=f"/classroom/{classroom_id}?tab=materials"
+                    ) for sid in student_ids
+                ]
+                await NotificationService.create_bulk_notifications(db, notifications)
+        except Exception as e:
+            logger.warning(f"Failed to trigger material notifications: {e}")
+
         return cl_material
 
     @staticmethod
@@ -274,6 +318,28 @@ class ClassroomService:
         db.add(announcement)
         await db.commit()
         await db.refresh(announcement)
+
+        # Notify Students
+        try:
+            student_ids = await ClassroomService._get_active_student_ids(db, classroom_id)
+            if student_ids:
+                cl_res = await db.execute(select(Classroom.name).where(Classroom.id == classroom_id))
+                cl_name = cl_res.scalar() or "Classroom"
+                
+                notifications = [
+                    NotificationCreate(
+                        user_id=sid,
+                        type=NotificationType.CLASSROOM_ANNOUNCEMENT,
+                        title=f"New Announcement: {announcement.title}",
+                        message=f"There is a new update in {cl_name}.",
+                        classroom_id=classroom_id,
+                        link_url=f"/classroom/{classroom_id}?tab=stream"
+                    ) for sid in student_ids
+                ]
+                await NotificationService.create_bulk_notifications(db, notifications)
+        except Exception as e:
+            logger.warning(f"Failed to trigger announcement notifications: {e}")
+
         return announcement
 
     @staticmethod
@@ -321,6 +387,30 @@ class ClassroomService:
         db.add(assignment)
         await db.commit()
         await db.refresh(assignment)
+
+        # Notify Students if published
+        if assignment.status == AssignmentStatus.PUBLISHED:
+            try:
+                student_ids = await ClassroomService._get_active_student_ids(db, classroom_id)
+                if student_ids:
+                    cl_res = await db.execute(select(Classroom.name).where(Classroom.id == classroom_id))
+                    cl_name = cl_res.scalar() or "Classroom"
+                    
+                    notifications = [
+                        NotificationCreate(
+                            user_id=sid,
+                            type=NotificationType.ASSIGNMENT_CREATED,
+                            title=f"New Assignment: {assignment.title}",
+                            message=f"A new assignment has been posted in {cl_name}.",
+                            classroom_id=classroom_id,
+                            assignment_id=assignment.id,
+                            link_url=f"/classroom/{classroom_id}?assignment={assignment.id}"
+                        ) for sid in student_ids
+                    ]
+                    await NotificationService.create_bulk_notifications(db, notifications)
+            except Exception as e:
+                logger.warning(f"Failed to trigger assignment notifications: {e}")
+
         return assignment
 
     @staticmethod
@@ -349,10 +439,42 @@ class ClassroomService:
         if not assignment:
             raise HTTPException(status_code=404, detail="Assignment not found.")
             
-        for key, value in data.model_dump(exclude_unset=True).items():
+        old_status = assignment.status
+        data_dict = data.model_dump(exclude_unset=True)
+        for key, value in data_dict.items():
             setattr(assignment, key, value)
+            
+        # Check if status changed to PUBLISHED
+        status_changed_to_published = False
+        if "status" in data_dict and data_dict["status"] == AssignmentStatus.PUBLISHED and old_status != AssignmentStatus.PUBLISHED:
+            status_changed_to_published = True
+
         await db.commit()
         await db.refresh(assignment)
+
+        # Notify Students if just published
+        if status_changed_to_published:
+            try:
+                student_ids = await ClassroomService._get_active_student_ids(db, assignment.classroom_id)
+                if student_ids:
+                    cl_res = await db.execute(select(Classroom.name).where(Classroom.id == assignment.classroom_id))
+                    cl_name = cl_res.scalar() or "Classroom"
+                    
+                    notifications = [
+                        NotificationCreate(
+                            user_id=sid,
+                            type=NotificationType.ASSIGNMENT_CREATED,
+                            title=f"Assignment Published: {assignment.title}",
+                            message=f"Assignment {assignment.title} is now available in {cl_name}.",
+                            classroom_id=assignment.classroom_id,
+                            assignment_id=assignment.id,
+                            link_url=f"/classroom/{assignment.classroom_id}?assignment={assignment.id}"
+                        ) for sid in student_ids
+                    ]
+                    await NotificationService.create_bulk_notifications(db, notifications)
+            except Exception as e:
+                logger.warning(f"Failed to trigger publication notifications: {e}")
+
         return assignment
 
     @staticmethod
@@ -500,6 +622,24 @@ class ClassroomService:
         
         await db.commit()
         await db.refresh(submission)
+
+        # Notify Student
+        try:
+            # Fetch assignment title
+            a_res = await db.execute(select(ClassroomAssignment.title).where(ClassroomAssignment.id == submission.assignment_id))
+            a_title = a_res.scalar() or "Assignment"
+            
+            await NotificationService.create_notification(db, NotificationCreate(
+                user_id=submission.student_id,
+                type=NotificationType.ASSIGNMENT_GRADED,
+                title=f"Assignment Graded: {a_title}",
+                message=f"Your submission for {a_title} has been graded.",
+                assignment_id=submission.assignment_id,
+                link_url=f"/classroom/{assignment.classroom_id}?assignment={submission.assignment_id}"
+            ))
+        except Exception as e:
+            logger.warning(f"Failed to trigger grade notification: {e}")
+
         return submission
 
     @staticmethod
@@ -513,6 +653,23 @@ class ClassroomService:
         submission.resubmission_allowed = True
         await db.commit()
         await db.refresh(submission)
+
+        # Notify Student
+        try:
+            a_res = await db.execute(select(ClassroomAssignment.title).where(ClassroomAssignment.id == submission.assignment_id))
+            a_title = a_res.scalar() or "Assignment"
+            
+            await NotificationService.create_notification(db, NotificationCreate(
+                user_id=submission.student_id,
+                type=NotificationType.ASSIGNMENT_RETURNED,
+                title=f"Assignment Returned: {a_title}",
+                message=f"Your submission for {a_title} has been returned for revisions.",
+                assignment_id=submission.assignment_id,
+                link_url=f"/classroom/{submission.assignment.classroom_id}?assignment={submission.assignment_id}"
+            ))
+        except Exception as e:
+            logger.warning(f"Failed to trigger return notification: {e}")
+
         return submission
 
     # ── COMMENTS & DOUBTS ──────────────────────────────────────────────────────
@@ -585,6 +742,26 @@ class ClassroomService:
         db.add(comment)
         await db.commit()
         await db.refresh(comment)
+
+        # Notify Recipient if it's a private reply from a teacher
+        try:
+            if comment.visibility == CommentVisibility.PRIVATE and comment.recipient_id and comment.parent_id:
+                # Check if sender is a teacher
+                s_res = await db.execute(select(User).where(User.id == sender_id))
+                sender = s_res.scalar()
+                if sender and sender.role.is_educator:
+                    await NotificationService.create_notification(db, NotificationCreate(
+                        user_id=comment.recipient_id,
+                        type=NotificationType.PRIVATE_DOUBT_REPLY,
+                        title="New Doubt Reply",
+                        message="A teacher has replied to your private doubt.",
+                        classroom_id=classroom_id,
+                        assignment_id=comment.assignment_id,
+                        link_url=f"/classroom/{classroom_id}?assignment={comment.assignment_id}&tab=comments" if comment.assignment_id else f"/classroom/{classroom_id}"
+                    ))
+        except Exception as e:
+            logger.warning(f"Failed to trigger comment notification: {e}")
+
         return comment
 
     @staticmethod

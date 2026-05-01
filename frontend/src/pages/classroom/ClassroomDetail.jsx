@@ -97,48 +97,59 @@ const ClassroomDetail = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Hero Banner */}
-      <div className={`relative h-64 bg-gradient-to-br ${currentBanner} rounded-[3rem] overflow-hidden shadow-2xl mb-8`}>
-        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
-        <div className="absolute inset-0 flex flex-col justify-end p-10">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="px-4 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black text-white uppercase tracking-widest border border-white/20">
+      {/* Classroom Header */}
+      <div className="relative h-48 sm:h-64 rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden mb-8 sm:mb-12 group shadow-2xl">
+        <div className={`absolute inset-0 bg-gradient-to-br ${currentBanner}`} />
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]" />
+        
+        <div className="absolute inset-0 p-8 sm:p-12 flex flex-col justify-end">
+          <div className="flex flex-wrap items-center gap-3 mb-3 sm:mb-4">
+            <span className="px-3 sm:px-4 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black text-white uppercase tracking-widest border border-white/20">
               {classroom.subject}
             </span>
-            {classroom.join_code && (
-              <span className="px-4 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black text-white uppercase tracking-widest border border-white/20 flex items-center gap-2">
-                <Hash className="w-3 h-3" />
-                {classroom.join_code}
-              </span>
-            )}
+            <span className="px-3 sm:px-4 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black text-white uppercase tracking-widest border border-white/20">
+              {classroom.course} • Sem {classroom.semester}
+            </span>
           </div>
-          <h1 className="text-5xl font-black text-white tracking-tight leading-none mb-2">{classroom.name}</h1>
-          <p className="text-lg font-bold text-white/80">{classroom.course} • Semester {classroom.semester} {classroom.section && `• Section ${classroom.section}`}</p>
+          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tighter mb-2 drop-shadow-2xl leading-tight">
+            {classroom.name}
+          </h1>
+          <p className="text-sm sm:text-lg font-bold text-white/80 uppercase tracking-widest flex items-center gap-2">
+            Code: <span className="text-white font-black bg-white/10 px-2 py-0.5 rounded-lg border border-white/10">{classroom.join_code}</span>
+          </p>
         </div>
-        
+
         {classroom.can_manage && (
-          <button className="absolute top-8 right-10 p-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-3xl text-white transition-all">
-            <Settings className="w-6 h-6" />
+          <button 
+            className="absolute top-4 sm:top-8 right-4 sm:right-10 p-3 sm:p-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl sm:rounded-3xl text-white transition-all"
+            aria-label="Classroom Settings"
+          >
+            <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         )}
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 mb-10 overflow-x-auto pb-2 scrollbar-hide">
-        {tabs.filter(t => !t.hidden).map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2.5 px-8 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${
-              activeTab === tab.id 
-                ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-500/20' 
-                : 'text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-white/5'
-            }`}
-          >
-            <tab.icon className="w-4.5 h-4.5" />
-            {tab.label}
-          </button>
-        ))}
+      <div className="flex items-center gap-2 mb-8 sm:mb-12 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex items-center gap-2 min-w-max">
+          {tabs.filter(t => !t.hidden).map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2.5 px-6 sm:px-8 py-3.5 sm:py-4 rounded-[1.2rem] sm:rounded-[1.5rem] font-black text-[10px] sm:text-xs uppercase tracking-widest transition-all shrink-0 ${
+                activeTab === tab.id 
+                  ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-500/20' 
+                  : 'text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-white/5 border border-transparent hover:border-white/10'
+              }`}
+              aria-label={`${tab.label} tab`}
+              aria-selected={activeTab === tab.id}
+              role="tab"
+            >
+              <tab.icon className="w-4 sm:w-4.5 h-4 sm:h-4.5" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tab Content */}

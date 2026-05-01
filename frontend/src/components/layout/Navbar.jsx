@@ -24,6 +24,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { useTheme } from '../../context/ThemeContext';
 import { resolveUserAvatar, getOnlineStatus, handleAvatarError } from '../../utils/avatarUtils';
+import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
   const { userProfile } = useAuth();
@@ -43,6 +44,26 @@ export default function Navbar() {
 
   // ── Admin Alert Badge State ────────────────────────────────────────────────
   const [alertCount, setAlertCount] = useState(0);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      info("Connection restored. Syncing session...");
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      error("You appear to be offline. Some features may be unavailable.");
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [info, error]);
 
   useEffect(() => {
     if (!userProfile || !['admin', 'developer'].includes(userProfile.role?.toLowerCase())) return;
@@ -213,6 +234,14 @@ export default function Navbar() {
                 {theme === 'dark' ? <Sun className="w-5 h-5 fill-current" /> : <Moon className="w-5 h-5 fill-current" />}
               </button>
 
+              {/* Network Status Dot */}
+              {!isOnline && (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 text-rose-500 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-500/20 animate-pulse">
+                  <div className="w-2 h-2 bg-rose-500 rounded-full" />
+                  Offline
+                </div>
+              )}
+
               {/* Admin Alert Bell */}
               {isAdmin && (
                 <button
@@ -228,6 +257,9 @@ export default function Navbar() {
                   )}
                 </button>
               )}
+
+              {/* Classroom/User Notification Bell */}
+              {isLoggedIn && <NotificationBell />}
 
               {!isLoggedIn && (
                 <Link 

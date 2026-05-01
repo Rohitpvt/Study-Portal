@@ -17,11 +17,17 @@ const AssignmentCard = ({
     
     const now = new Date();
     const due = new Date(assignment.due_at);
-    const diffHours = (due - now) / (1000 * 60 * 60);
+    const diffMs = due - now;
+    const diffHours = diffMs / (1000 * 60 * 60);
+    const diffDays = Math.ceil(diffHours / 24);
 
-    if (assignment.status === 'closed') return { label: 'Closed', color: 'text-rose-500', bg: 'bg-rose-500/10', icon: AlertCircle };
+    if (assignment.status === 'closed') return { label: 'Closed', color: 'text-rose-500', bg: 'bg-rose-500/10', icon: Lock };
     if (diffHours < 0) return { label: 'Overdue', color: 'text-rose-500', bg: 'bg-rose-500/10', icon: AlertCircle };
-    if (diffHours < 48) return { label: 'Due soon', color: 'text-amber-500', bg: 'bg-amber-500/10', icon: Clock };
+    
+    if (diffHours < 24) return { label: 'Due Today', color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-500/20', icon: Clock };
+    if (diffHours < 48) return { label: 'Due Tomorrow', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500/20', icon: Clock };
+    if (diffDays <= 7) return { label: `Due in ${diffDays} days`, color: 'text-indigo-500', bg: 'bg-indigo-500/10', icon: Calendar };
+    
     return { label: 'Upcoming', color: 'text-emerald-500', bg: 'bg-emerald-500/10', icon: CheckCircle2 };
   };
 
