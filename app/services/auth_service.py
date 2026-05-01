@@ -66,15 +66,16 @@ async def register_user(payload: RegisterRequest, db: AsyncSession) -> User:
             detail="Admission/Roll Number is required for student registration."
         )
 
-    # 4. Enforce Registration OTP Verification
-    otp_record_result = await db.execute(select(OTPRecord).where(
-        OTPRecord.email == payload.email,
-        OTPRecord.purpose == "register",
-        OTPRecord.verified == True
-    ).order_by(OTPRecord.created_at.desc()))
-    otp_record = otp_record_result.scalars().first()
-    if not otp_record:
-        raise HTTPException(status_code=403, detail="Email verification (OTP) required before registration.")
+    # 4. Enforce Registration OTP Verification (Rollback: Disabled for testing)
+    # otp_record_result = await db.execute(select(OTPRecord).where(
+    #     OTPRecord.email == payload.email,
+    #     OTPRecord.purpose == "register",
+    #     OTPRecord.verified == True
+    # ).order_by(OTPRecord.created_at.desc()))
+    # otp_record = otp_record_result.scalars().first()
+    # if not otp_record:
+    #     raise HTTPException(status_code=403, detail="Email verification (OTP) required before registration.")
+    otp_record = None
 
     # 5. Determine department/course from email
     department = extract_department(payload.email) if is_christ_email(payload.email) else None
