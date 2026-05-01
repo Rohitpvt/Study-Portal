@@ -1,0 +1,23 @@
+TITLE: Automation Testing with Selenium
+SUBJECT: Software Engineering
+----------------------------------------
+Selenium WebDriver allows automated browser testing. Page Object Model (POM) is a design pattern to improve test maintenance.
+
+Selenium WebDriver allows automated browser testing. Page Object Model (POM) is a design pattern to improve test maintenance.
+
+Selenium WebDriver allows automated browser testing. Page Object Model (POM) is a design pattern to improve test maintenance.
+
+Selenium WebDriver allows automated browser testing. Page Object Model (POM) is a design pattern to improve test maintenance.
+
+Selenium WebDriver allows automated browser testing. Page Object Model (POM) is a design pattern to improve test maintenance.
+
+Selenium WebDriver allows automated browser testing. Page Object Model (POM) is a design pattern to improve test maintenance.
+
+Selenium WebDriver allows automated browser testing. Page Object Model (POM) is a design pattern to improve test maintenance.
+
+Selenium WebDriver allows automated browser testing. Page Object Model (POM) is a design pattern to improve test maintenance.
+
+Selenium WebDriver allows automated browser testing. Page Object Model (POM) is a design pattern to improve test maintenance.
+
+Selenium WebDriver allows automated browser testing. Page Object Model (POM) is a design pattern to improve test maintenance.
+

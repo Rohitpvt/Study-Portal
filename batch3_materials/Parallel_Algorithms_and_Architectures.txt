@@ -1,0 +1,23 @@
+TITLE: Parallel Algorithms and Architectures
+SUBJECT: Computer Science
+----------------------------------------
+Parallel computing involves executing multiple tasks simultaneously. CUDA and OpenMP are common frameworks for parallelization.
+
+Parallel computing involves executing multiple tasks simultaneously. CUDA and OpenMP are common frameworks for parallelization.
+
+Parallel computing involves executing multiple tasks simultaneously. CUDA and OpenMP are common frameworks for parallelization.
+
+Parallel computing involves executing multiple tasks simultaneously. CUDA and OpenMP are common frameworks for parallelization.
+
+Parallel computing involves executing multiple tasks simultaneously. CUDA and OpenMP are common frameworks for parallelization.
+
+Parallel computing involves executing multiple tasks simultaneously. CUDA and OpenMP are common frameworks for parallelization.
+
+Parallel computing involves executing multiple tasks simultaneously. CUDA and OpenMP are common frameworks for parallelization.
+
+Parallel computing involves executing multiple tasks simultaneously. CUDA and OpenMP are common frameworks for parallelization.
+
+Parallel computing involves executing multiple tasks simultaneously. CUDA and OpenMP are common frameworks for parallelization.
+
+Parallel computing involves executing multiple tasks simultaneously. CUDA and OpenMP are common frameworks for parallelization.
+

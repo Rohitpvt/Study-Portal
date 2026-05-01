@@ -1,0 +1,23 @@
+TITLE: Big Data Engineering with Hadoop
+SUBJECT: Data Science
+----------------------------------------
+Hadoop HDFS and MapReduce provide the foundation for storing and processing massive datasets in a distributed environment.
+
+Hadoop HDFS and MapReduce provide the foundation for storing and processing massive datasets in a distributed environment.
+
+Hadoop HDFS and MapReduce provide the foundation for storing and processing massive datasets in a distributed environment.
+
+Hadoop HDFS and MapReduce provide the foundation for storing and processing massive datasets in a distributed environment.
+
+Hadoop HDFS and MapReduce provide the foundation for storing and processing massive datasets in a distributed environment.
+
+Hadoop HDFS and MapReduce provide the foundation for storing and processing massive datasets in a distributed environment.
+
+Hadoop HDFS and MapReduce provide the foundation for storing and processing massive datasets in a distributed environment.
+
+Hadoop HDFS and MapReduce provide the foundation for storing and processing massive datasets in a distributed environment.
+
+Hadoop HDFS and MapReduce provide the foundation for storing and processing massive datasets in a distributed environment.
+
+Hadoop HDFS and MapReduce provide the foundation for storing and processing massive datasets in a distributed environment.
+

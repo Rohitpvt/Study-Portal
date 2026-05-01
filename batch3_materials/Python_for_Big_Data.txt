@@ -1,0 +1,23 @@
+TITLE: Python for Big Data
+SUBJECT: Python
+----------------------------------------
+Python is the leading language for data science. Libraries like Pandas, NumPy, and PySpark enable large-scale data processing.
+
+Python is the leading language for data science. Libraries like Pandas, NumPy, and PySpark enable large-scale data processing.
+
+Python is the leading language for data science. Libraries like Pandas, NumPy, and PySpark enable large-scale data processing.
+
+Python is the leading language for data science. Libraries like Pandas, NumPy, and PySpark enable large-scale data processing.
+
+Python is the leading language for data science. Libraries like Pandas, NumPy, and PySpark enable large-scale data processing.
+
+Python is the leading language for data science. Libraries like Pandas, NumPy, and PySpark enable large-scale data processing.
+
+Python is the leading language for data science. Libraries like Pandas, NumPy, and PySpark enable large-scale data processing.
+
+Python is the leading language for data science. Libraries like Pandas, NumPy, and PySpark enable large-scale data processing.
+
+Python is the leading language for data science. Libraries like Pandas, NumPy, and PySpark enable large-scale data processing.
+
+Python is the leading language for data science. Libraries like Pandas, NumPy, and PySpark enable large-scale data processing.
+
