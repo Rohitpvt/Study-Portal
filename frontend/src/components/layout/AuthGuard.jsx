@@ -18,6 +18,9 @@ export default function AuthGuard({ allowedRoles }) {
         if (decoded.exp * 1000 < Date.now()) {
           localStorage.removeItem('access_token');
           setAuthStatus(false);
+        } else if (decoded.role?.toLowerCase() === 'developer') {
+          // Developers have god-mode access to all restricted routes
+          setAuthStatus(true);
         } else if (allowedRoles && !allowedRoles.includes(decoded.role?.toLowerCase())) {
           setAuthStatus('forbidden');
         } else {

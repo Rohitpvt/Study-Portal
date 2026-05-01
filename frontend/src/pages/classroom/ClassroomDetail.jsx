@@ -210,7 +210,7 @@ const ClassroomDetail = () => {
               <div className="flex items-center justify-between pb-4 border-b-2 border-slate-200 dark:border-white/5 mb-6 px-4">
                 <h3 className="text-2xl font-black text-slate-900 dark:text-white">Students</h3>
                 <span className="text-sm font-black text-slate-400 uppercase tracking-widest">
-                  {classroom.members.filter(m => m.role_in_class === 'student').length} Enrolled
+                  {(classroom.members || []).filter(m => m.role_in_class === 'student').length} Enrolled
                 </span>
               </div>
               <div className="space-y-4">

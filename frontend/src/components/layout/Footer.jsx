@@ -119,6 +119,10 @@ export default function Footer() {
                       {link.name}
                       <ExternalLink className="w-3 h-3 opacity-50" />
                     </a>
+                  ) : link.to === '#' ? (
+                    <span className="text-sm font-bold text-slate-400 dark:text-slate-600 cursor-default opacity-50">
+                      {link.name}
+                    </span>
                   ) : (
                     <Link 
                       to={link.to} 

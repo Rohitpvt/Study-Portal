@@ -140,15 +140,24 @@ const ClassroomAIPanel = ({ classroomId, assignmentId, assignmentAiMode = 'allow
                   </div>
                   
                   {msg.role === 'assistant' && msg.source_scope && (
-                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${
-                      msg.source_scope === 'assignment' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-                      msg.source_scope === 'classroom' ? 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' :
-                      'bg-slate-500/10 text-slate-400 border-white/5'
-                    }`}>
-                      {msg.source_scope === 'assignment' ? <Target className="w-2.5 h-2.5" /> :
-                       msg.source_scope === 'classroom' ? <BookOpen className="w-2.5 h-2.5" /> :
-                       <Info className="w-2.5 h-2.5" />}
-                      <span>{msg.source_scope} Grounded</span>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${
+                        msg.source_scope === 'assignment' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                        msg.source_scope === 'classroom' ? 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' :
+                        'bg-slate-500/10 text-slate-400 border-white/5'
+                      }`}>
+                        {msg.source_scope === 'assignment' ? <Target className="w-2.5 h-2.5" /> :
+                         msg.source_scope === 'classroom' ? <BookOpen className="w-2.5 h-2.5" /> :
+                         <Info className="w-2.5 h-2.5" />}
+                        <span>{msg.source_scope} Grounded</span>
+                      </div>
+                      
+                      {msg.sources?.length > 0 && msg.sources.map((src, i) => (
+                        <div key={i} className="inline-flex items-center gap-1 px-2 py-1 bg-black/20 border border-white/5 rounded-full text-[8px] font-bold text-slate-400 max-w-[150px] truncate" title={src.title || src}>
+                           <BookOpen className="w-2.5 h-2.5" />
+                           <span className="truncate">{src.title || src}</span>
+                        </div>
+                      ))}
                     </div>
                   )}
                </div>

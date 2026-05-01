@@ -34,8 +34,8 @@ const ClassroomList = () => {
   }, []);
 
   const filteredClassrooms = classrooms.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    c.subject.toLowerCase().includes(searchQuery.toLowerCase())
+    (c.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (c.subject || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (

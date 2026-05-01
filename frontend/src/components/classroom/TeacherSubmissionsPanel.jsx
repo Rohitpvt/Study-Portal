@@ -78,8 +78,8 @@ const TeacherSubmissionsPanel = ({ classroomId, assignment }) => {
   };
 
   const filteredSubmissions = submissions.filter(sub => {
-    const matchesSearch = sub.student_name.toLowerCase().includes(search.toLowerCase()) || 
-                         sub.roll_no?.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = (sub.student_name || '').toLowerCase().includes(search.toLowerCase()) || 
+                         (sub.roll_no || '').toLowerCase().includes(search.toLowerCase());
     if (!matchesSearch) return false;
     
     if (filter === 'all') return true;
