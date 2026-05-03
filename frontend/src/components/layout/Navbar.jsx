@@ -38,6 +38,8 @@ export default function Navbar() {
   const [isRoleOpen, setIsRoleOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
   
   const token = localStorage.getItem('access_token');
   const moreRef = useRef(null);
