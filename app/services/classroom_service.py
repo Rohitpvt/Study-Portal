@@ -22,7 +22,7 @@ from app.models.classroom import (
 from app.models.user import User, Role
 from app.models.material import Material
 from app.schemas.classroom import (
-    ClassroomCreate, 
+    ClassroomCreate,  ClassroomUpdate, JoinClassroomRequest, ClassroomTopicCreate, ClassroomTopicUpdate, ClassroomMaterialCreate,
 AssignmentSubmissionCreate, AssignmentSubmissionGradeRequest
 )
 from app.schemas.classroom_comment import ClassroomCommentCreate, ClassroomCommentUpdate
