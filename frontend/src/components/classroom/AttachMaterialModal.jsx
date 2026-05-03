@@ -40,7 +40,7 @@ const AttachMaterialModal = ({
   const fetchGlobalMaterials = async () => {
     try {
       const res = await api.get('/materials/', { params: { q: searchQuery, limit: 5 } });
-      setMaterials(res.data);
+      setMaterials(res.data.items || []);
     } catch (err) {
       console.error('Failed to search materials:', err);
     }
@@ -102,7 +102,7 @@ const AttachMaterialModal = ({
           <div className="space-y-3">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 block">Select Material</label>
             <div className="grid gap-2">
-               {materials.map(m => (
+               {(materials || []).map(m => (
                  <button
                   key={m.id}
                   onClick={() => setSelectedMaterial(m)}
@@ -146,7 +146,7 @@ const AttachMaterialModal = ({
                 value={formData.topic_id}
                 onChange={(e) => setFormData({...formData, topic_id: e.target.value})}
               >
-                {topics.map(t => (
+                {(topics || []).map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
                 <option value="">No Topic (General)</option>
