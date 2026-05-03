@@ -23,7 +23,9 @@ from app.models.user import User, Role
 from app.models.material import Material
 from app.schemas.classroom import (
     ClassroomCreate,  ClassroomUpdate, JoinClassroomRequest, ClassroomTopicCreate, ClassroomTopicUpdate, ClassroomMaterialCreate,
-AssignmentSubmissionCreate, AssignmentSubmissionGradeRequest
+AssignmentSubmissionCreate, AssignmentSubmissionGradeRequest,
+    ClassroomAnnouncementCreate, ClassroomAnnouncementUpdate,
+    ClassroomAssignmentCreate, ClassroomAssignmentUpdate,
 )
 from app.schemas.classroom_comment import ClassroomCommentCreate, ClassroomCommentUpdate
 from app.services.notification_service import NotificationService
