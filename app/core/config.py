@@ -35,12 +35,27 @@ class Settings(BaseSettings):
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
     def assemble_allowed_origins(cls, v) -> List[str]:
+        # Mandatory origins that must ALWAYS be allowed
+        mandatory = [
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:5176",
+            "http://127.0.0.1:5176",
+            "https://study-portal-final-123.vercel.app"
+        ]
+        
         if isinstance(v, str):
             # Handle bracketed strings like "['a', 'b']" by cleaning them first
             clean_str = v.strip().strip("[]")
             # Split by comma and clean up individual origins
-            return [origin.strip().strip("'\" ") for origin in clean_str.split(",") if origin.strip()]
-        return v or []
+            env_origins = [origin.strip().strip("'\" ") for origin in clean_str.split(",") if origin.strip()]
+            return list(set(mandatory + env_origins))
+        
+        if isinstance(v, list):
+            return list(set(mandatory + v))
+            
+        return mandatory
 
     # ── Database ──────────────────────────────────────────────────────────────
     DATABASE_URL: str
