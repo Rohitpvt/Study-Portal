@@ -85,6 +85,8 @@ async def lifespan(app: FastAPI):
     asyncio.create_task(integrity_worker_loop())
     logger.info("✅ Background workers started.")
 
+
+
     # Seed Developer account from environment
     try:
         from app.core.database import AsyncSessionLocal

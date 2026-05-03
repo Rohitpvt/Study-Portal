@@ -130,7 +130,9 @@ async def ask(
     and metadata-aware academic filtering.
     """
     # ── 0. Thresholds & Safety Settings ───────────────────────────────────────
-    SIMILARITY_THRESHOLD = 1.1
+    SIMILARITY_THRESHOLD = 1.3
+
+
     MIN_CONTEXT_LENGTH   = 150
     MIN_VALID_HITS       = 2
 
@@ -299,21 +301,34 @@ async def ask(
     for pattern in general_patterns:
         if re.search(pattern, q_lower):
             is_general_query = True
-            break
+    # --- INTENT ROUTING ---
+    is_library_query = any(token in q_lower for token in ["inventory", "library", "subjects", "what notes", "show me all"])
+    
+    def detect_synthesis_intent(q: str) -> bool:
+        # Use regex for more flexible matching (e.g. "combined revision notes")
+        synthesis_patterns = [
+            r"compare", r"difference", r"similarity", r"across", r"all materials", 
+            r"synthesize", r"common topics", r"combined.*notes", r"similarities",
+            r"between", r"versus", r"vs\b", r"summarize everything", r"summarize all"
+        ]
+        return any(re.search(p, q) for p in synthesis_patterns)
+
+    is_synthesis_query = detect_synthesis_intent(q_lower)
     
     if is_library_query:
+        logger.info(f"[CHAT] route=inventory | query='{q_lower}'")
         skip_faiss = True
         mode = "library"
-        route_label = "library"
+    elif is_synthesis_query:
+        logger.info(f"[CHAT] route=synthesis | query='{q_lower}'")
+        # Do NOT skip FAISS, but we use this flag for diversified retrieval later
     elif is_general_query:
+        logger.info(f"[CHAT] route=general | query='{q_lower}'")
         skip_faiss = True
         mode = "general"
-        route_label = "general"
     else:
-        route_label = "faiss_rag"
+        logger.info(f"[CHAT] route=faiss_rag | query='{q_lower}'")
 
-    logger.info(f"[CHAT] route={route_label} | query='{q_lower}'")
-    logger.info(f"Chatbot Flow: query='{query}', is_library={is_library_query}, skip_faiss={skip_faiss}")
 
     # ── 4.5 Classroom & Assignment Permission & Context Extraction ──────────────
     allowed_material_ids = None
@@ -383,14 +398,19 @@ async def ask(
         mode = "document"
 
     if not skip_faiss:
-        raw_context, source_labels, min_distance = await rag.retrieve(
+        # If synthesis detected, we use diversified retrieval with deeper search
+        formatted_context, source_labels, min_distance = await rag.retrieve(
             query, 
-            top_k=5,
+            top_k=15 if is_synthesis_query else 5,
             course=course,
             subject=subject,
             semester=semester,
-            include_material_ids=allowed_material_ids
+            include_material_ids=allowed_material_ids,
+            diversify=is_synthesis_query,
+            max_chunks_per_material=3 if is_synthesis_query else 5
         )
+        raw_context = formatted_context # formatted_context already contains source headers
+
         
         # Hierarchical Fallback: If assignment/classroom search failed, try global if allowed
         if not raw_context and classroom_id and not is_library_query:
@@ -400,24 +420,38 @@ async def ask(
                 res = await db.execute(select(ClassroomMaterial.material_id).where(ClassroomMaterial.classroom_id == classroom_id))
                 cl_ids = [row[0] for row in res.all()]
                 if cl_ids:
-                    raw_context, source_labels, min_distance = await rag.retrieve(
-                        query, top_k=5, include_material_ids=cl_ids
+                    formatted_context, source_labels, min_distance = await rag.retrieve(
+                        query, 
+                        top_k=15 if is_synthesis_query else 5, 
+                        include_material_ids=cl_ids,
+                        diversify=is_synthesis_query
                     )
-                    if raw_context:
+                    if formatted_context:
+                        raw_context = formatted_context
                         source_scope = "classroom"
             
             # If still nothing, try global (unless restricted - here we allow global fallback but mark it)
             if not raw_context:
-                raw_context, source_labels, min_distance = await rag.retrieve(
-                    query, top_k=5, course=course, subject=subject, semester=semester
+                formatted_context, source_labels, min_distance = await rag.retrieve(
+                    query, 
+                    top_k=15 if is_synthesis_query else 5, 
+                    course=course, 
+                    subject=subject, 
+                    semester=semester,
+                    diversify=is_synthesis_query
                 )
-                if raw_context:
+                if formatted_context:
+                    raw_context = formatted_context
                     source_scope = "global"
+
         
         # ── 5.1 Multi-Signal Relevance Gating ──────────────────────────────────
         num_hits = len(source_labels)
         context_len = len(raw_context)
-        soft_threshold = min(SIMILARITY_THRESHOLD + 0.15, 1.35)
+        
+        # Relaxation: If synthesis query, we allow a more generous threshold for cross-material matching
+        base_threshold = SIMILARITY_THRESHOLD + 0.3 if is_synthesis_query else SIMILARITY_THRESHOLD
+        soft_threshold = min(base_threshold + 0.15, 1.45)
         
         # Detect summary/explanation intent
         summary_keywords = ["summarize", "summary", "explain", "describe", "detail", "definition", "what is", "about"]
@@ -427,7 +461,8 @@ async def ask(
         reason = "all_signals_weak"
         
         # A. Strong similarity (Strict Path)
-        if min_distance < SIMILARITY_THRESHOLD:
+        if min_distance < base_threshold:
+
             relevance_pass = True
             reason = "strong_distance"
         
@@ -484,11 +519,17 @@ async def ask(
                         break
                 
                 if not found_match:
-                    relevance_pass = False
-                    reason = "subject_mismatch_guard"
+                    # Relaxation: If synthesis query, we allow it to pass if we have multiple diverse hits
+                    # even if the primary focus didn't match perfectly.
+                    if is_synthesis_query and num_hits >= 3:
+                        logger.info(f"[GUARD] Synthesis override for subject mismatch. Query: '{query}'")
+                    else:
+                        relevance_pass = False
+                        reason = "subject_mismatch_guard"
 
 
-        logger.info(f"[RAG] Decision: {'document_mode' if relevance_pass else 'general_mode'} | reason={reason} | dist={min_distance:.4f} | hits={num_hits} | ctx={context_len} | sum_intent={is_summary_query}")
+        logger.info(f"[RAG] Decision: {'document_mode' if relevance_pass else 'general_mode'} | reason={reason} | dist={min_distance:.4f} | hits={num_hits} | ctx={context_len} | sum_intent={is_summary_query or is_synthesis_query}")
+
 
         if not relevance_pass:
             logger.info(f"RAG discarded due to low relevance confidence. Query: '{query}'")
@@ -540,10 +581,21 @@ async def ask(
         system_content = (
             "You are a professional academic AI assistant. "
             "Use the provided context to answer the student's question accurately. "
-            "Include citations using the source labels (File, Page). "
+            "IMPORTANT: If multiple sources are provided in the context, you MUST synthesize "
+            "information across them to provide a comprehensive answer. "
+            "Clearly cite each material using the source markers like [Source: Title, Page: X]. "
+            "If sources contradict each other, mention both perspectives. "
             "If the answer is partially in the context and partially from your knowledge, "
             "prioritize the context but be helpful."
         )
+        
+        if is_synthesis_query:
+            system_content += (
+                "\n\n### SYNTHESIS MODE ACTIVE:\n"
+                "The student is looking for a comparison, summary, or combined notes across multiple materials. "
+                "Structure your response logically with headings and bullet points. "
+                "Ensure every major point is grounded in the provided context."
+            )
         
         if assignment_id and assignment_ai_mode == AIHelpMode.HINT_ONLY:
             system_content += (
@@ -554,9 +606,10 @@ async def ask(
             )
         
         if source_scope == "classroom":
-            system_content += "\n\nNote: You are currently using materials from this specific classroom as your primary source."
+            system_content += "\n\nNote: You are currently using materials from this specific classroom (Classroom Grounded)."
         elif source_scope == "assignment":
-            system_content += "\n\nNote: You are currently focusing on materials attached to this specific assignment."
+            system_content += "\n\nNote: You are currently focusing on materials attached to this specific assignment (Assignment Focus)."
+
     else:
         # Strict General Mode / Fallback Loop (HARD MODE SEPARATION)
         formatted_query = query
@@ -661,6 +714,18 @@ async def ask(
     # ── 9. Final Safety Cleanup (Source of Truth Enforcement) ─────────────────
     if mode != "document":
         source_labels = []
+    else:
+        # Deduplicate source labels by material_id to avoid redundant cards in the UI
+        # We keep the first (highest-ranking) occurrence for each material.
+        unique_mats = []
+        seen_mids = set()
+        for src in source_labels:
+            mid = src.get("material_id")
+            if mid and mid not in seen_mids:
+                src["scope"] = source_scope
+                unique_mats.append(src)
+                seen_mids.add(mid)
+        source_labels = unique_mats
     
     return ChatResponse(
         session_id=session.id, 
@@ -671,6 +736,7 @@ async def ask(
         source_scope=source_scope,
         sources=source_labels
     )
+
 
 
 async def summarize(material_id: str, db: AsyncSession) -> SummarizeResponse:

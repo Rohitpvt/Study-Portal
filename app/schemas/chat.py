@@ -33,9 +33,10 @@ class SourceMeta(BaseModel):
     page_number: Optional[int] = None
     material_id: str
     excerpt: Optional[str] = None
-    course: Optional[str] = None
     subject: Optional[str] = None
     semester: Optional[int] = None
+    scope: str = "global"  # "global", "classroom", "assignment"
+
 
 class ChatResponse(BaseModel):
     """AI answer response."""

@@ -371,11 +371,14 @@ async def retrieve(
     course: str = None,
     subject: str = None,
     semester: int = None,
-    include_material_ids: Optional[List[str]] = None
+    include_material_ids: Optional[List[str]] = None,
+    diversify: bool = False,
+    max_chunks_per_material: int = 2
 ) -> tuple[str, list[dict], float]:
     """
-    Retrieve top relevant chunks with improved depth, metadata filters, and size constraints.
-    Returns: (context_string, source_labels, min_distance)
+    Retrieve relevant chunks with support for diversity and synthesis.
+    - If diversify=True, limits chunks per material to find more unique sources.
+    - search_depth is increased when diversifying to find relevant chunks across the library.
     """
     if not is_ready():
         return "", [], 9.9
@@ -384,59 +387,62 @@ async def retrieve(
     if q_vec is None:
         return "", [], 9.9
     
-    # Wide internal search to allow for filtering
-    search_depth = 50 
+    # Internal search depth: Increase for diversification
+    search_depth = 100 if diversify else 50
     distances, indices = _faiss_index.search(np.array([q_vec], dtype="float32"), min(search_depth, len(_index_docs)))
     
     seen_content = set()
+    material_chunk_counts = {} # Track chunks per material for diversification
     unique_results = []
     source_labels = []
     total_chars = 0
-    min_distance = 9.9  # Default large distance (irrelevant)
-    MAX_CONTEXT_CHARS = 5000
+    min_distance = 9.9
+    MAX_CONTEXT_CHARS = 7000 if diversify else 5000 # Larger context for synthesis
 
     for i, idx in enumerate(indices[0]):
-        if idx == -1: 
-            continue
+        if idx == -1: continue
             
         doc = _index_docs.get(idx)
-        if not doc:
-            continue
+        if not doc: continue
         
+        m_id = doc.get("material_id")
+
         # 1. Metadata Filters
-        if include_material_ids and doc.get("material_id") not in include_material_ids: continue
+        if include_material_ids and m_id not in include_material_ids: continue
         if course and doc.get("course") != course: continue
         if subject and doc.get("subject") != subject: continue
         if semester and doc.get("semester") != semester: continue
         
-        # Track minimum distance among valid matches
-        if len(unique_results) == 0:
-            min_distance = float(distances[0][i])
-        elif min_distance > 4.0:
-            # Capture the distance of the first valid hit passing filters if uninitialized
-            min_distance = float(distances[0][i])
+        # 2. Diversification: Limit chunks per material
+        if diversify:
+            count = material_chunk_counts.get(m_id, 0)
+            if count >= max_chunks_per_material:
+                continue
         
-        # 2. Strict Deduplication (Normalized Content)
-        # Use first 150 chars for better uniqueness check
+        # Track minimum distance
+        dist = float(distances[0][i])
+        if len(unique_results) == 0 or min_distance > 4.0:
+            min_distance = dist
+        
+        # 3. Deduplication
         content_prefix = doc["chunk"][:150].strip().lower()
         if content_prefix in seen_content:
             continue
             
-        # 3. Context Window Management
+        # 4. Context Window Management
         chunk_text = doc["chunk"]
         if total_chars + len(chunk_text) > MAX_CONTEXT_CHARS:
-            # If even one chunk puts us over 5000, we stop or skip to find smaller ones?
-            # Prefer stopping to maintain top-ranking relevance.
             if unique_results: break 
 
         unique_results.append(doc)
         seen_content.add(content_prefix)
+        material_chunk_counts[m_id] = material_chunk_counts.get(m_id, 0) + 1
         total_chars += len(chunk_text)
         
-        # 4. Source Accumulation (Deduplicated Labels)
+        # 5. Source Accumulation
         source_found = False
         for src in source_labels:
-            if src.get("material_id") == doc.get("material_id") and src.get("page_number") == doc.get("page"):
+            if src.get("material_id") == m_id and src.get("page_number") == doc.get("page"):
                 source_found = True
                 break
                 
@@ -445,13 +451,10 @@ async def retrieve(
                 "title": doc.get("title"),
                 "source_file": doc.get("source_file"),
                 "page_number": doc.get("page"),
-                "material_id": doc.get("material_id"),
-                "excerpt": doc.get("chunk")
+                "material_id": m_id,
+                "excerpt": doc.get("chunk"),
+                "score": 1.0 / (1.0 + dist) # Simple confidence score
             })
-        
-        if len(unique_results) >= top_k:
-            break
-    
     if not unique_results:
         logger.info(f"RAG: No relevant chunks found for query: '{query}'")
         return "", [], 9.9

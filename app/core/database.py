@@ -17,7 +17,9 @@ _engine_kwargs: dict = {
 
 if "sqlite" in settings.DATABASE_URL:
     # SQLite doesn't support pool_size / max_overflow; use check_same_thread=False
-    _engine_kwargs["connect_args"] = {"check_same_thread": False}
+    _engine_kwargs["connect_args"] = {"check_same_thread": False, "timeout": 60}
+
+
 else:
     _engine_kwargs["pool_pre_ping"] = True
     _engine_kwargs["pool_size"] = 10

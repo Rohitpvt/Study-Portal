@@ -3,6 +3,7 @@ import faiss
 import pickle
 import json
 import sqlite3
+from app.models.material import MaterialIntegrityStatus
 
 faiss_dir = "faiss_index"
 index_path = os.path.join(faiss_dir, "index.faiss")
@@ -24,10 +25,11 @@ def audit_faiss():
     try:
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM materials WHERE integrity_status='APPROVED'")
+        # Use 'available' string for the enum match in sqlite
+        cursor.execute("SELECT COUNT(*) FROM materials WHERE is_approved = 1")
         report["materials_in_db"] = cursor.fetchone()[0]
-    except Exception:
-        pass
+    except Exception as e:
+        report["db_error"] = str(e)
         
     if not os.path.exists(index_path) or not os.path.exists(meta_path):
         report["health"] = "MISSING_FILES"
