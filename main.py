@@ -204,6 +204,13 @@ os.makedirs("uploads", exist_ok=True)
 
 # Created a sub-app for uploads
 uploads_app = FastAPI()
+uploads_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 uploads_app.mount("/", StaticFiles(directory="uploads"))
 
 app.mount(f"{API_PREFIX}/uploads", uploads_app, name="uploads")
