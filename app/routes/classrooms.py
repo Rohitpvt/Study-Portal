@@ -6,8 +6,11 @@ API endpoints for Classroom management.
 
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Body, UploadFile, File
+import logging
 import uuid
 from sqlalchemy import select, func, and_
+
+logger = logging.getLogger(__name__)
 
 from app.core.dependencies import (
     DBSession, CurrentUser, TeacherUser, AdminUser,
@@ -285,10 +288,15 @@ async def list_announcements(
             out.append(a_out)
         return out
     except Exception as e:
-        logger.error(f"Failed to list announcements for classroom {classroom_id}: {e}", exc_info=True)
+        # Fallback logging if logger is not configured, but we defined it above
+        if logger:
+            logger.error(f"Failed to list announcements for classroom {classroom_id}: {e}", exc_info=True)
+        else:
+            print(f"ERROR: Failed to list announcements: {e}")
+            
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error loading announcements: {str(e)}"
+            detail=f"Backend Error: {str(e)}"
         )
 
 

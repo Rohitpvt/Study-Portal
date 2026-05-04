@@ -8,7 +8,11 @@ from app.models.chat import ChatSession, ChatMessage
 from app.models.audit import AuditLog
 from app.models.favorite import Favorite
 from app.models.otp import OTPRecord
-from app.models.classroom import Classroom, ClassroomMember, ClassroomTopic, ClassroomMaterial
+from app.models.classroom import (
+    Classroom, ClassroomMember, ClassroomTopic, ClassroomMaterial,
+    ClassroomAnnouncement, ClassroomAssignment, AssignmentAttachment, AssignmentSubmission,
+    ClassroomComment
+)
 
 __all__ = [
     "User",
@@ -29,4 +33,9 @@ __all__ = [
     "ClassroomMember",
     "ClassroomTopic",
     "ClassroomMaterial",
+    "ClassroomAnnouncement",
+    "ClassroomAssignment",
+    "AssignmentAttachment",
+    "AssignmentSubmission",
+    "ClassroomComment",
 ]

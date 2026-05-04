@@ -4,7 +4,8 @@ app/routes/chat.py
 AI chatbot endpoints: ask a question (RAG) and summarize a material.
 """
 
-from fastapi import APIRouter
+import logging
+from fastapi import APIRouter, HTTPException, status
 
 from app.core.dependencies import CurrentUser, DBSession
 from app.schemas.chat import (
@@ -13,6 +14,8 @@ from app.schemas.chat import (
     ChatFeedbackRequest
 )
 from app.services import chatbot_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/chat", tags=["AI Chatbot"])
 
