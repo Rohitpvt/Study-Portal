@@ -95,3 +95,16 @@ attribution_verify.txt
 # -- Sensitive Files -------------------------------------------------------------
 USER_CREDENTIALS.txt
 *.err
+scratch/audit_results.py
+test_rag_batch4.py
+verify_batch_3.py
+verify_batch4_indexing.py
+verify_synthesis.py
+test_qa_minimal.py
+scratch/check_stats.py
+scratch/check_qa_progress.py
+test_negative_small.py
+ingest_batch_3.py
+batch3_report.json
+ingest_batch_3.py
+ingest_batch_3.py

@@ -35,9 +35,10 @@ def ingest_batch_3():
         
         # Categorize
         if i < 15:
-            category = "notes"
+            category = "NOTES"
         else:
-            category = "research_paper"
+            category = "REFERENCE"
+
 
         # Hardcoded course/semester for test consistency
         course = "BCA"
@@ -47,8 +48,11 @@ def ingest_batch_3():
         # For simplicity, we'll just use a default or mapped one
         subject = "Multi-disciplinary"
         
+        content_type = "text/plain" if filename.endswith(".txt") else "application/pdf"
+        
         with open(filepath, "rb") as f:
-            files_payload = {"file": (filename, f)}
+            files_payload = {"file": (filename, f, content_type)}
+
             data_payload = {
                 "title": title,
                 "course": course,
