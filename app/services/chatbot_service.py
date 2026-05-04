@@ -883,3 +883,85 @@ async def submit_feedback(message_id: str, user_id: str, feedback: str, db: Asyn
     logger.info(f"[FEEDBACK] user={user_id} message={message_id} feedback={feedback}")
     return message
 
+
+async def summarize(material_id: str, db: AsyncSession) -> SummarizeResponse:
+    """
+    Generate a concise academic summary of a study material using LLM.
+    Extracts text from the material file and synthesizes it into bullet points.
+    """
+    # 1. Fetch material metadata
+    result = await db.execute(select(Material).where(Material.id == material_id))
+    material = result.scalar_one_or_none()
+    
+    if not material:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Material not found."
+        )
+
+    # 2. Extract text from the file
+    try:
+        extracted_data = await extract_text(material.file_path)
+        # Use first 8000 characters for summary to stay within context limits
+        full_text = " ".join([p.get("text", "") for p in extracted_data])[:8000]
+        
+        if not full_text.strip():
+            return SummarizeResponse(
+                material_id=material_id,
+                summary="This document appears to be an image or contains no readable text for summarization.",
+                key_points=["No text detected."]
+            )
+
+        # 3. Call LLM for synthesis
+        prompt = f"""
+        You are a professional academic summarizer. 
+        Summarize the following document content into a clear, helpful overview and exactly 5 bullet points.
+        
+        DOCUMENT CONTENT:
+        {full_text}
+        
+        RESPONSE FORMAT (strictly follow this):
+        Summary: [Concise paragraph]
+        - [Point 1]
+        - [Point 2]
+        - [Point 3]
+        - [Point 4]
+        - [Point 5]
+        """
+        
+        raw_answer = await llm_service.get_chat_response([{"role": "user", "content": prompt}])
+        
+        # 4. Parse the response
+        lines = raw_answer.strip().split("\n")
+        summary_para = ""
+        key_points = []
+        
+        for line in lines:
+            line = line.strip()
+            if line.startswith("Summary:"):
+                summary_para = line.replace("Summary:", "").strip()
+            elif line.startswith("-") or line.startswith("*") or (line and line[0].isdigit() and "." in line[:3]):
+                point = re.sub(r'^[\-\*\d\.]+\s*', '', line).strip()
+                if point:
+                    key_points.append(point)
+        
+        # Fallback if parsing fails
+        if not summary_para:
+            summary_para = raw_answer[:300] + "..."
+        if not key_points:
+            key_points = ["Refer to the full document for details."]
+
+        return SummarizeResponse(
+            material_id=material_id,
+            summary=summary_para,
+            key_points=key_points[:10]
+        )
+
+    except Exception as e:
+        logger.error(f"Summarization failed for material {material_id}: {e}")
+        return SummarizeResponse(
+            material_id=material_id,
+            summary="An error occurred while generating the summary. Please try again later.",
+            key_points=["Service temporarily unavailable."]
+        )
+

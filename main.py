@@ -69,15 +69,20 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
     logger.info("✅ Database tables ready.")
 
-    # Initialize FAISS index
+    # Initialize FAISS index in the background (prevents startup timeout on Render/Vercel)
     try:
-        from app.core.database import AsyncSessionLocal
         from app.services.chatbot_service import build_index
-        async with AsyncSessionLocal() as db:
-            await build_index(db)
-        logger.info("✅ RAG Knowledge Base ready.")
+        from app.core.database import AsyncSessionLocal
+        
+        async def _init_rag():
+            async with AsyncSessionLocal() as db:
+                await build_index(db)
+            logger.info("✅ RAG Knowledge Base ready.")
+
+        import asyncio
+        asyncio.create_task(_init_rag())
     except Exception as e:
-        logger.warning(f"⚠️  RAG Knowledge Base initialization skipped: {e}")
+        logger.warning(f"⚠️  RAG Knowledge Base initialization failed to spawn: {e}")
 
     # Start background workers
     from app.background.integrity_worker import integrity_worker_loop
