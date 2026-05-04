@@ -204,6 +204,10 @@ async def get_material_by_id(material_id: str, db: AsyncSession, current_user: U
     # (Background reconciliation keeps this accurate without blocking user requests)
     material.file_status = material.integrity_status.value
     
+    # 4. Override file_url to point to our internal streaming proxy
+    # This ensures consistency with the list view and fixes viewer CORS issues.
+    material.file_url = f"/api/v1/materials/{material.id}/file"
+    
     return material
 
 

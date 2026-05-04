@@ -659,8 +659,8 @@ export default function Materials() {
                           <button
                             className="bg-indigo-600 dark:bg-indigo-500 p-3 rounded-2xl text-white shadow-lg shadow-indigo-100 dark:shadow-none opacity-0 group-hover:opacity-100 transition-all interactive-scale flex items-center justify-center disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:shadow-none disabled:text-slate-400 dark:disabled:text-slate-600"
                             onClick={() => navigate(`/viewer/${m.id}`)}
-                            disabled={m.integrity_status === 'missing_file' || m.integrity_status === 'corrupted_file'}
-                            title={m.integrity_status === 'missing_file' ? "Material Missing" : m.integrity_status === 'corrupted_file' ? "Material Corrupted" : m.integrity_message || "View Online"}
+                            disabled={m.integrity_status === 'missing_file' || m.integrity_status === 'corrupted_file' || !m.file_name.toLowerCase().endsWith('.pdf')}
+                            title={m.integrity_status === 'missing_file' ? "Material Missing" : m.integrity_status === 'corrupted_file' ? "Material Corrupted" : !m.file_name.toLowerCase().endsWith('.pdf') ? "Online viewing only available for PDFs" : m.integrity_message || "View Online"}
                           >
                             <Eye className="w-5 h-5" />
                           </button>
@@ -751,9 +751,9 @@ export default function Materials() {
                     <button
                       className="flex-1 py-4 rounded-2xl bg-indigo-600 dark:bg-indigo-500 text-white text-xs font-black flex items-center justify-center gap-3 active:scale-95 transition-all shadow-lg dark:shadow-none disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600"
                       onClick={() => navigate(`/viewer/${m.id}`)}
-                      disabled={m.integrity_status === 'missing_file' || m.integrity_status === 'corrupted_file'}
+                      disabled={m.integrity_status === 'missing_file' || m.integrity_status === 'corrupted_file' || !m.file_name.toLowerCase().endsWith('.pdf')}
                     >
-                      <Eye className="w-4 h-4" /> VIEW ONLINE
+                      <Eye className="w-4 h-4" /> {!m.file_name.toLowerCase().endsWith('.pdf') ? 'PDF ONLY' : 'VIEW ONLINE'}
                     </button>
                     <button
                       className="flex-1 py-4 rounded-2xl border-2 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-xs font-black flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-40 dark:disabled:opacity-20"
