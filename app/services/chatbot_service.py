@@ -23,6 +23,7 @@ from app.schemas.chat import ChatResponse, SummarizeResponse
 from app.utils.text_extractor import extract_text 
 from app.models.classroom import Classroom, ClassroomMember, ClassroomAssignment, ClassroomMaterial, AssignmentStatus, AIHelpMode
 from app.ai import rag 
+from app.services import llm_service, memory_service
 from fastapi import HTTPException, status
 from sqlalchemy import func
 
