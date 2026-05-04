@@ -147,6 +147,7 @@ async def ask(
     if not q_normalized:
         return ChatResponse(
             session_id=session_id or generate_uuid(),
+            message_id=generate_uuid(),
             answer="It seems like you didn't ask a question. Please type your query so I can assist you!",
             mode="general",
             sources=[]
@@ -175,6 +176,7 @@ async def ask(
     if is_query_junk(q_normalized):
         return ChatResponse(
             session_id=session_id or generate_uuid(),
+            message_id=generate_uuid(),
             answer="I didn't quite catch that. Could you please provide a clearer academic query?",
             mode="general",
             sources=[]
@@ -188,6 +190,7 @@ async def ask(
     if q_normalized in identity_tokens:
         return ChatResponse(
             session_id=session_id or generate_uuid(), 
+            message_id=generate_uuid(),
             answer="Hello! I am the Christ University AI Library Assistant. I can help you find study materials or answer questions by searching the academic notes in our library.",
             mode="general",
             sources=[]
