@@ -26,17 +26,24 @@ async def ask(payload: ChatRequest, current_user: CurrentUser, db: DBSession):
     - Returns GPT-4o answer with source material IDs
     - Persists the exchange in chat session history
     """
-    return await chatbot_service.ask(
-        query=payload.query,
-        user_id=current_user.id,
-        session_id=payload.session_id,
-        db=db,
-        course=payload.course,
-        subject=payload.subject,
-        semester=payload.semester,
-        classroom_id=payload.classroom_id,
-        assignment_id=payload.assignment_id,
-    )
+    try:
+        return await chatbot_service.ask(
+            query=payload.query,
+            user_id=current_user.id,
+            session_id=payload.session_id,
+            db=db,
+            course=payload.course,
+            subject=payload.subject,
+            semester=payload.semester,
+            classroom_id=payload.classroom_id,
+            assignment_id=payload.assignment_id,
+        )
+    except Exception as e:
+        logger.error(f"Chatbot failed for user {current_user.email}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while processing your chat request: {str(e)}"
+        )
 
 
 @router.post(

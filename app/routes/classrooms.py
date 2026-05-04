@@ -15,15 +15,20 @@ from app.core.dependencies import (
     get_classroom_membership
 )
 from app.models.classroom import (
-    Classroom, ClassroomMember, ClassroomTopic, ClassroomMaterial, SectionType,
-    CommentVisibility, CommentStatus
+    Classroom, ClassroomMember, ClassroomTopic, ClassroomMaterial, 
+    ClassroomAnnouncement, ClassroomAssignment, AssignmentAttachment, AssignmentSubmission,
+    SectionType, AssignmentStatus, SubmissionStatus, CommentVisibility, CommentStatus
 )
 from app.models.material import Material
 from app.schemas.classroom import (
     ClassroomCreate, ClassroomOut, ClassroomDetail, JoinClassroomRequest,
     ClassroomTopicCreate, ClassroomTopicUpdate, ClassroomTopicOut,
     ClassroomMaterialCreate, ClassroomMaterialOut,
-    ClassroomMemberOut
+    ClassroomMemberOut,
+    ClassroomAnnouncementCreate, ClassroomAnnouncementUpdate, ClassroomAnnouncementOut,
+    ClassroomAssignmentCreate, ClassroomAssignmentUpdate, ClassroomAssignmentOut,
+    AssignmentAttachmentCreate, AssignmentAttachmentOut,
+    AssignmentSubmissionCreate, AssignmentSubmissionOut, AssignmentSubmissionGradeRequest
 )
 from app.schemas.classroom_comment import ClassroomCommentCreate, ClassroomCommentUpdate, ClassroomCommentOut
 from app.schemas.classroom_analytics import ClassroomAnalyticsOut
@@ -238,8 +243,6 @@ async def remove_classroom_material(
 
 # ── ANNOUNCEMENTS ───────────────────────────────────────────────────────────
 
-from app.schemas.classroom import ClassroomAnnouncementCreate, ClassroomAnnouncementUpdate, ClassroomAnnouncementOut
-
 @router.post("/{classroom_id}/announcements", response_model=ClassroomAnnouncementOut)
 async def create_announcement(
     classroom_id: str,
@@ -266,20 +269,27 @@ async def list_announcements(
     """List announcements for a classroom (Members only)."""
     await require_classroom_member(classroom_id, current_user, db)
     
-    from app.models.user import User
-    query = (
-        select(ClassroomAnnouncement, User.full_name)
-        .join(User, ClassroomAnnouncement.created_by == User.id)
-        .where(ClassroomAnnouncement.classroom_id == classroom_id)
-        .order_by(ClassroomAnnouncement.pinned.desc(), ClassroomAnnouncement.created_at.desc())
-    )
-    result = await db.execute(query)
-    out = []
-    for ann, creator_name in result:
-        a_out = ClassroomAnnouncementOut.model_validate(ann)
-        a_out.creator_name = creator_name
-        out.append(a_out)
-    return out
+    try:
+        from app.models.user import User
+        query = (
+            select(ClassroomAnnouncement, User.full_name)
+            .join(User, ClassroomAnnouncement.created_by == User.id)
+            .where(ClassroomAnnouncement.classroom_id == classroom_id)
+            .order_by(ClassroomAnnouncement.pinned.desc(), ClassroomAnnouncement.created_at.desc())
+        )
+        result = await db.execute(query)
+        out = []
+        for ann, creator_name in result:
+            a_out = ClassroomAnnouncementOut.model_validate(ann)
+            a_out.creator_name = creator_name
+            out.append(a_out)
+        return out
+    except Exception as e:
+        logger.error(f"Failed to list announcements for classroom {classroom_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error loading announcements: {str(e)}"
+        )
 
 
 @router.patch("/{classroom_id}/announcements/{announcement_id}", response_model=ClassroomAnnouncementOut)
@@ -318,12 +328,6 @@ async def delete_announcement(
 
 
 # ── ASSIGNMENTS ─────────────────────────────────────────────────────────────
-
-from app.schemas.classroom import (
-    ClassroomAssignmentCreate, ClassroomAssignmentUpdate, ClassroomAssignmentOut,
-    AssignmentAttachmentCreate, AssignmentAttachmentOut
-)
-from app.models.classroom import ClassroomAssignment, AssignmentStatus
 
 @router.post("/{classroom_id}/assignments", response_model=ClassroomAssignmentOut)
 async def create_assignment(
@@ -470,7 +474,6 @@ async def remove_assignment_attachment(
 from app.schemas.classroom import (
     AssignmentSubmissionCreate, AssignmentSubmissionOut, AssignmentSubmissionGradeRequest
 )
-from app.models.classroom import AssignmentSubmission, SubmissionStatus
 
 @router.post("/{classroom_id}/assignments/{assignment_id}/submit", response_model=AssignmentSubmissionOut)
 async def submit_assignment(

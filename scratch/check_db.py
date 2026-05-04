@@ -1,22 +1,23 @@
 import asyncio
-from app.core.database import AsyncSessionLocal
-from app.models.material import Material
-from sqlalchemy import select
+import os
+from sqlalchemy import text
+from app.core.database import engine
 
-async def check():
-    async with AsyncSessionLocal() as db:
-        res = await db.execute(select(Material).limit(5))
-        materials = res.scalars().all()
-        if not materials:
-            print("No materials found.")
-            return
-        for m in materials:
-            print(f"ID: {m.id}")
-            print(f"Title: {m.title}")
-            print(f"Course: {m.course}")
-            print(f"Subject: {m.subject}")
-            print(f"Semester: {m.semester}")
-            print("-" * 20)
+async def check_db():
+    print("Checking database tables...")
+    async with engine.connect() as conn:
+        result = await conn.execute(text("SELECT name FROM sqlite_master WHERE type='table';"))
+        tables = [row[0] for row in result]
+        print(f"Tables found: {tables}")
+        
+        if "classroom_announcements" in tables:
+            print("✅ 'classroom_announcements' table exists.")
+            # Check for records
+            res = await conn.execute(text("SELECT COUNT(*) FROM classroom_announcements"))
+            count = res.scalar()
+            print(f"Announcement count: {count}")
+        else:
+            print("❌ 'classroom_announcements' table MISSING!")
 
 if __name__ == "__main__":
-    asyncio.run(check())
+    asyncio.run(check_db())

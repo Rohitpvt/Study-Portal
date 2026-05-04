@@ -117,11 +117,15 @@ async def _call_llm_inner(
     else:
          messages_copy = messages
 
-    response = await client.chat.completions.create(
-        model=model,
-        messages=messages_copy,
-        temperature=temperature,
-        max_tokens=2048, # Increased for code blocks
-        timeout=25.0
-    )
-    return response.choices[0].message.content
+    try:
+        response = await client.chat.completions.create(
+            model=model,
+            messages=messages_copy,
+            temperature=temperature,
+            max_tokens=2048, # Increased for code blocks
+            timeout=25.0
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        logger.error(f"LLM call failed for model {model}: {e}")
+        return "The AI assistant is having trouble connecting to its brain right now. Please try again in a few seconds."
