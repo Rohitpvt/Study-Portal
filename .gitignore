@@ -108,3 +108,11 @@ ingest_batch_3.py
 batch3_report.json
 ingest_batch_3.py
 ingest_batch_3.py
+scratch/audit_pdf_files.py
+scratch/check_ethical_hacking.py
+.gitignore
+.gitignore
+scratch/test_s3.py
+scratch/test_material_proxy.py
+scratch/find_pdf.py
+scratch/check_material_paths.py
