@@ -20,6 +20,7 @@ from app.core.dependencies import (
 from app.models.classroom import (
     Classroom, ClassroomMember, ClassroomTopic, ClassroomMaterial, 
     ClassroomAnnouncement, ClassroomAssignment, AssignmentAttachment, AssignmentSubmission,
+    ClassroomComment,
     SectionType, AssignmentStatus, SubmissionStatus, CommentVisibility, CommentStatus
 )
 from app.models.material import Material
