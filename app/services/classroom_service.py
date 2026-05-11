@@ -391,12 +391,25 @@ class ClassroomService:
 
     @staticmethod
     async def create_assignment(db: AsyncSession, classroom_id: str, creator_id: str, data: ClassroomAssignmentCreate) -> ClassroomAssignment:
+        data_dict = data.model_dump()
+        attachments_data = data_dict.pop("attachments", [])
+
         assignment = ClassroomAssignment(
-            **data.model_dump(),
+            **data_dict,
             classroom_id=classroom_id,
             created_by=creator_id
         )
         db.add(assignment)
+        await db.flush() # Get ID
+
+        # Process attachments
+        for att_data in attachments_data:
+            attachment = AssignmentAttachment(
+                **att_data,
+                assignment_id=assignment.id
+            )
+            db.add(attachment)
+
         await db.commit()
         await db.refresh(assignment)
 

@@ -197,7 +197,7 @@ class ClassroomAssignmentBase(BaseModel):
     ai_help_mode:          AIHelpMode = AIHelpMode.ALLOWED
 
 class ClassroomAssignmentCreate(ClassroomAssignmentBase):
-    pass
+    attachments: Optional[List[AssignmentAttachmentCreate]] = []
 
 class ClassroomAssignmentUpdate(BaseModel):
     title:                 Optional[str] = None
