@@ -228,9 +228,10 @@ class ClassroomService:
     @staticmethod
     async def attach_material_to_classroom(db: AsyncSession, classroom_id: str, added_by: str, data: ClassroomMaterialCreate) -> ClassroomMaterial:
         # Check if material exists
-        m_result = await db.execute(select(Material).where(Material.id == data.material_id))
-        if not m_result.scalar_one_or_none():
-            raise HTTPException(status_code=404, detail="Global material not found.")
+        if data.material_id:
+            m_result = await db.execute(select(Material).where(Material.id == data.material_id))
+            if not m_result.scalar_one_or_none():
+                raise HTTPException(status_code=404, detail="Global material not found.")
             
         # Check topic if provided
         if data.topic_id:
@@ -243,14 +244,25 @@ class ClassroomService:
                 raise HTTPException(status_code=404, detail="Topic not found in this classroom.")
 
         # Check for duplicate attachment
-        dup_query = select(ClassroomMaterial).where(
-            and_(
-                ClassroomMaterial.classroom_id == classroom_id,
-                ClassroomMaterial.topic_id == data.topic_id,
-                ClassroomMaterial.material_id == data.material_id,
-                ClassroomMaterial.section_type == data.section_type
+        if data.material_id:
+            dup_query = select(ClassroomMaterial).where(
+                and_(
+                    ClassroomMaterial.classroom_id == classroom_id,
+                    ClassroomMaterial.topic_id == data.topic_id,
+                    ClassroomMaterial.material_id == data.material_id,
+                    ClassroomMaterial.section_type == data.section_type
+                )
             )
-        )
+        else:
+            dup_query = select(ClassroomMaterial).where(
+                and_(
+                    ClassroomMaterial.classroom_id == classroom_id,
+                    ClassroomMaterial.topic_id == data.topic_id,
+                    ClassroomMaterial.google_drive_file_id == data.google_drive_file_id,
+                    ClassroomMaterial.section_type == data.section_type
+                )
+            )
+            
         dup_result = await db.execute(dup_query)
         if dup_result.scalar_one_or_none():
             raise HTTPException(status_code=400, detail="This material is already attached to this topic and section.")
@@ -275,8 +287,11 @@ class ClassroomService:
             student_ids = await ClassroomService._get_active_student_ids(db, classroom_id)
             if student_ids:
                 # Fetch material title for the message
-                m_res = await db.execute(select(Material.title).where(Material.id == data.material_id))
-                m_title = m_res.scalar() or "New Material"
+                if data.material_id:
+                    m_res = await db.execute(select(Material.title).where(Material.id == data.material_id))
+                    m_title = m_res.scalar() or "New Material"
+                else:
+                    m_title = data.google_drive_file_name or "New Drive File"
                 
                 cl_res = await db.execute(select(Classroom.name).where(Classroom.id == classroom_id))
                 cl_name = cl_res.scalar() or "Classroom"
