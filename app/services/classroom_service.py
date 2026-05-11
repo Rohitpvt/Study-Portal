@@ -37,6 +37,9 @@ from app.services.notification_service import NotificationService
 from app.schemas.notification import NotificationCreate
 from app.models.notification import NotificationType
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class ClassroomService:
     @staticmethod
@@ -220,7 +223,7 @@ class ClassroomService:
         if not topic:
             raise HTTPException(status_code=404, detail="Topic not found.")
             
-        await db.delete(topic)
+        db.delete(topic)
         await db.commit()
 
     # ── MATERIAL LINKING ───────────────────────────────────────────────────────
@@ -330,7 +333,7 @@ class ClassroomService:
         if not cl_material:
             raise HTTPException(status_code=404, detail="Classroom material link not found.")
             
-        await db.delete(cl_material)
+        db.delete(cl_material)
         await db.commit()
 
     # ── ANNOUNCEMENTS ─────────────────────────────────────────────────────────
@@ -399,7 +402,7 @@ class ClassroomService:
         if not announcement:
             raise HTTPException(status_code=404, detail="Announcement not found.")
             
-        await db.delete(announcement)
+        db.delete(announcement)
         await db.commit()
 
     # ── ASSIGNMENTS ───────────────────────────────────────────────────────────
@@ -540,7 +543,7 @@ class ClassroomService:
         if not assignment:
             raise HTTPException(status_code=404, detail="Assignment not found.")
             
-        await db.delete(assignment)
+        db.delete(assignment)
         await db.commit()
 
     # ── ASSIGNMENT ATTACHMENTS ───────────────────────────────────────────────
@@ -568,7 +571,7 @@ class ClassroomService:
         if not attachment:
             raise HTTPException(status_code=404, detail="Attachment not found.")
             
-        await db.delete(attachment)
+        db.delete(attachment)
         await db.commit()
 
     # ── SUBMISSIONS ───────────────────────────────────────────────────────────
