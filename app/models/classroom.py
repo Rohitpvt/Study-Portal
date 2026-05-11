@@ -132,7 +132,13 @@ class ClassroomMaterial(Base, TimestampMixin):
     id:           Mapped[str]      = mapped_column(String(36), primary_key=True, default=generate_uuid)
     classroom_id: Mapped[str]      = mapped_column(String(36), ForeignKey("classrooms.id", ondelete="CASCADE"))
     topic_id:     Mapped[Optional[str]] = mapped_column(String(36), ForeignKey("classroom_topics.id", ondelete="SET NULL"), nullable=True)
-    material_id:  Mapped[str]      = mapped_column(String(36), ForeignKey("materials.id", ondelete="CASCADE"))
+    material_id:  Mapped[Optional[str]] = mapped_column(String(36), ForeignKey("materials.id", ondelete="CASCADE"), nullable=True)
+    
+    # Google Drive Integration
+    google_drive_file_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    google_drive_link:    Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    google_drive_file_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    google_drive_mime_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     added_by:     Mapped[str]      = mapped_column(String(36), ForeignKey("users.id"))
     section_type: Mapped[SectionType] = mapped_column(Enum(SectionType, name="sectiontype"), default=SectionType.OTHER)
 
@@ -191,7 +197,11 @@ class AssignmentAttachment(Base):
     material_id:   Mapped[str|None] = mapped_column(String(36), ForeignKey("materials.id", ondelete="SET NULL"), nullable=True)
     file_key:      Mapped[str|None] = mapped_column(String(512), nullable=True)
     title:         Mapped[str] = mapped_column(String(255), nullable=False)
-    attachment_type: Mapped[str] = mapped_column(String(50), nullable=False) # e.g. "material", "link", "upload"
+    attachment_type: Mapped[str] = mapped_column(String(50), nullable=False) # e.g. "material", "link", "upload", "google_drive"
+    google_drive_file_id: Mapped[str|None] = mapped_column(String(255), nullable=True)
+    google_drive_link: Mapped[str|None] = mapped_column(String(1024), nullable=True)
+    google_drive_file_name: Mapped[str|None] = mapped_column(String(255), nullable=True)
+    google_drive_mime_type: Mapped[str|None] = mapped_column(String(100), nullable=True)
     created_at:    Mapped[datetime] = mapped_column(DateTime, default=func.now())
 
     assignment = relationship("ClassroomAssignment", back_populates="attachments")
@@ -206,6 +216,10 @@ class AssignmentSubmission(Base, TimestampMixin):
     student_id:        Mapped[str] = mapped_column(String(36), ForeignKey("users.id"))
     file_key:          Mapped[str|None] = mapped_column(String(512), nullable=True)
     original_filename: Mapped[str|None] = mapped_column(String(255), nullable=True)
+    google_drive_file_id: Mapped[str|None] = mapped_column(String(255), nullable=True)
+    google_drive_link: Mapped[str|None] = mapped_column(String(1024), nullable=True)
+    google_drive_file_name: Mapped[str|None] = mapped_column(String(255), nullable=True)
+    google_drive_mime_type: Mapped[str|None] = mapped_column(String(100), nullable=True)
     text_response:     Mapped[str|None] = mapped_column(Text, nullable=True)
     submitted_at:      Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
     status:            Mapped[SubmissionStatus] = mapped_column(Enum(SubmissionStatus, name="submissionstatus"), default=SubmissionStatus.SUBMITTED)

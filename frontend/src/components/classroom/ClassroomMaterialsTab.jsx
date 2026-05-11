@@ -10,6 +10,8 @@ import { useNotification } from '../../context/NotificationContext';
 import ClassroomMaterialCard from './ClassroomMaterialCard';
 import TopicManager from './TopicManager';
 import AttachMaterialModal from './AttachMaterialModal';
+import GoogleDrivePicker from './GoogleDrivePicker';
+import { FaGoogleDrive } from 'react-icons/fa';
 
 const ClassroomMaterialsTab = ({ classroom, canManage }) => {
   const { success, error } = useNotification();
@@ -27,6 +29,7 @@ const ClassroomMaterialsTab = ({ classroom, canManage }) => {
   const [isAttachModalOpen, setIsAttachModalOpen] = useState(false);
   const [attachToTopicId, setAttachToTopicId] = useState(null);
   const [isResourcePacketView, setIsResourcePacketView] = useState(false);
+  const [isDrivePickerOpen, setIsDrivePickerOpen] = useState(false);
 
   const [expandedTopics, setExpandedTopics] = useState({});
 
@@ -75,6 +78,29 @@ const ClassroomMaterialsTab = ({ classroom, canManage }) => {
       fetchMaterialsAndTopics();
     } catch (err) {
       error('Failed to delete topic.');
+    }
+  };
+
+  const handleDriveSelect = async (files) => {
+    if (!files || files.length === 0) return;
+    try {
+      for (const file of files) {
+        await api.post(`/classrooms/${classroom.id}/materials`, {
+          topic_id: attachToTopicId || null,
+          section_type: 'other',
+          google_drive_file_id: file.id,
+          google_drive_link: file.url,
+          google_drive_file_name: file.name,
+          google_drive_mime_type: file.mimeType
+        });
+      }
+      success(`Successfully shared ${files.length} Drive file(s).`);
+      fetchMaterialsAndTopics();
+    } catch (err) {
+      error('Failed to attach Drive files.');
+    } finally {
+      setIsDrivePickerOpen(false);
+      setAttachToTopicId(null);
     }
   };
 
@@ -159,6 +185,13 @@ const ClassroomMaterialsTab = ({ classroom, canManage }) => {
                >
                  <Plus className="w-4 h-4" />
                  New Topic
+               </button>
+               <button
+                 onClick={() => { setAttachToTopicId(null); setIsDrivePickerOpen(true); }}
+                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20"
+               >
+                 <FaGoogleDrive className="w-4 h-4" />
+                 Drive
                </button>
                <button
                  onClick={() => { setAttachToTopicId(null); setIsAttachModalOpen(true); }}
@@ -318,6 +351,12 @@ const ClassroomMaterialsTab = ({ classroom, canManage }) => {
         classroomId={classroom.id}
         topics={topics}
         initialTopicId={attachToTopicId}
+      />
+      <GoogleDrivePicker 
+        isOpen={isDrivePickerOpen}
+        onClose={() => { setIsDrivePickerOpen(false); setAttachToTopicId(null); }}
+        onSelect={handleDriveSelect}
+        multiSelect={true}
       />
     </div>
   );

@@ -4,6 +4,7 @@ import {
   AlertCircle, Clock, ChevronRight, MessageSquare,
   Undo2, Star
 } from 'lucide-react';
+import { FaGoogleDrive } from 'react-icons/fa';
 
 const SubmissionCard = ({ 
   submission, 
@@ -57,7 +58,17 @@ const SubmissionCard = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {submission.file_key && (
+          {submission.google_drive_file_id ? (
+            <a
+              href={submission.google_drive_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-3.5 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-500 hover:text-white rounded-2xl transition-all border border-emerald-500/20"
+              title="View on Google Drive"
+            >
+              <FaGoogleDrive className="w-5 h-5" />
+            </a>
+          ) : submission.file_key && (
             <button
               onClick={() => onDownload(submission)}
               className="p-3.5 glass dark:bg-white/5 hover:bg-indigo-600 hover:text-white text-slate-400 rounded-2xl transition-all border border-white/5"

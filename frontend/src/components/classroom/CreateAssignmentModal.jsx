@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Send, Clock, Calendar, FileText, Target, Bot, AlertCircle, Sparkles } from 'lucide-react';
+import { X, Send, Clock, Calendar, FileText, Target, Bot, AlertCircle, Sparkles, Paperclip } from 'lucide-react';
+import { FaGoogleDrive } from 'react-icons/fa';
+import GoogleDrivePicker from './GoogleDrivePicker';
 
 const CreateAssignmentModal = ({ 
   isOpen, 
@@ -23,6 +25,14 @@ const CreateAssignmentModal = ({
     late_penalty: 0
   });
 
+  const [driveAttachments, setDriveAttachments] = useState([]);
+  const [isDrivePickerOpen, setIsDrivePickerOpen] = useState(false);
+
+  const handleDriveSelect = (files) => {
+    setDriveAttachments([...driveAttachments, ...files]);
+    setIsDrivePickerOpen(false);
+  };
+
   useEffect(() => {
     if (assignment) {
       const due = assignment.due_at ? new Date(assignment.due_at) : null;
@@ -39,6 +49,7 @@ const CreateAssignmentModal = ({
         allow_late_submission: assignment.allow_late_submission || false,
         late_penalty: assignment.late_penalty || 0
       });
+      setDriveAttachments([]);
     } else {
       setFormData({
         title: '',
@@ -53,6 +64,7 @@ const CreateAssignmentModal = ({
         allow_late_submission: false,
         late_penalty: 0
       });
+      setDriveAttachments([]);
     }
   }, [assignment, isOpen]);
 
@@ -73,6 +85,11 @@ const CreateAssignmentModal = ({
     // Remove local helper fields
     delete payload.due_date;
     delete payload.due_time;
+    
+    // Add Drive attachments to payload if any
+    if (driveAttachments.length > 0) {
+      payload.google_drive_attachments = driveAttachments;
+    }
     
     onSubmit(payload);
   };
@@ -263,6 +280,60 @@ const CreateAssignmentModal = ({
                    </div>
                 </div>
              </div>
+
+              {/* Google Drive Attachments */}
+              <div className="space-y-6">
+                 <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-3">
+                       <Paperclip className="w-5 h-5 text-indigo-500" />
+                       Materials & Attachments
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsDrivePickerOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl font-black text-[9px] uppercase tracking-widest border border-emerald-200 dark:border-emerald-500/20 hover:bg-emerald-100 transition-all"
+                      >
+                        <FaGoogleDrive className="w-3.5 h-3.5" />
+                        Attach from Drive
+                      </button>
+                      
+                      <GoogleDrivePicker 
+                        isOpen={isDrivePickerOpen}
+                        onClose={() => setIsDrivePickerOpen(false)}
+                        onSelect={(files) => {
+                          setDriveAttachments(prev => [...prev, ...files]);
+                        }}
+                        multiSelect={true}
+                      />
+                    </div>
+                 </div>
+
+                 {driveAttachments.length > 0 && (
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {driveAttachments.map((file, idx) => (
+                        <div key={file.id || idx} className="p-4 glass dark:bg-white/2 border border-white/5 rounded-2xl flex items-center justify-between group animate-in zoom-in-95 duration-200">
+                           <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
+                                 <FaGoogleDrive className="w-5 h-5" />
+                              </div>
+                              <div className="min-w-0">
+                                 <p className="text-[11px] font-black text-slate-900 dark:text-white truncate">{file.name}</p>
+                                 <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Google Drive</p>
+                              </div>
+                           </div>
+                           <button 
+                             type="button"
+                             onClick={() => setDriveAttachments(prev => prev.filter((_, i) => i !== idx))}
+                             className="p-2 hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 rounded-lg transition-all"
+                           >
+                              <X className="w-4 h-4" />
+                           </button>
+                        </div>
+                      ))}
+                   </div>
+                 )}
+              </div>
 
              {/* Status */}
              <div className="flex items-center gap-4 p-2 glass dark:bg-black/40 rounded-3xl border border-white/5 w-fit">

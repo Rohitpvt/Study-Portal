@@ -259,6 +259,10 @@ class ClassroomService:
             classroom_id=classroom_id,
             topic_id=data.topic_id,
             material_id=data.material_id,
+            google_drive_file_id=data.google_drive_file_id,
+            google_drive_link=data.google_drive_link,
+            google_drive_file_name=data.google_drive_file_name,
+            google_drive_mime_type=data.google_drive_mime_type,
             added_by=added_by,
             section_type=data.section_type
         )
@@ -294,10 +298,10 @@ class ClassroomService:
         return cl_material
 
     @staticmethod
-    async def list_classroom_materials(db: AsyncSession, classroom_id: str) -> List[Tuple[ClassroomMaterial, Material]]:
+    async def list_classroom_materials(db: AsyncSession, classroom_id: str) -> List[Tuple[ClassroomMaterial, Optional[Material]]]:
         query = (
             select(ClassroomMaterial, Material)
-            .join(Material, ClassroomMaterial.material_id == Material.id)
+            .outerjoin(Material, ClassroomMaterial.material_id == Material.id)
             .where(ClassroomMaterial.classroom_id == classroom_id)
             .order_by(ClassroomMaterial.created_at.desc())
         )
@@ -581,6 +585,14 @@ class ClassroomService:
             submission.text_response = data.text_response
             submission.file_key = file_key or submission.file_key
             submission.original_filename = filename or submission.original_filename
+            
+            # Update Google Drive fields if provided
+            if data.google_drive_file_id:
+                submission.google_drive_file_id = data.google_drive_file_id
+                submission.google_drive_link = data.google_drive_link
+                submission.google_drive_file_name = data.google_drive_file_name
+                submission.google_drive_mime_type = data.google_drive_mime_type
+                
             submission.submitted_at = func.now()
             submission.status = status
         else:
@@ -591,6 +603,10 @@ class ClassroomService:
                 text_response=data.text_response,
                 file_key=file_key,
                 original_filename=filename,
+                google_drive_file_id=data.google_drive_file_id,
+                google_drive_link=data.google_drive_link,
+                google_drive_file_name=data.google_drive_file_name,
+                google_drive_mime_type=data.google_drive_mime_type,
                 status=status
             )
             db.add(submission)

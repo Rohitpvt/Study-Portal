@@ -45,14 +45,35 @@ const ClassroomClassworkTab = ({ classroom, canManage }) => {
 
   const handleCreateAssignment = async (data) => {
     setActionLoading(true);
+    const driveAttachments = data.google_drive_attachments || [];
+    delete data.google_drive_attachments;
+
     try {
+      let assignmentId;
       if (editingAssignment) {
         await api.patch(`/classrooms/${classroom.id}/assignments/${editingAssignment.id}`, data);
+        assignmentId = editingAssignment.id;
         success('Assignment updated.');
       } else {
-        await api.post(`/classrooms/${classroom.id}/assignments`, data);
+        const res = await api.post(`/classrooms/${classroom.id}/assignments`, data);
+        assignmentId = res.data.id;
         success('Assignment created.');
       }
+
+      // Handle Drive attachments
+      if (driveAttachments.length > 0) {
+        for (const file of driveAttachments) {
+          await api.post(`/classrooms/${classroom.id}/assignments/${assignmentId}/attachments`, {
+            title: file.name,
+            attachment_type: 'google_drive',
+            google_drive_file_id: file.id,
+            google_drive_link: file.url,
+            google_drive_file_name: file.name,
+            google_drive_mime_type: file.mimeType
+          });
+        }
+      }
+
       setIsCreateOpen(false);
       setEditingAssignment(null);
       fetchAssignments();

@@ -37,9 +37,15 @@ class ClassroomTopicOut(ClassroomTopicBase):
 # ── MATERIAL SCHEMAS ────────────────────────────────────────────────────────
 
 class ClassroomMaterialCreate(BaseModel):
-    material_id:  str
+    material_id:  Optional[str] = None
     topic_id:     Optional[str] = None
     section_type: SectionType = SectionType.OTHER
+    
+    # Google Drive Integration
+    google_drive_file_id: Optional[str] = None
+    google_drive_link:    Optional[str] = None
+    google_drive_file_name: Optional[str] = None
+    google_drive_mime_type: Optional[str] = None
 
 class ClassroomMaterialOut(BaseModel):
     id:           str # This is the classroom_material_id
@@ -48,6 +54,11 @@ class ClassroomMaterialOut(BaseModel):
     section_type: SectionType
     added_by:     str
     created_at:   datetime
+    
+    google_drive_file_id: Optional[str] = None
+    google_drive_link:    Optional[str] = None
+    google_drive_file_name: Optional[str] = None
+    google_drive_mime_type: Optional[str] = None
     
     # Nested material info for frontend
     title:            Optional[str] = None
@@ -158,6 +169,10 @@ class AssignmentAttachmentBase(BaseModel):
     attachment_type: str # material, link, upload
     material_id:     Optional[str] = None
     file_key:        Optional[str] = None
+    google_drive_file_id: Optional[str] = None
+    google_drive_link:    Optional[str] = None
+    google_drive_file_name: Optional[str] = None
+    google_drive_mime_type: Optional[str] = None
 
 class AssignmentAttachmentCreate(AssignmentAttachmentBase):
     pass
@@ -214,6 +229,10 @@ from app.models.classroom import SubmissionStatus
 
 class AssignmentSubmissionCreate(BaseModel):
     text_response: Optional[str] = None
+    google_drive_file_id: Optional[str] = None
+    google_drive_link:    Optional[str] = None
+    google_drive_file_name: Optional[str] = None
+    google_drive_mime_type: Optional[str] = None
 
 class AssignmentSubmissionGradeRequest(BaseModel):
     marks:    float = Field(..., ge=0)
@@ -228,6 +247,10 @@ class AssignmentSubmissionOut(BaseModel):
     roll_no:           Optional[str] = None
     file_key:          Optional[str] = None
     original_filename: Optional[str] = None
+    google_drive_file_id: Optional[str] = None
+    google_drive_link:    Optional[str] = None
+    google_drive_file_name: Optional[str] = None
+    google_drive_mime_type: Optional[str] = None
     text_response:     Optional[str] = None
     submitted_at:      datetime
     status:            SubmissionStatus

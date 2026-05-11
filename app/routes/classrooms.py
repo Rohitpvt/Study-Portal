@@ -201,12 +201,16 @@ async def list_classroom_materials(
     out = []
     for cl_material, material in rows:
         m_out = ClassroomMaterialOut.model_validate(cl_material)
-        m_out.title = material.title
-        m_out.subject = material.subject
-        m_out.course = material.course
-        m_out.semester = material.semester
-        m_out.file_type = material.file_type
-        m_out.integrity_status = material.integrity_status
+        if material:
+            m_out.title = material.title
+            m_out.subject = material.subject
+            m_out.course = material.course
+            m_out.semester = material.semester
+            m_out.file_type = material.file_type
+            m_out.integrity_status = material.integrity_status
+        else:
+            m_out.title = cl_material.google_drive_file_name
+            m_out.integrity_status = "available" # Drive files are assumed available if linked
         out.append(m_out)
     return out
 
@@ -223,12 +227,18 @@ async def attach_material(
     cl_material = await ClassroomService.attach_material_to_classroom(db, classroom_id, current_user.id, data)
     
     # Load material metadata for response
-    result = await db.execute(select(Material).where(Material.id == cl_material.material_id))
-    material = result.scalar_one()
+    material = None
+    if cl_material.material_id:
+        result = await db.execute(select(Material).where(Material.id == cl_material.material_id))
+        material = result.scalar_one_or_none()
     
     m_out = ClassroomMaterialOut.model_validate(cl_material)
-    m_out.title = material.title
-    m_out.integrity_status = material.integrity_status
+    if material:
+        m_out.title = material.title
+        m_out.integrity_status = material.integrity_status
+    else:
+        m_out.title = cl_material.google_drive_file_name
+        m_out.integrity_status = "available"
     return m_out
 
 
@@ -491,6 +501,10 @@ async def submit_assignment(
     current_user: CurrentUser,
     db: DBSession,
     text_response: Optional[str] = None,
+    google_drive_file_id: Optional[str] = None,
+    google_drive_link:    Optional[str] = None,
+    google_drive_file_name: Optional[str] = None,
+    google_drive_mime_type: Optional[str] = None,
     file: Optional[UploadFile] = File(None)
 ):
     """Submit an assignment (Students only)."""
@@ -512,7 +526,13 @@ async def submit_assignment(
         content = await file.read()
         storage.upload_file(content, file_key)
 
-    data = AssignmentSubmissionCreate(text_response=text_response)
+    data = AssignmentSubmissionCreate(
+        text_response=text_response,
+        google_drive_file_id=google_drive_file_id,
+        google_drive_link=google_drive_link,
+        google_drive_file_name=google_drive_file_name,
+        google_drive_mime_type=google_drive_mime_type
+    )
     submission = await ClassroomService.submit_assignment(db, assignment_id, current_user.id, data, file_key, filename)
     
     out = AssignmentSubmissionOut.model_validate(submission)

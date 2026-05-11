@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { 
   Upload, FileText, Send, CheckCircle2, 
   Clock, AlertCircle, X, Download, MessageSquare,
-  Undo2, Star, Loader2, Paperclip
+  Undo2, Star, Loader2, Paperclip, ExternalLink
 } from 'lucide-react';
+import { FaGoogleDrive } from 'react-icons/fa';
+import GoogleDrivePicker from './GoogleDrivePicker';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 
@@ -15,7 +17,17 @@ const StudentSubmissionPanel = ({ classroomId, assignment }) => {
 
   // Form State
   const [file, setFile] = useState(null);
+  const [googleDriveFile, setGoogleDriveFile] = useState(null);
+  const [isDrivePickerOpen, setIsDrivePickerOpen] = useState(false);
   const [textResponse, setTextResponse] = useState('');
+
+  const handleDriveSelect = (files) => {
+    if (files && files.length > 0) {
+      setGoogleDriveFile(files[0]);
+      setFile(null); // Clear local file if drive selected
+    }
+    setIsDrivePickerOpen(false);
+  };
 
   const fetchMySubmission = async () => {
     try {
@@ -37,8 +49,8 @@ const StudentSubmissionPanel = ({ classroomId, assignment }) => {
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
-    if (!file && !textResponse.trim()) {
-      error('Please provide a file or text response.');
+    if (!file && !textResponse.trim() && !googleDriveFile) {
+      error('Please provide a file, a Drive link, or a text response.');
       return;
     }
 
@@ -48,12 +60,21 @@ const StudentSubmissionPanel = ({ classroomId, assignment }) => {
     if (textResponse) formData.append('text_response', textResponse);
 
     try {
+      // If we have a Google Drive file, we add its metadata to the form data
+      if (googleDriveFile) {
+        formData.append('google_drive_file_id', googleDriveFile.id);
+        formData.append('google_drive_link', googleDriveFile.url);
+        formData.append('google_drive_file_name', googleDriveFile.name);
+        formData.append('google_drive_mime_type', googleDriveFile.mimeType);
+      }
+
       await api.post(`/classrooms/${classroomId}/assignments/${assignment.id}/submit`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       success('Assignment submitted successfully!');
       fetchMySubmission();
       setFile(null);
+      setGoogleDriveFile(null);
     } catch (err) {
       const detail = err.response?.data?.detail;
       if (err.code === 'ERR_NETWORK') {
@@ -163,6 +184,31 @@ const StudentSubmissionPanel = ({ classroomId, assignment }) => {
                  </div>
 
                  <div className="space-y-6">
+                 <div className="flex flex-wrap items-center gap-3">
+                   <button
+                     type="button"
+                     onClick={() => setIsDrivePickerOpen(true)}
+                     className="flex items-center gap-2 px-6 py-4 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-emerald-200 dark:border-emerald-500/20 hover:bg-emerald-100 transition-all shadow-sm"
+                   >
+                     <FaGoogleDrive className="w-4 h-4" />
+                     Select from Drive
+                   </button>
+                   
+                   <GoogleDrivePicker 
+                     isOpen={isDrivePickerOpen}
+                     onClose={() => setIsDrivePickerOpen(false)}
+                     onSelect={handleDriveSelect}
+                   />
+                   
+                   <label className="flex items-center gap-2 px-6 py-4 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-indigo-200 dark:border-indigo-500/20 hover:bg-indigo-100 transition-all cursor-pointer shadow-sm">
+                      <Paperclip className="w-4 h-4" />
+                      Upload File
+                      <input type="file" className="hidden" onChange={(e) => {
+                        setFile(e.target.files[0]);
+                        setGoogleDriveFile(null); // Clear drive file if local selected
+                      }} />
+                   </label>
+                </div>
                     <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-3">
                        <Paperclip className="w-5 h-5 text-indigo-500" />
                        Attach Files
@@ -198,6 +244,44 @@ const StudentSubmissionPanel = ({ classroomId, assignment }) => {
                             </div>
                          </div>
                        )}
+                    </div>
+
+                    <div className="flex items-center gap-4 py-2">
+                        <div className="h-[1px] flex-1 bg-white/5"></div>
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">OR</span>
+                        <div className="h-[1px] flex-1 bg-white/5"></div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <GoogleDrivePicker 
+                          onSelect={(files) => setGoogleDriveFile(files[0])}
+                          className="w-full justify-center py-4 rounded-2xl bg-white/2 hover:bg-white/5 border-white/5"
+                          disabled={submitting}
+                        />
+                        
+                        {googleDriveFile && (
+                          <div className="p-6 glass dark:bg-emerald-500/5 border border-emerald-500/20 rounded-3xl flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
+                             <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                   <FaGoogleDrive className="w-6 h-6" />
+                                </div>
+                                <div>
+                                   <p className="text-sm font-black text-slate-900 dark:text-white truncate max-w-[200px]">{googleDriveFile.name}</p>
+                                   <p className="text-[9px] font-bold text-emerald-500/60 uppercase tracking-widest mt-0.5">Selected from Drive</p>
+                                </div>
+                             </div>
+                             <button 
+                               type="button" 
+                               onClick={() => setGoogleDriveFile(null)} 
+                               className="p-2 hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 rounded-xl transition-all"
+                             >
+                                <X className="w-4 h-4" />
+                             </button>
+                          </div>
+                        )}
+                        <p className="text-[9px] font-bold text-slate-500 text-center uppercase tracking-widest italic">
+                           Note: Ensure the file is shared with your teacher if required.
+                        </p>
                     </div>
                  </div>
 
@@ -247,6 +331,33 @@ const StudentSubmissionPanel = ({ classroomId, assignment }) => {
                             </button>
                          </div>
                        )}
+
+                       {submission.google_drive_link && (
+                          <div className={`pt-8 ${submission.file_key ? 'mt-4 border-t border-white/5' : ''} flex items-center justify-between`}>
+                             <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-inner">
+                                   <FaGoogleDrive className="w-7 h-7" />
+                                </div>
+                                <div>
+                                   <h4 className="text-base font-black text-slate-900 dark:text-white tracking-tight">{submission.google_drive_file_name}</h4>
+                                   <div className="flex items-center gap-2">
+                                      <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Google Drive File</span>
+                                      <span className="w-1 h-1 rounded-full bg-slate-600" />
+                                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Submitted on {new Date(submission.submitted_at).toLocaleDateString()}</span>
+                                   </div>
+                                </div>
+                             </div>
+                             <a 
+                               href={submission.google_drive_link}
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="p-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+                             >
+                                <ExternalLink className="w-6 h-6" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">View on Drive</span>
+                             </a>
+                          </div>
+                        )}
                     </div>
                  </div>
               </div>

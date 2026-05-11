@@ -5,6 +5,7 @@ import {
   AlertCircle, CheckCircle2, Clock, FileWarning,
   BookOpen, Hash
 } from 'lucide-react';
+import { FaGoogleDrive } from 'react-icons/fa';
 
 const ClassroomMaterialCard = ({ 
   material, 
@@ -12,6 +13,7 @@ const ClassroomMaterialCard = ({
   onRemove 
 }) => {
   const navigate = useNavigate();
+  const isDrive = !!material.google_drive_file_id;
 
   const sectionLabels = {
     syllabus: 'Syllabus',
@@ -31,20 +33,23 @@ const ClassroomMaterialCard = ({
     pending_check: { label: 'Integrity check pending', color: 'text-indigo-500', bg: 'bg-indigo-500/10', icon: Clock, disabled: false }
   };
 
-  const status = statusMap[material.integrity_status] || statusMap.pending;
+  const status = isDrive ? statusMap.available : (statusMap[material.integrity_status] || statusMap.pending);
 
   const handleDownload = (e) => {
     e.stopPropagation();
-    // Redirect to the backend download URL or handle via existing logic
-    window.open(`/api/v1/materials/${material.material_id}/download`, '_blank');
+    if (isDrive) {
+       window.open(material.google_drive_link, '_blank');
+    } else {
+       window.open(`/api/v1/materials/${material.material_id}/download`, '_blank');
+    }
   };
 
   return (
-    <div className="group relative glass dark:bg-[#0d0d0d] rounded-3xl border border-white/60 dark:border-white/5 p-6 hover:border-indigo-500/40 transition-all duration-300">
+    <div className={`group relative glass dark:bg-[#0d0d0d] rounded-3xl border ${isDrive ? 'border-emerald-500/20 hover:border-emerald-500/40' : 'border-white/60 dark:border-white/5 hover:border-indigo-500/40'} p-6 transition-all duration-300`}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-start gap-5">
-           <div className={`p-4 rounded-2xl ${status.bg} ${status.color} shadow-lg transition-transform group-hover:scale-110`}>
-              <FileText className="w-6 h-6" />
+           <div className={`p-4 rounded-2xl ${isDrive ? 'bg-emerald-500/10 text-emerald-500' : `${status.bg} ${status.color}`} shadow-lg transition-transform group-hover:scale-110`}>
+              {isDrive ? <FaGoogleDrive className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
            </div>
            
            <div>
@@ -56,16 +61,21 @@ const ClassroomMaterialCard = ({
                  <status.icon className="w-3 h-3" />
                  {status.label}
                </div>
+               {isDrive && (
+                 <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-[9px] font-black uppercase tracking-widest">
+                   Google Drive
+                 </span>
+               )}
              </div>
              
-             <h4 className="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-1 group-hover:text-indigo-500 transition-colors">
+             <h4 className={`text-lg font-black text-slate-900 dark:text-white tracking-tight mb-1 ${isDrive ? 'group-hover:text-emerald-500' : 'group-hover:text-indigo-500'} transition-colors`}>
                {material.title}
              </h4>
              
              <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-               <span>{material.subject}</span>
+               <span>{material.subject || 'External'}</span>
                <span className="w-1 h-1 bg-slate-400 rounded-full" />
-               <span>{material.course} S{material.semester}</span>
+               <span>{material.course || 'Resource'} {material.semester ? `S${material.semester}` : ''}</span>
                {material.added_by_name && (
                  <>
                    <span className="w-1 h-1 bg-slate-400 rounded-full" />
@@ -77,22 +87,34 @@ const ClassroomMaterialCard = ({
         </div>
 
         <div className="flex items-center gap-2 md:self-center">
-          <button
-            disabled={status.disabled}
-            onClick={() => navigate(`/materials/${material.material_id}/view`)}
-            className="flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20"
-          >
-            <ExternalLink className="w-4 h-4" />
-            View Online
-          </button>
+          {isDrive ? (
+            <a
+              href={material.google_drive_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20"
+            >
+              <ExternalLink className="w-4 h-4" />
+              View on Drive
+            </a>
+          ) : (
+            <button
+              disabled={status.disabled}
+              onClick={() => navigate(`/materials/${material.material_id}/view`)}
+              className="flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20"
+            >
+              <ExternalLink className="w-4 h-4" />
+              View Online
+            </button>
+          )}
           
           <button
             disabled={status.disabled}
             onClick={handleDownload}
             className="p-3 glass dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-white rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-white/60 dark:border-white/5"
-            title="Download"
+            title={isDrive ? "Open Drive Link" : "Download"}
           >
-            <Download className="w-5 h-5" />
+            {isDrive ? <ExternalLink className="w-5 h-5" /> : <Download className="w-5 h-5" />}
           </button>
 
           {canManage && (

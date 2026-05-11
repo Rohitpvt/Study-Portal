@@ -9,6 +9,7 @@ import StudentSubmissionPanel from './StudentSubmissionPanel';
 import TeacherSubmissionsPanel from './TeacherSubmissionsPanel';
 import ClassroomAIPanel from './ClassroomAIPanel';
 import ClassroomComments from './ClassroomComments';
+import { FaGoogleDrive } from 'react-icons/fa';
 
 const AssignmentDetailModal = ({ 
   isOpen, 
@@ -148,36 +149,53 @@ const AssignmentDetailModal = ({
                       
                       {assignment.attachments?.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           {assignment.attachments.map(att => (
-                              <div key={att.id} className="group glass dark:bg-white/2 rounded-3xl p-5 border border-white/5 flex items-center justify-between hover:border-indigo-500/40 transition-all">
-                                 <div className="flex items-center gap-4 min-w-0">
-                                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
-                                       <FileText className="w-6 h-6" />
-                                    </div>
-                                    <div className="min-w-0">
-                                       <h4 className="text-sm font-black text-slate-900 dark:text-white truncate">{att.title}</h4>
-                                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{att.attachment_type}</span>
-                                    </div>
-                                 </div>
-                                 <div className="flex items-center gap-2">
-                                    <button 
-                                      className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg shadow-indigo-500/20"
-                                      title="View"
-                                    >
-                                      <Eye className="w-4 h-4" />
-                                    </button>
-                                    {canManage && (
-                                       <button 
-                                         onClick={() => onRemoveAttachment(att.id)}
-                                         className="p-2.5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 rounded-xl transition-all"
-                                         title="Remove"
-                                       >
-                                         <X className="w-4 h-4" />
-                                       </button>
-                                    )}
-                                 </div>
-                              </div>
-                           ))}
+                           {assignment.attachments.map(att => {
+                              const isDrive = att.attachment_type === 'google_drive';
+                              return (
+                                <div key={att.id} className={`group glass dark:bg-white/2 rounded-3xl p-5 border ${isDrive ? 'border-emerald-500/10 hover:border-emerald-500/40' : 'border-white/5 hover:border-indigo-500/40'} transition-all flex items-center justify-between`}>
+                                   <div className="flex items-center gap-4 min-w-0">
+                                      <div className={`w-12 h-12 rounded-2xl ${isDrive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'} flex items-center justify-center`}>
+                                         {isDrive ? <FaGoogleDrive className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                                      </div>
+                                      <div className="min-w-0">
+                                         <h4 className="text-sm font-black text-slate-900 dark:text-white truncate">{att.title || att.google_drive_file_name}</h4>
+                                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                            {isDrive ? 'Google Drive' : att.attachment_type}
+                                         </span>
+                                      </div>
+                                   </div>
+                                   <div className="flex items-center gap-2">
+                                      {isDrive ? (
+                                         <a 
+                                           href={att.google_drive_link}
+                                           target="_blank"
+                                           rel="noopener noreferrer"
+                                           className="p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all shadow-lg shadow-emerald-500/20"
+                                           title="View on Drive"
+                                         >
+                                            <ExternalLink className="w-4 h-4" />
+                                         </a>
+                                      ) : (
+                                         <button 
+                                           className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg shadow-indigo-500/20"
+                                           title="View"
+                                         >
+                                           <Eye className="w-4 h-4" />
+                                         </button>
+                                      )}
+                                      {canManage && (
+                                         <button 
+                                           onClick={() => onRemoveAttachment(att.id)}
+                                           className="p-2.5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 rounded-xl transition-all"
+                                           title="Remove"
+                                         >
+                                           <X className="w-4 h-4" />
+                                         </button>
+                                      )}
+                                   </div>
+                                </div>
+                              );
+                           })}
                         </div>
                       ) : (
                         <div className="py-12 text-center border-2 border-dashed border-white/5 rounded-[2.5rem]">
