@@ -87,7 +87,8 @@ const ClassroomClassworkTab = ({ classroom, canManage }) => {
   const handleDeleteAssignment = async (id) => {
     if (!window.confirm('Are you sure you want to delete this assignment? All submissions and attachments will be removed.')) return;
     try {
-      await api.delete("/classrooms/" + classroom.id + "/assignments/" + id);
+      const endpoint = ['', 'classrooms', classroom.id, 'assignments', id].join('/');
+      await api.delete(endpoint);
       success('Assignment deleted.');
       fetchAssignments();
     } catch (err) {

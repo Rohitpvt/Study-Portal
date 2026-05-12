@@ -20,7 +20,7 @@ from app.core.security import (
 from app.models.user import Role, User
 from app.models.base import generate_uuid
 from app.schemas.auth import RegisterRequest, TokenResponse
-from app.utils.email_validator import is_christ_email, is_valid_christ_email, extract_department
+from app.utils.email_validator import is_christ_email, extract_department
 
 from app.models.otp import OTPRecord
 from sqlalchemy import delete

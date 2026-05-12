@@ -17,12 +17,7 @@ def is_christ_email(email: str) -> bool:
     pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]*christuniversity\.in$"
     return bool(re.match(pattern, email))
 
-def is_valid_christ_email(email: str) -> bool:
-    """
-    Returns True if the email follows the official Christ University format.
-    """
-    return is_christ_email(email)
-        
+
 COURSE_MAP = {
     "mca": "MCA (Master of Computer Applications)",
     "bca": "BCA (Bachelor of Computer Applications)",

@@ -131,6 +131,3 @@ async def run_index_remove_task(material_id: str) -> None:
         )
 
 
-# ── Validation Pipeline Task (NEW) ───────────────────────────────────────────
-# Re-exported here so callers can import from the central background tasks module.
-from app.services.validation_runner_service import run_validation_pipeline_task  # noqa: E402, F401

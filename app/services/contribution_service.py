@@ -65,7 +65,7 @@ async def submit_contribution(
 
     # ── Enqueue background AI review ──────────────────────────────────────────
     # Import here to avoid circular imports
-    from app.background.ai_tasks import run_validation_pipeline_task
+    from app.services.validation_runner_service import run_validation_pipeline_task
     background_tasks.add_task(run_validation_pipeline_task, contribution.id)
 
     return contribution
@@ -227,7 +227,7 @@ async def reprocess_contribution(
     contribution.processing_completed_at = None
     
     # Trigger background task
-    from app.background.ai_tasks import run_validation_pipeline_task
+    from app.services.validation_runner_service import run_validation_pipeline_task
     background_tasks.add_task(run_validation_pipeline_task, contribution.id)
 
     await db.commit()
