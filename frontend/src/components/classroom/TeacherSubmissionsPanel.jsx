@@ -38,7 +38,7 @@ const TeacherSubmissionsPanel = ({ classroomId, assignment }) => {
   const handleGrade = async (data) => {
     setActionLoading(true);
     try {
-      await api.patch(`/classrooms/${classroomId}/assignments/${assignment.id}/submissions/${selectedSub.id}/grade`, data);
+      await api.patch("/classrooms/" + classroomId + "/assignments/" + assignment.id + "/submissions/" + selectedSub.id + "/grade", data);
       success('Submission graded successfully!');
       setIsGradeModalOpen(false);
       fetchSubmissions();
@@ -52,7 +52,7 @@ const TeacherSubmissionsPanel = ({ classroomId, assignment }) => {
   const handleReturn = async (sub) => {
     if (!window.confirm(`Return ${sub.student_name}'s work for revision? This will allow them to resubmit.`)) return;
     try {
-      await api.post(`/classrooms/${classroomId}/assignments/${assignment.id}/submissions/${sub.id}/return`);
+      await api.post("/classrooms/" + classroomId + "/assignments/" + assignment.id + "/submissions/" + sub.id + "/return");
       success('Submission returned for revision.');
       fetchSubmissions();
     } catch (err) {

@@ -1,3 +1,4 @@
+import os
 import asyncio
 import httpx
 import uuid
@@ -6,7 +7,7 @@ async def test_full_cycle():
     async with httpx.AsyncClient() as client:
         # 1. Register
         email = f"test.student.{uuid.uuid4().hex[:6]}@christuniversity.in"
-        password = "QAPass123!"
+        password = os.getenv("ADMIN_TEST_PASSWORD", "dummy")
         reg_payload = {
             "email": email,
             "full_name": "Test Student",

@@ -12,7 +12,7 @@ async def test_endpoints():
         # First, login to get a token
         login_response = await client.post("/api/v1/auth/login", data={
             "username": "rohit.ghosh@mca.christuniversity.in",
-            "password": "Password123!"
+            "password": os.getenv("ADMIN_TEST_PASSWORD", "dummy")
         })
         token = login_response.json().get("access_token")
         if not token:

@@ -10,7 +10,7 @@ db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "christ_uni_d
 conn = sqlite3.connect(db_path)
 c = conn.cursor()
 
-hashed = hash_password("Password123!")
+hashed = hash_password(os.getenv("ADMIN_TEST_PASSWORD", "dummy"))
 
 c.execute("UPDATE users SET role='admin', hashed_password=? WHERE email='admin.test@christuniversity.in'", (hashed,))
 

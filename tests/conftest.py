@@ -70,7 +70,7 @@ async def client(db_session):
 async def auth_client(client, db_session):
     """Authenticated httpx client (student role)."""
     email = "test.student@christuniversity.in"
-    password = "StrongPassword123!"
+    password = os.getenv("ADMIN_TEST_PASSWORD", "dummy")
     
     # Register user
     await client.post("/api/v1/auth/register", json={
@@ -100,7 +100,7 @@ async def admin_client(client, db_session):
     from sqlalchemy import select
 
     email = "admin@christuniversity.in"
-    password = "AdminPassword123!"
+    password = os.getenv("ADMIN_TEST_PASSWORD", "dummy")
     
     # 1. Register as normal student
     await client.post("/api/v1/auth/register", json={

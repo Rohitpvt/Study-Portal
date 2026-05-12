@@ -141,10 +141,10 @@ const Typewriter = ({
           remarkPlugins={[remarkGfm]}
           components={{
             code({ node, inline, className, children, ...props }) {
-              const match = /language-(\w+)/.exec(className || '');
-              return !inline && match ? (
+              const matchResult = (className || '').match(/language-(\w+)/);
+              return !inline && matchResult ? (
                 <CodeBlock 
-                  language={match[1]} 
+                  language={matchResult[1]} 
                   value={String(children).replace(/\n$/, '')} 
                   {...props} 
                 />

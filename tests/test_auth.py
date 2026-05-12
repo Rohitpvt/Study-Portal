@@ -1,3 +1,4 @@
+import os
 """
 tests/test_auth.py
 ───────────────────
@@ -12,7 +13,7 @@ async def test_register_success(client):
     payload = {
         "email": "new.user@christuniversity.in",
         "full_name": "New User",
-        "password": "Password123!"
+        "password": os.getenv("ADMIN_TEST_PASSWORD", "dummy")
     }
     resp = await client.post("/api/v1/auth/register", json=payload)
     assert resp.status_code == 201
@@ -24,7 +25,7 @@ async def test_register_invalid_domain(client):
     payload = {
         "email": "fake.user@gmail.com",
         "full_name": "Fake User",
-        "password": "Password123!"
+        "password": os.getenv("ADMIN_TEST_PASSWORD", "dummy")
     }
     resp = await client.post("/api/v1/auth/register", json=payload)
     assert resp.status_code == 400

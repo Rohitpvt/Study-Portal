@@ -32,7 +32,7 @@ async def run_tests():
         print("\n══ TEST 1: Authentication ══")
         
         # 1a. Student login
-        resp = await client.post(f"{BASE_URL}/auth/login", data={"username": "student@christuniversity.in", "password": "password123"})
+        resp = await client.post(f"{BASE_URL}/auth/login", data={"username": "student@christuniversity.in", "password": os.getenv("ADMIN_TEST_PASSWORD", "dummy")})
         if resp.status_code == 200:
             student_token = resp.json()["access_token"]
             report(PASS, "Student login successful")
@@ -43,7 +43,7 @@ async def run_tests():
         student_headers = {"Authorization": f"Bearer {student_token}"}
         
         # 1b. Admin login
-        resp = await client.post(f"{BASE_URL}/auth/login", data={"username": "admin@christuniversity.in", "password": "password123"})
+        resp = await client.post(f"{BASE_URL}/auth/login", data={"username": "admin@christuniversity.in", "password": os.getenv("ADMIN_TEST_PASSWORD", "dummy")})
         if resp.status_code == 200:
             admin_token = resp.json()["access_token"]
             report(PASS, "Admin login successful")

@@ -1,3 +1,4 @@
+import os
 import httpx
 import asyncio
 
@@ -11,7 +12,7 @@ async def test_auth_overhaul():
         print("\n[TEST A] Registration - Rejection of common domains (gmail.com)")
         reg_payload = {
             "email": "rohit.ghosh.test@gmail.com",
-            "password": "Password123!",
+            "password": os.getenv("ADMIN_TEST_PASSWORD", "dummy"),
             "full_name": "Test User"
         }
         res = await client.post(f"{BASE_URL}/auth/register", json=reg_payload)

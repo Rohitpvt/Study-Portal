@@ -1,3 +1,4 @@
+import os
 import httpx
 import sys
 
@@ -9,7 +10,7 @@ async def check_headers():
         print("[1] Logging in...")
         login_res = await client.post(f"{BASE_URL}/auth/login", data={
             "username": "rohit.ghosh@mca.christuniversity.in",
-            "password": "adminPassword123"
+            "password": os.getenv("ADMIN_TEST_PASSWORD", "dummy")
         })
         if login_res.status_code != 200:
             print(f"Login failed: {login_res.text}")

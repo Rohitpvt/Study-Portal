@@ -1,3 +1,4 @@
+import os
 import httpx
 import asyncio
 import sys
@@ -19,9 +20,9 @@ async def run_qa():
     print("--- STARTING CLASSROOM PERMISSIONS QA ---")
     
     # 1. Login all roles
-    teacher_token = await login("qa.teacher@christuniversity.in", "QAPass123!")
-    student_token = await login("qa.student@mca.christuniversity.in", "QAPass123!")
-    stranger_token = await login("qa.stranger@mca.christuniversity.in", "QAPass123!")
+    teacher_token = await login("qa.teacher@christuniversity.in", os.getenv("ADMIN_TEST_PASSWORD", "dummy"))
+    student_token = await login("qa.student@mca.christuniversity.in", os.getenv("ADMIN_TEST_PASSWORD", "dummy"))
+    stranger_token = await login("qa.stranger@mca.christuniversity.in", os.getenv("ADMIN_TEST_PASSWORD", "dummy"))
     
     if not all([teacher_token, student_token, stranger_token]):
         print("Login failed, aborting.")
@@ -55,21 +56,24 @@ async def run_qa():
         for name, headers in [("Student", headers_student), ("Stranger", headers_stranger)]:
             resp = await client.get(f"{BASE_URL}/classrooms/{classroom_id}", headers=headers)
             print(f" - {name} access to detail: {resp.status_code} (Expected 403)")
-            assert resp.status_code == 403
+            if not resp.status_code == 403:
+                raise AssertionError("Expected 403")
 
         # 4. Student joins classroom
         print("\n[Student] Joining classroom...")
         resp = await client.post(f"{BASE_URL}/classrooms/join", headers=headers_student, json={
             "join_code": join_code
         })
-        assert resp.status_code == 200
+        if not resp.status_code == 200:
+            raise AssertionError("Expected 200")
         print("SUCCESS: Student joined.")
 
         # 5. Member access check
         print("\n[Student] Verifying member access...")
         resp = await client.get(f"{BASE_URL}/classrooms/{classroom_id}", headers=headers_student)
         print(f" - Student access to detail: {resp.status_code} (Expected 200)")
-        assert resp.status_code == 200
+        if not resp.status_code == 200:
+            raise AssertionError("Expected 200")
 
         # 6. Analytics check
         print("\n[Security] Verifying Student cannot access Analytics...")
@@ -83,7 +87,8 @@ async def run_qa():
         print("\n[Teacher] Verifying Teacher can access Analytics...")
         resp = await client.get(f"{BASE_URL}/classrooms/{classroom_id}/analytics", headers=headers_teacher)
         print(f" - Teacher access to analytics: {resp.status_code} (Expected 200)")
-        assert resp.status_code == 200
+        if not resp.status_code == 200:
+            raise AssertionError("Expected 200")
 
         # 8. Private Doubt Leak Test
         print("\n[Privacy] Verifying private doubt isolation...")
@@ -92,20 +97,23 @@ async def run_qa():
             "content": "Secret private doubt",
             "visibility": "private"
         })
-        assert resp.status_code == 200
+        if not resp.status_code == 200:
+            raise AssertionError("Expected 200")
         doubt_id = resp.json()["id"]
         
         # Stranger (Non-member) tries to list comments
         resp = await client.get(f"{BASE_URL}/classrooms/{classroom_id}/comments", headers=headers_stranger)
         print(f" - Stranger list comments: {resp.status_code} (Expected 403)")
-        assert resp.status_code == 403
+        if not resp.status_code == 403:
+            raise AssertionError("Expected 403")
 
         # Teacher sees it
         resp = await client.get(f"{BASE_URL}/classrooms/{classroom_id}/comments?visibility=private", headers=headers_teacher)
         doubts = resp.json()
         found = any(d["id"] == doubt_id for d in doubts)
         print(f" - Teacher sees private doubt: {found} (Expected True)")
-        assert found
+        if not found:
+            raise AssertionError("Expected True")
 
         # 9. Cleanup
         print("\n[Cleanup] Removing test classroom...")

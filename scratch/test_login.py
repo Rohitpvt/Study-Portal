@@ -1,3 +1,4 @@
+import os
 import asyncio
 import httpx
 
@@ -17,11 +18,11 @@ async def test_login(email, password):
 
 async def main():
     # Test Teacher
-    await test_login("qa.teacher@christuniversity.in", "QAPass123!")
+    await test_login("qa.teacher@christuniversity.in", os.getenv("ADMIN_TEST_PASSWORD", "dummy"))
     # Test Student
-    await test_login("qa.student@mca.christuniversity.in", "QAPass123!")
+    await test_login("qa.student@mca.christuniversity.in", os.getenv("ADMIN_TEST_PASSWORD", "dummy"))
     # Test New Student from subagent run if exists
-    await test_login("qa.student5@christuniversity.in", "QAPass123!")
+    await test_login("qa.student5@christuniversity.in", os.getenv("ADMIN_TEST_PASSWORD", "dummy"))
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -1,10 +1,11 @@
+import os
 import asyncio
 import httpx
 import time
 
 BASE_URL = "http://localhost:8000/api/v1"
 STUDENT_EMAIL = "student@christuniversity.in"
-PASSWORD = "password123"
+PASSWORD = os.getenv("ADMIN_TEST_PASSWORD", "dummy")
 
 async def debug_c1():
     async with httpx.AsyncClient(timeout=120.0) as client:

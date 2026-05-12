@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import uuid
 import bcrypt
@@ -10,7 +11,7 @@ def setup_qa_users():
     conn = sqlite3.connect('christ_uni_dev.db')
     cursor = conn.cursor()
     
-    password = "QAPass123!"
+    password = os.getenv("ADMIN_TEST_PASSWORD", "dummy")
     hashed = hash_password(password)
     
     qa_users = [

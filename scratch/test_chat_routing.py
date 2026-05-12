@@ -1,9 +1,10 @@
+import os
 import asyncio
 import httpx
 
 BASE_URL = "http://localhost:8000/api/v1"
 STUDENT_EMAIL = "student@christuniversity.in"
-PASSWORD = "password123"
+PASSWORD = os.getenv("ADMIN_TEST_PASSWORD", "dummy")
 
 async def test_chat_routing():
     async with httpx.AsyncClient() as client:

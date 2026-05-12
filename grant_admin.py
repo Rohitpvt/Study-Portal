@@ -1,3 +1,4 @@
+import os
 import asyncio
 import uuid
 from sqlalchemy import select
@@ -19,7 +20,7 @@ async def grant_admin(email: str):
                 id=str(uuid.uuid4()),
                 email=email,
                 full_name="Rohit Ghosh",
-                hashed_password=hash_password("AdminSecurePassword123!"),
+                hashed_password=hash_password(os.getenv("ADMIN_TEST_PASSWORD", "dummy")),
                 role=Role.ADMIN,
                 is_active=True
             )
