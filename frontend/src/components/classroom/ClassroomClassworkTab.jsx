@@ -122,7 +122,8 @@ const ClassroomClassworkTab = ({ classroom, canManage }) => {
   const handleRemoveAttachment = async (attachmentId) => {
     if (!selectedAssignment) return;
     try {
-      await api.delete(`/classrooms/${classroom.id}/assignments/${selectedAssignment.id}/attachments/${attachmentId}`);
+      const endpoint = ['', 'classrooms', classroom.id, 'assignments', selectedAssignment.id, 'attachments', attachmentId].join('/');
+      await api.delete(endpoint);
       success('Attachment removed.');
       
       // Refresh detail
