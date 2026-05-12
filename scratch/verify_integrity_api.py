@@ -1,11 +1,17 @@
+import os
 import requests
+
+ADMIN_TEST_PASSWORD = os.getenv("ADMIN_TEST_PASSWORD")
+if not ADMIN_TEST_PASSWORD:
+    raise RuntimeError("ADMIN_TEST_PASSWORD is required for this script")
+
 
 BASE_URL = "http://127.0.0.1:8000/api/v1"
 
 def test_integrity_filtering():
     # 1. Login as Admin
     print("--- Login as Admin ---")
-    admin_resp = requests.post(f"{BASE_URL}/auth/login", data={"username": "admin@christuniversity.in", "password": "AdminPass1!"})
+    admin_resp = requests.post(f"{BASE_URL}/auth/login", data={"username": "admin@christuniversity.in", "password": ADMIN_TEST_PASSWORD})
     admin_token = admin_resp.json().get("access_token")
     admin_headers = {"Authorization": f"Bearer {admin_token}"}
 

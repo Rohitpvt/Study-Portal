@@ -1,3 +1,4 @@
+import os
 """
 Simulates exactly what the browser Viewer.jsx does:
 1. Login -> get token
@@ -6,6 +7,11 @@ Simulates exactly what the browser Viewer.jsx does:
 """
 import requests
 
+ADMIN_TEST_PASSWORD = os.getenv("ADMIN_TEST_PASSWORD")
+if not ADMIN_TEST_PASSWORD:
+    raise RuntimeError("ADMIN_TEST_PASSWORD is required for this script")
+
+
 BASE = 'http://127.0.0.1:8000/api/v1'
 MATERIAL_ID = 'd673f3dd-2ade-471b-9b99-adb89d9497b9'
 
@@ -13,7 +19,7 @@ MATERIAL_ID = 'd673f3dd-2ade-471b-9b99-adb89d9497b9'
 print("=== Step 1: Login ===")
 r = requests.post(f'{BASE}/auth/login', data={
     'username': 'admin@christuniversity.in',
-    'password': 'AdminPass1!'
+    'password': ADMIN_TEST_PASSWORD
 }, timeout=10)
 assert r.status_code == 200, f"Login failed: {r.status_code}"
 token = r.json()['access_token']

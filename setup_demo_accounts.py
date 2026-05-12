@@ -10,12 +10,20 @@ def setup():
     conn = sqlite3.connect('christ_uni_dev.db')
     cursor = conn.cursor()
     
-    password = "AdminPass1!"
+    import os
+    
+    password = os.getenv("ADMIN_TEST_PASSWORD")
+    if not password:
+        raise RuntimeError("ADMIN_TEST_PASSWORD is required for this script")
+        
+    admin_email = os.getenv("ADMIN_TEST_EMAIL", "admin_demo@christuniversity.in")
+    student_email = os.getenv("STUDENT_TEST_EMAIL", "student_demo@christuniversity.in")
+        
     hashed = hash_password(password)
     
     accounts = [
-        ("rohit.ghosh@mca.christuniversity.in", "Rohit Ghosh", "ADMIN"),
-        ("tisha.chhabra@mca.christuniversity.in", "Tisha Chhabra", "STUDENT")
+        (admin_email, "Admin Demo", "ADMIN"),
+        (student_email, "Student Demo", "STUDENT")
     ]
     
     for email, name, role in accounts:

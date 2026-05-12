@@ -15,8 +15,16 @@ async def login(email, password):
         return response.json()["access_token"]
 
 async def main():
+    import os
+    
+    password = os.getenv("ADMIN_TEST_PASSWORD")
+    if not password:
+        raise RuntimeError("ADMIN_TEST_PASSWORD is required for this script")
+        
+    student_email = os.getenv("STUDENT_TEST_EMAIL", "student_demo@christuniversity.in")
+
     try:
-        token = await login("tisha.chhabra@mca.christuniversity.in", "AdminPass1!")
+        token = await login(student_email, password)
         headers = {"Authorization": f"Bearer {token}"}
         
         # Creating a dummy PDF content

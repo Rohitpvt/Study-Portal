@@ -1,7 +1,13 @@
+import os
 import requests
 
+ADMIN_TEST_PASSWORD = os.getenv("ADMIN_TEST_PASSWORD")
+if not ADMIN_TEST_PASSWORD:
+    raise RuntimeError("ADMIN_TEST_PASSWORD is required for this script")
+
+
 # 1. Login
-r = requests.post('http://127.0.0.1:8000/api/v1/auth/login', data={'username': 'admin@christuniversity.in', 'password': 'AdminPass1!'}, timeout=10)
+r = requests.post('http://127.0.0.1:8000/api/v1/auth/login', data={'username': 'admin@christuniversity.in', 'password': ADMIN_TEST_PASSWORD}, timeout=10)
 token = r.json()['access_token']
 headers = {'Authorization': f'Bearer {token}'}
 print(f'Login: {r.status_code}')

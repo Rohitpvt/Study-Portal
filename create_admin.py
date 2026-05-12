@@ -24,13 +24,17 @@ async def main():
         async with async_session() as session:
             # Disabled admin creation as requested
             pass
-            # stmt = sa.select(User).where(User.email == "admin@christuniversity.in")
+            # admin_email = os.getenv("ADMIN_TEST_EMAIL", "admin_demo@christuniversity.in")
+            # password = os.getenv("ADMIN_TEST_PASSWORD")
+            # if not password:
+            #     raise RuntimeError("ADMIN_TEST_PASSWORD is required for this script")
+            # stmt = sa.select(User).where(User.email == admin_email)
             # result = await session.execute(stmt)
             # admin = result.scalar_one_or_none()
             # if not admin:
-            #     hashed_pw = hash_password("AdminPass1!")
+            #     hashed_pw = hash_password(password)
             #     new_admin = User(
-            #         email="admin@christuniversity.in",
+            #         email=admin_email,
             #         hashed_password=hashed_pw,
             #         full_name="Global System Admin",
             #         role=Role.ADMIN,
@@ -38,12 +42,12 @@ async def main():
             #     )
             #     session.add(new_admin)
             #     await session.commit()
-            #     print("SUCCESS: Admin 'admin@christuniversity.in' created.")
+            #     print(f"SUCCESS: Admin '{admin_email}' created.")
             # else:
-            #     admin.hashed_password = hash_password("AdminPass1!")
+            #     admin.hashed_password = hash_password(password)
             #     admin.role = Role.ADMIN
             #     await session.commit()
-            #     print("SUCCESS: Admin 'admin@christuniversity.in' password reset to 'AdminPass1!' and verified as ADMIN.")
+            #     print(f"SUCCESS: Admin '{admin_email}' password reset and verified as ADMIN.")
     except Exception as e:
         print(f"FAILED: {str(e)}")
 

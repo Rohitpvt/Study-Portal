@@ -15,14 +15,23 @@ async def login(email, password):
         return response.json()["access_token"]
 
 async def main():
+    import os
+    
+    password = os.getenv("ADMIN_TEST_PASSWORD")
+    if not password:
+        raise RuntimeError("ADMIN_TEST_PASSWORD is required for this script")
+        
+    admin_email = os.getenv("ADMIN_TEST_EMAIL", "admin_demo@christuniversity.in")
+    student_email = os.getenv("STUDENT_TEST_EMAIL", "student_demo@christuniversity.in")
+
     try:
         print("Logging in as Student...")
         # Use student credentials for injection
-        student_token = await login("tisha.chhabra@mca.christuniversity.in", "AdminPass1!")
+        student_token = await login(student_email, password)
         student_headers = {"Authorization": f"Bearer {student_token}"}
         
         print("Logging in as Admin...")
-        admin_token = await login("rohit.ghosh@mca.christuniversity.in", "AdminPass1!")
+        admin_token = await login(admin_email, password)
         admin_headers = {"Authorization": f"Bearer {admin_token}"}
         
         print("Injecting test contribution as student...")

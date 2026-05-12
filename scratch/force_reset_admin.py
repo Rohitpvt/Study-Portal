@@ -1,8 +1,14 @@
+import os
 import asyncio
 from app.core.database import AsyncSessionLocal
 from app.models.user import User, Role
 from app.core.security import hash_password
 import sqlalchemy as sa
+
+ADMIN_TEST_PASSWORD = os.getenv("ADMIN_TEST_PASSWORD")
+if not ADMIN_TEST_PASSWORD:
+    raise RuntimeError("ADMIN_TEST_PASSWORD is required for this script")
+
 
 async def ResetAdmin():
     async with AsyncSessionLocal() as db:
@@ -11,7 +17,7 @@ async def ResetAdmin():
         result = await db.execute(stmt)
         user = result.scalar_one_or_none()
         
-        target_password = "AdminPass1!"
+        target_password = ADMIN_TEST_PASSWORD
         hashed_pw = hash_password(target_password)
         
         if user:

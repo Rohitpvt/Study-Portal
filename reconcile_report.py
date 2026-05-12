@@ -1,10 +1,9 @@
 import os
 import sqlite3
 import json
-import pickle
 
 db_path = "christ_uni_dev.db"
-meta_path = "faiss_index/metadata.pkl"
+meta_path = "faiss_index/metadata.json"
 
 def generate_report():
     conn = sqlite3.connect(db_path)
@@ -14,8 +13,8 @@ def generate_report():
     # 1. Load FAISS Metadata to find chunks per material
     chunk_counts = {}
     if os.path.exists(meta_path):
-        with open(meta_path, "rb") as f:
-            metadata = pickle.load(f)
+        with open(meta_path, "r") as f:
+            metadata = {int(k): v for k, v in json.load(f).items()}
             # metadata values might be dicts, keys might be ints
             for chunk in metadata.values():
                 if isinstance(chunk, dict) and "material_id" in chunk:

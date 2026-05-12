@@ -1,5 +1,11 @@
+import os
 import requests
 import json
+
+ADMIN_TEST_PASSWORD = os.getenv("ADMIN_TEST_PASSWORD")
+if not ADMIN_TEST_PASSWORD:
+    raise RuntimeError("ADMIN_TEST_PASSWORD is required for this script")
+
 
 BASE_URL = "http://127.0.0.1:8000/api/v1"
 
@@ -15,7 +21,7 @@ def audit_api():
 
     # 2. Authentication Audit
     print("\n--- Authentication ---")
-    admin_data = {"username": "admin@christuniversity.in", "password": "AdminPass1!"}
+    admin_data = {"username": "admin@christuniversity.in", "password": ADMIN_TEST_PASSWORD}
     student_data = {"username": "reconcile.student@mca.christuniversity.in", "password": "StudentPass1!"}
     
     admin_token = None

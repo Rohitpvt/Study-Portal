@@ -1,13 +1,13 @@
 import os
 import faiss
-import pickle
 import json
 import sqlite3
 from app.models.material import MaterialIntegrityStatus
 
 faiss_dir = "faiss_index"
 index_path = os.path.join(faiss_dir, "index.faiss")
-meta_path = os.path.join(faiss_dir, "metadata.pkl")
+meta_path = os.path.join(faiss_dir, "metadata.json")
+meta_pkl_path = os.path.join(faiss_dir, "metadata.pkl")
 db_path = "christ_uni_dev.db"
 
 def audit_faiss():
@@ -31,6 +31,9 @@ def audit_faiss():
     except Exception as e:
         report["db_error"] = str(e)
         
+    if os.path.exists(meta_pkl_path):
+        report["legacy_pkl_detected"] = True
+
     if not os.path.exists(index_path) or not os.path.exists(meta_path):
         report["health"] = "MISSING_FILES"
         print(json.dumps(report, indent=2))
@@ -42,8 +45,8 @@ def audit_faiss():
         index = faiss.read_index(index_path)
         report["total_vectors"] = index.ntotal
         
-        with open(meta_path, "rb") as f:
-            metadata = pickle.load(f)
+        with open(meta_path, "r") as f:
+            metadata = {int(k): v for k, v in json.load(f).items()}
             
         report["metadata_records"] = len(metadata)
         

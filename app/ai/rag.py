@@ -8,7 +8,7 @@ word-based chunking with overlap, and page-aware metadata.
 from typing import Optional, Dict, Any, List
 import logging
 import os
-import pickle
+import json
 import hashlib
 import numpy as np
 from app.utils.text_extractor import extract_text
@@ -38,7 +38,7 @@ def clear_index() -> bool:
     _index_built = False
     
     idx_file = os.path.join(get_index_path(), "index.faiss")
-    meta_file = os.path.join(get_index_path(), "metadata.pkl")
+    meta_file = os.path.join(get_index_path(), "metadata.json")
     
     if os.path.exists(idx_file):
         os.remove(idx_file)
@@ -62,8 +62,8 @@ def save_index() -> bool:
         # Save FAISS index
         faiss.write_index(_faiss_index, os.path.join(get_index_path(), "index.faiss"))
         # Save metadata
-        with open(os.path.join(get_index_path(), "metadata.pkl"), "wb") as f:
-            pickle.dump(_index_docs, f)
+        with open(os.path.join(get_index_path(), "metadata.json"), "w") as f:
+            json.dump(_index_docs, f)
         logger.info(f"RAG index saved to {get_index_path()}")
         return True
     except Exception as e:
@@ -75,16 +75,20 @@ def load_index() -> bool:
     global _faiss_index, _index_docs, _index_built
     
     idx_file = os.path.join(get_index_path(), "index.faiss")
-    meta_file = os.path.join(get_index_path(), "metadata.pkl")
+    meta_json = os.path.join(get_index_path(), "metadata.json")
+    meta_pkl = os.path.join(get_index_path(), "metadata.pkl")
     
-    if not os.path.exists(idx_file) or not os.path.exists(meta_file):
+    if os.path.exists(meta_pkl):
+        logger.warning("Legacy metadata.pkl detected but ignored for security. Run reindex_all.py to rebuild metadata.json.")
+    
+    if not os.path.exists(idx_file) or not os.path.exists(meta_json):
         return False
     
     try:
         import faiss
         _faiss_index = faiss.read_index(idx_file)
-        with open(meta_file, "rb") as f:
-            _index_docs = pickle.load(f)
+        with open(meta_json, "r") as f:
+            _index_docs = {int(k): v for k, v in json.load(f).items()}
         _index_built = True
         logger.info(f"RAG index loaded from {get_index_path()} ({len(_index_docs)} chunks).")
         return True

@@ -1,11 +1,17 @@
+import os
 import requests
 import uuid
 import json
 import time
 
+ADMIN_TEST_PASSWORD = os.getenv("ADMIN_TEST_PASSWORD")
+if not ADMIN_TEST_PASSWORD:
+    raise RuntimeError("ADMIN_TEST_PASSWORD is required for this script")
+
+
 BASE_URL = "http://localhost:8000/api/v1"
 EMAIL = "rohit.ghosh@mca.christuniversity.in"
-PASSWORD = "AdminPass1!"
+PASSWORD = ADMIN_TEST_PASSWORD
 
 def get_token():
     print(f"Logging in as {EMAIL}...")

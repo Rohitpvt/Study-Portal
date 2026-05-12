@@ -9,12 +9,18 @@ db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "christ_uni_d
 conn = sqlite3.connect(db_path)
 c = conn.cursor()
 
-new_hash = hash_password("AdminPass1!")
+password = os.getenv("ADMIN_TEST_PASSWORD")
+if not password:
+    raise RuntimeError("ADMIN_TEST_PASSWORD is required for this script")
+    
+admin_email = os.getenv("ADMIN_TEST_EMAIL", "admin_demo@christuniversity.in")
 
-c.execute("UPDATE users SET role='admin', hashed_password=? WHERE email='admin@christuniversity.in'", (new_hash,))
+new_hash = hash_password(password)
+
+c.execute("UPDATE users SET role='admin', hashed_password=? WHERE email=?", (new_hash, admin_email))
 
 if c.rowcount > 0:
-    print("SUCCESS: Forcibly promoted admin@christuniversity.in to ADMIN and reset password natively.")
+    print(f"SUCCESS: Forcibly promoted {admin_email} to ADMIN and reset password natively.")
 else:
     print("FAILED: Record not found.")
 
