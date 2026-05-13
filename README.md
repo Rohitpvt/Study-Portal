@@ -399,3 +399,11 @@ app.add_middleware(SessionMiddleware, ...)   # 3rd
 ---
 
 *Developed as a high-performance academic resource hub.*
+
+## License
+
+This project is licensed under the MIT License.
+
+Copyright (c) 2026 Rohit Ghosh.
+
+See the [LICENSE](./LICENSE) file for full details.
