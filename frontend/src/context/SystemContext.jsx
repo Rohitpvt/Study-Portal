@@ -39,6 +39,7 @@ export function SystemProvider({ children }) {
       setIsRetrying(false);
       return true;
     } catch (error) {
+      console.warn('[SystemContext] Health check failed:', healthCheckUrl, error?.code, error?.message, error?.response?.status);
       setIsServerDown(true);
       setIsWakingUp(false);
       clearTimeout(coldStartTimer.current);
