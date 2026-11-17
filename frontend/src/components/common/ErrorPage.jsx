@@ -36,9 +36,9 @@ export default function ErrorPage({
       showHome: !!fullScreen 
     },
     'server': {
-      defaultTitle: "Server Unreachable",
-      defaultMessage: "We are unable to connect to the backend server. Please try again shortly.",
-      defaultSubtitle: "Connection Refused",
+      defaultTitle: "Server Connecting",
+      defaultMessage: "The cloud server is currently warming up from idle mode (Render free tier takes ~30s to boot). Please click Retry or wait a moment.",
+      defaultSubtitle: "Connecting to Backend",
       showRetry: true,
       showHome: false
     },

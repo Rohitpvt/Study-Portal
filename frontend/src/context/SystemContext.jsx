@@ -4,7 +4,7 @@ import api from '../services/api';
 
 const SystemContext = createContext();
 
-const COLD_START_THRESHOLD_MS = 5000;
+const COLD_START_THRESHOLD_MS = 3000;
 
 export function SystemProvider({ children }) {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
@@ -12,36 +12,41 @@ export function SystemProvider({ children }) {
   const [isRetrying, setIsRetrying] = useState(false);
   const [isWakingUp, setIsWakingUp] = useState(false);
   const coldStartTimer = useRef(null);
+  const isRetryingRef = useRef(false);
 
   // Dynamically derive backend origin from the main API configuration
   const derivedOrigin = new URL(api.defaults.baseURL || 'http://127.0.0.1:8000/api/v1').origin;
   const healthCheckUrl = `${derivedOrigin}/health`;
 
   const checkHealth = useCallback(async () => {
-    if (!navigator.onLine) return false;
+    if (!navigator.onLine || isRetryingRef.current) return false;
     
+    isRetryingRef.current = true;
     setIsRetrying(true);
 
-    // Start cold-start timer: if health check takes >5s, show waking banner
+    // Start cold-start timer: if health check takes >3s, show waking banner
+    if (coldStartTimer.current) clearTimeout(coldStartTimer.current);
     coldStartTimer.current = setTimeout(() => {
       setIsWakingUp(true);
     }, COLD_START_THRESHOLD_MS);
 
     try {
-      await axios.get(healthCheckUrl, { timeout: 60000 }); // 60s timeout for cold starts
+      await axios.get(healthCheckUrl, { timeout: 90000 }); // 90s timeout for Render free-tier cold starts
       setIsServerDown(false);
       setIsWakingUp(false);
       clearTimeout(coldStartTimer.current);
+      isRetryingRef.current = false;
       setIsRetrying(false);
       return true;
     } catch (error) {
       setIsServerDown(true);
       setIsWakingUp(false);
       clearTimeout(coldStartTimer.current);
+      isRetryingRef.current = false;
       setIsRetrying(false);
       return false;
     }
-  }, []);
+  }, [healthCheckUrl]);
 
   // 1. Listen for browser online/offline events
   useEffect(() => {
@@ -67,14 +72,20 @@ export function SystemProvider({ children }) {
   // 2. Listen for custom server-error events dispatched by the API interceptor
   useEffect(() => {
     const handleServerError = () => {
-      if (!isServerDown && !isOffline) {
-        setIsServerDown(true);
+      if (!isOffline) {
+        if (isRetryingRef.current) {
+          // A health check / cold-start wakeup is already in progress; show waking state instead of hard error
+          setIsWakingUp(true);
+        } else {
+          // Verify/wake backend via checkHealth before locking into server-down page
+          checkHealth();
+        }
       }
     };
 
     window.addEventListener('server-error', handleServerError);
     return () => window.removeEventListener('server-error', handleServerError);
-  }, [isServerDown, isOffline]);
+  }, [isOffline, checkHealth]);
 
   // 3. Auto-Retry Loop when server is down but browser is online
   useEffect(() => {

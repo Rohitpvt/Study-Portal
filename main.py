@@ -9,7 +9,7 @@ import logging
 from contextlib import asynccontextmanager
 
 import os
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -220,28 +220,49 @@ uploads_app.mount("/", StaticFiles(directory="uploads"))
 
 app.mount(f"{API_PREFIX}/uploads", uploads_app, name="uploads")
 
-# ── Health Check ──────────────────────────────────────────────────────────────
+# ── Health & Root Endpoints ───────────────────────────────────────────────────
+@app.get("/", tags=["Health"], summary="API Root")
+async def root(request: Request):
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        return RedirectResponse(url="/docs")
+    return {
+        "name": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "status": "online",
+        "docs": "/docs",
+        "health": "/health",
+        "frontend": "https://study-portal-final-123.vercel.app"
+    }
+
 @app.get("/health", tags=["Health"], summary="Health check")
 async def health():
     return {"status": "ok", "version": settings.APP_VERSION}
 
-# ── 404 Redirect Handler ──────────────────────────────────────────────────────
-from fastapi.responses import RedirectResponse
+@app.get("/404", tags=["Health"], include_in_schema=False)
+async def not_found_page():
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Resource not found on backend. Visit /docs for available API endpoints."}
+    )
+
+# ── 404 Exception Handler ─────────────────────────────────────────────────────
+from fastapi.responses import JSONResponse, RedirectResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 @app.exception_handler(StarletteHTTPException)
-async def custom_http_exception_handler(request, exc):
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
     if exc.status_code == 404:
-        # If it's a browser request, redirect to the frontend 404 page
-        accept = request.headers.get("accept", "")
-        if "text/html" in accept:
-            return RedirectResponse(url="/404")
+        # Prevent any redirect loop if the requested path is already /404 or an API route
+        if request.url.path not in ["/404", "/404/"] and not request.url.path.startswith(API_PREFIX):
+            accept = request.headers.get("accept", "")
+            if "text/html" in accept:
+                # Redirect browser requests to the frontend portal
+                return RedirectResponse(url="https://study-portal-final-123.vercel.app")
     
-    # Otherwise, return a standard JSON error for API clients
-    return Response(
-        content=f'{{"detail": "{exc.detail}"}}',
-        status_code=exc.status_code,
-        media_type="application/json"
+    return JSONResponse(
+        content={"detail": exc.detail},
+        status_code=exc.status_code
     )
 
 if __name__ == "__main__":

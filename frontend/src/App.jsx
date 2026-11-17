@@ -44,8 +44,26 @@ const AppContent = () => {
   if (isOffline) {
     return <ErrorPage type="offline" onRetry={checkHealth} isRetrying={isRetrying} />;
   }
+
+  if (isWakingUp) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
+        <div className="relative mb-6">
+          <div className="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2">Waking up Cloud Server...</h2>
+        <p className="text-slate-400 max-w-md text-sm leading-relaxed mb-6">
+          Render free-tier backends spin down after 15 minutes of inactivity. The server is booting now and will connect automatically in a few seconds.
+        </p>
+        <div className="flex items-center gap-2 px-4 py-2 bg-slate-900/90 rounded-full text-xs text-indigo-300 border border-indigo-500/30 shadow-lg">
+          <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
+          Establishing secure connection...
+        </div>
+      </div>
+    );
+  }
   
-  if (isServerDown && !isWakingUp) {
+  if (isServerDown) {
     return <ErrorPage type="server" onRetry={checkHealth} isRetrying={isRetrying} />;
   }
 
