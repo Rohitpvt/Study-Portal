@@ -116,24 +116,24 @@ const ClassroomStreamTab = ({ classroom, canManage }) => {
            {!isComposing ? (
              <button 
               onClick={() => setIsComposing(true)}
-              className="w-full p-8 flex items-center gap-5 text-left group"
+              className="w-full p-6 sm:p-7 flex items-center gap-4 text-left group transition-all"
              >
-                <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-indigo-500/10 group-hover:text-indigo-500 transition-all">
-                  <MessageSquare className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:scale-105 transition-all shadow-sm">
+                  <MessageSquare className="w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Announce something to your class</h3>
-                  <p className="text-sm font-bold text-slate-500">Post updates, links, or reminders...</p>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">Announce something to your class</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Post updates, links, or reminders...</p>
                 </div>
              </button>
            ) : (
-             <form onSubmit={handleSubmit} className="p-8 space-y-6 animate-in slide-in-from-top-4 duration-500">
+             <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6 animate-in slide-in-from-top-4 duration-500">
                <div className="flex items-center justify-between">
                  <div className="flex items-center gap-3">
                    <div className="p-2.5 bg-indigo-500 rounded-xl">
                       <Send className="w-5 h-5 text-white" />
                    </div>
-                   <h3 className="text-xl font-black text-slate-900 dark:text-white">
+                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                      {editingId ? 'Edit Announcement' : 'New Announcement'}
                    </h3>
                  </div>
@@ -253,19 +253,19 @@ const ClassroomStreamTab = ({ classroom, canManage }) => {
                 )}
               </div>
 
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-4">{ann.title}</h3>
-              <div className="text-slate-600 dark:text-slate-300 font-bold whitespace-pre-wrap leading-relaxed">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight mb-3">{ann.title}</h3>
+              <div className="text-slate-600 dark:text-slate-300 font-medium whitespace-pre-wrap leading-relaxed">
                 {ann.content}
               </div>
             </div>
           ))
         ) : (
-          <div className="py-24 text-center glass dark:bg-[#0a0a0a] rounded-[4rem] border border-white/60 dark:border-white/5">
-             <div className="w-20 h-20 bg-slate-100 dark:bg-white/5 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-slate-300 dark:text-white/10">
-                <Bell className="w-10 h-10" />
+          <div className="py-20 text-center glass dark:bg-[#0a0a0a] rounded-[3rem] border border-white/60 dark:border-white/5">
+             <div className="w-16 h-16 bg-slate-100 dark:bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-6 text-slate-300 dark:text-white/10">
+                <Bell className="w-8 h-8" />
              </div>
-             <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-2">No Announcements</h3>
-             <p className="text-slate-500 font-bold max-w-sm mx-auto">
+             <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">No Announcements Yet</h3>
+             <p className="text-slate-400 font-medium text-sm max-w-sm mx-auto">
                This is your classroom stream. Teachers will post important updates and announcements here.
              </p>
           </div>

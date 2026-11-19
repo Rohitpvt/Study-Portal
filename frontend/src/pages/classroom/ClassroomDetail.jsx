@@ -5,7 +5,8 @@ import {
   Settings, Plus, ChevronDown, FileText, 
   ExternalLink, Download, Search, Filter,
   BookOpenCheck, Layout, GraduationCap as GradesIcon,
-  Trash2, UserMinus, Hash, Paperclip, Sparkles, Inbox, BarChart3
+  Trash2, UserMinus, Hash, Paperclip, Sparkles, Inbox, BarChart3,
+  Copy, Check
 } from 'lucide-react';
 import ClassroomMaterialsTab from '../../components/classroom/ClassroomMaterialsTab';
 import ClassroomStreamTab from '../../components/classroom/ClassroomStreamTab';
@@ -25,8 +26,17 @@ const ClassroomDetail = () => {
   
   const [classroom, setClassroom] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('people');
+  const [activeTab, setActiveTab] = useState('stream');
   const [removingMemberId, setRemovingMemberId] = useState(null);
+  const [copiedCode, setCopiedCode] = useState(false);
+
+  const copyJoinCode = () => {
+    if (!classroom?.join_code) return;
+    navigator.clipboard.writeText(classroom.join_code);
+    setCopiedCode(true);
+    success(`Class code ${classroom.join_code} copied to clipboard!`);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
 
   const fetchClassroom = async () => {
     setLoading(true);
@@ -98,57 +108,95 @@ const ClassroomDetail = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Classroom Header */}
-      <div className="relative h-48 sm:h-64 rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden mb-8 sm:mb-12 group shadow-2xl">
+      <div className="relative rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden mb-8 sm:mb-10 group shadow-2xl border border-white/10 dark:border-white/5 transition-all">
+        {/* Ambient Gradient Background */}
         <div className={`absolute inset-0 bg-gradient-to-br ${currentBanner}`} />
-        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/40 to-transparent" />
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px]" />
         
-        <div className="absolute inset-0 p-8 sm:p-12 flex flex-col justify-end">
-          <div className="flex flex-wrap items-center gap-3 mb-3 sm:mb-4">
-            <span className="px-3 sm:px-4 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black text-white uppercase tracking-widest border border-white/20">
-              {classroom.subject}
-            </span>
-            <span className="px-3 sm:px-4 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black text-white uppercase tracking-widest border border-white/20">
-              {classroom.course} • Sem {classroom.semester}
-            </span>
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tighter mb-2 drop-shadow-2xl leading-tight">
-            {classroom.name}
-          </h1>
-          <p className="text-sm sm:text-lg font-bold text-white/80 uppercase tracking-widest flex items-center gap-2">
-            Code: <span className="text-white font-black bg-white/10 px-2 py-0.5 rounded-lg border border-white/10">{classroom.join_code}</span>
-          </p>
-        </div>
+        {/* Subtle decorative glow */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
 
-        {classroom.can_manage && (
-          <button 
-            className="absolute top-4 sm:top-8 right-4 sm:right-10 p-3 sm:p-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl sm:rounded-3xl text-white transition-all"
-            aria-label="Classroom Settings"
-          >
-            <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
-          </button>
-        )}
+        <div className="relative p-6 sm:p-10 lg:p-12 flex flex-col justify-end min-h-[220px] sm:min-h-[250px]">
+          {/* Top Row: Badges & Settings */}
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-black/30 hover:bg-black/40 backdrop-blur-md rounded-full text-xs font-bold text-white/95 border border-white/15 shadow-sm transition-colors">
+                <BookOpen className="w-3.5 h-3.5 text-indigo-300" />
+                {classroom.subject}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-black/30 backdrop-blur-md rounded-full text-xs font-bold text-white/95 border border-white/15 shadow-sm">
+                <GraduationCap className="w-3.5 h-3.5 text-amber-300" />
+                {classroom.course} • Sem {classroom.semester}
+              </span>
+            </div>
+
+            {classroom.can_manage && (
+              <button 
+                className="p-3 bg-black/25 hover:bg-black/40 backdrop-blur-md rounded-2xl text-white/90 hover:text-white border border-white/15 transition-all interactive-scale"
+                aria-label="Classroom Settings"
+                title="Classroom Settings"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+
+          {/* Title and Join Code */}
+          <div className="space-y-3 mt-auto">
+            <h1 className="text-2xl sm:text-4xl lg:text-[2.6rem] font-extrabold text-white tracking-tight drop-shadow-md leading-tight max-w-4xl">
+              {classroom.name}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <button 
+                onClick={copyJoinCode}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-black/35 hover:bg-black/50 active:scale-95 backdrop-blur-md rounded-xl text-xs font-bold text-white border border-white/15 transition-all shadow-sm group"
+                title="Click to copy class code"
+              >
+                <span className="text-white/70 font-medium">Class Code:</span>
+                <span className="font-mono font-black tracking-wider text-amber-300 bg-white/10 px-2 py-0.5 rounded-md border border-white/10">
+                  {classroom.join_code}
+                </span>
+                {copiedCode ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5 text-white/60 group-hover:text-white transition-colors" />
+                )}
+              </button>
+              
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-md rounded-xl text-xs font-semibold text-white/80 border border-white/10">
+                <Users className="w-3.5 h-3.5 text-white/70" />
+                <span>{(classroom.members || []).length} {(classroom.members || []).length === 1 ? 'Member' : 'Members'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 mb-8 sm:mb-12 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div className="flex items-center gap-2 min-w-max">
-          {tabs.filter(t => !t.hidden).map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2.5 px-6 sm:px-8 py-3.5 sm:py-4 rounded-[1.2rem] sm:rounded-[1.5rem] font-black text-[10px] sm:text-xs uppercase tracking-widest transition-all shrink-0 ${
-                activeTab === tab.id 
-                  ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-500/20' 
-                  : 'text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-white/5 border border-transparent hover:border-white/10'
-              }`}
-              aria-label={`${tab.label} tab`}
-              aria-selected={activeTab === tab.id}
-              role="tab"
-            >
-              <tab.icon className="w-4 sm:w-4.5 h-4 sm:h-4.5" />
-              {tab.label}
-            </button>
-          ))}
+      <div className="mb-8 sm:mb-10">
+        <div className="p-1.5 glass dark:bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-white/10 flex items-center gap-1 overflow-x-auto scrollbar-hide shadow-lg shadow-black/5 dark:shadow-none">
+          {tabs.filter(t => !t.hidden).map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 whitespace-nowrap shrink-0 interactive-scale ${
+                  isActive
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-white/5'
+                }`}
+                aria-label={`${tab.label} tab`}
+                aria-selected={isActive}
+                role="tab"
+              >
+                <tab.icon className={`w-4 h-4 transition-transform ${isActive ? 'text-white scale-110' : 'text-slate-400 dark:text-slate-500'}`} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -179,9 +227,9 @@ const ClassroomDetail = () => {
           <div className="max-w-4xl mx-auto space-y-12">
             {/* Teachers */}
             <div>
-              <div className="flex items-center justify-between pb-4 border-b-2 border-indigo-500/20 mb-6 px-4">
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white">Teachers</h3>
-                <span className="text-sm font-black text-indigo-500 uppercase tracking-widest">Faculty</span>
+              <div className="flex items-center justify-between pb-3 border-b border-indigo-500/20 mb-6 px-2">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Teachers</h3>
+                <span className="text-xs font-bold text-indigo-500 uppercase tracking-wider">Faculty</span>
               </div>
               <div className="space-y-4">
                 {(classroom.members || []).filter(m => m.role_in_class === 'teacher').map(teacher => (
@@ -207,9 +255,9 @@ const ClassroomDetail = () => {
 
             {/* Students */}
             <div>
-              <div className="flex items-center justify-between pb-4 border-b-2 border-slate-200 dark:border-white/5 mb-6 px-4">
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white">Students</h3>
-                <span className="text-sm font-black text-slate-400 uppercase tracking-widest">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/5 mb-6 px-2">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Students</h3>
+                <span className="text-xs font-semibold text-slate-400">
                   {(classroom.members || []).filter(m => m.role_in_class === 'student').length} Enrolled
                 </span>
               </div>
