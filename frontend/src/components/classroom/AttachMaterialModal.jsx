@@ -39,8 +39,9 @@ const AttachMaterialModal = ({
 
   const fetchGlobalMaterials = async () => {
     try {
-      const res = await api.get('/materials/', { params: { q: searchQuery, limit: 5 } });
-      setMaterials(res.data.items || []);
+      const res = await api.get('/materials', { params: { q: searchQuery, limit: 5 } });
+      const items = res.data?.items || (Array.isArray(res.data) ? res.data : []);
+      setMaterials(items);
     } catch (err) {
       console.error('Failed to search materials:', err);
     }

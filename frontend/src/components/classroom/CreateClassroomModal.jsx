@@ -44,7 +44,7 @@ const CreateClassroomModal = ({ isOpen, onClose, onSuccess }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await api.post('/classrooms/', formData);
+      const res = await api.post('/classrooms', formData);
       success('Classroom created successfully!');
       setCreatedClassroom(res.data);
     } catch (err) {

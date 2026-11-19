@@ -20,10 +20,12 @@ const ClassroomList = () => {
   const fetchClassrooms = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/classrooms/');
-      setClassrooms(res.data);
+      const res = await api.get('/classrooms');
+      const data = Array.isArray(res.data) ? res.data : (res.data?.items || []);
+      setClassrooms(data);
     } catch (err) {
       console.error('Failed to fetch classrooms:', err);
+      setClassrooms([]);
     } finally {
       setLoading(false);
     }
@@ -33,9 +35,10 @@ const ClassroomList = () => {
     fetchClassrooms();
   }, []);
 
-  const filteredClassrooms = classrooms.filter(c => 
-    (c.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (c.subject || '').toLowerCase().includes(searchQuery.toLowerCase())
+  const safeClassrooms = Array.isArray(classrooms) ? classrooms : [];
+  const filteredClassrooms = safeClassrooms.filter(c => 
+    (c?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (c?.subject || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (

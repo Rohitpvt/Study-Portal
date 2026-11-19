@@ -180,9 +180,10 @@ async def delete_user(
             await db.execute(delete(ClassroomComment).where(ClassroomComment.assignment_id.in_(user_assign_ids)))
             await db.execute(delete(ClassroomAssignment).where(ClassroomAssignment.id.in_(user_assign_ids)))
 
-        # 5. Announcements and Materials added in classrooms
+        # 5. Announcements, Materials, and Topics added in classrooms
         await db.execute(delete(ClassroomAnnouncement).where(ClassroomAnnouncement.created_by == user_id))
         await db.execute(delete(ClassroomMaterial).where(ClassroomMaterial.added_by == user_id))
+        await db.execute(delete(ClassroomTopic).where(ClassroomTopic.created_by == user_id))
 
         # 6. Classrooms created by this user (if teacher created any)
         created_class_ids = (await db.execute(select(Classroom.id).where(Classroom.created_by_teacher_id == user_id))).scalars().all()
@@ -294,9 +295,10 @@ async def batch_delete_users(
                 await db.execute(delete(ClassroomComment).where(ClassroomComment.assignment_id.in_(user_assign_ids)))
                 await db.execute(delete(ClassroomAssignment).where(ClassroomAssignment.id.in_(user_assign_ids)))
 
-            # 5. Announcements and Materials added in classrooms
+            # 5. Announcements, Materials, and Topics added in classrooms
             await db.execute(delete(ClassroomAnnouncement).where(ClassroomAnnouncement.created_by == uid))
             await db.execute(delete(ClassroomMaterial).where(ClassroomMaterial.added_by == uid))
+            await db.execute(delete(ClassroomTopic).where(ClassroomTopic.created_by == uid))
 
             # 6. Classrooms created by this user
             created_class_ids = (await db.execute(select(Classroom.id).where(Classroom.created_by_teacher_id == uid))).scalars().all()

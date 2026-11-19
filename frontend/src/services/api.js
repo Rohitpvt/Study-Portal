@@ -10,9 +10,14 @@ const api = axios.create({
     : (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1'),
 });
 
-// Attach JWT header before requests
+// Attach JWT header and sanitize endpoint paths before requests
 api.interceptors.request.use(
   (config) => {
+    // Strip trailing slash from API paths to avoid triggering SPA index.html fallback on Vercel
+    if (config.url && config.url.length > 1 && config.url.endsWith('/')) {
+      config.url = config.url.slice(0, -1);
+    }
+
     const token = localStorage.getItem('access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -23,7 +28,18 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Guard against accidental HTML responses from SPA fallback rewrites
+    const contentType = response.headers?.['content-type'] || '';
+    if (
+      contentType.includes('text/html') &&
+      typeof response.data === 'string' &&
+      response.data.includes('<!doctype html>')
+    ) {
+      return Promise.reject(new Error('Invalid API response: received HTML from SPA fallback instead of JSON.'));
+    }
+    return response;
+  },
   (error) => {
     // 1. Connection Refused / Network Error / Timeout Detection
     const isNetworkError = !error.response && error.code === 'ERR_NETWORK';

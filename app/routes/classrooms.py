@@ -42,7 +42,8 @@ from app.services.classroom_service import ClassroomService
 router = APIRouter(prefix="/classrooms", tags=["Classrooms"])
 
 
-@router.post("/", response_model=ClassroomOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ClassroomOut, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ClassroomOut, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 async def create_classroom(
     data: ClassroomCreate,
     current_user: TeacherUser,
@@ -52,7 +53,8 @@ async def create_classroom(
     return await ClassroomService.create_classroom(db, current_user, data)
 
 
-@router.get("/", response_model=List[ClassroomOut])
+@router.get("", response_model=List[ClassroomOut])
+@router.get("/", response_model=List[ClassroomOut], include_in_schema=False)
 async def list_classrooms(
     current_user: CurrentUser,
     db: DBSession

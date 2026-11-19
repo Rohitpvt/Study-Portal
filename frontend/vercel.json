@@ -1,8 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://intel-ai-backend-zk22.onrender.com/api/:path*"
+      "source": "/api/:match*",
+      "destination": "https://intel-ai-backend-zk22.onrender.com/api/:match*"
+    },
+    {
+      "source": "/api/:match*/",
+      "destination": "https://intel-ai-backend-zk22.onrender.com/api/:match*"
     },
     {
       "source": "/health",
