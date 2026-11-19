@@ -227,7 +227,8 @@ async def root(request: Request):
     if "text/html" in accept:
         return RedirectResponse(url="/docs")
     return {
-        "name": settings.APP_NAME,
+        "service": "AI Study Portal Backend",
+        "name": "AI Study Portal Backend",
         "version": settings.APP_VERSION,
         "status": "online",
         "docs": "/docs",
@@ -237,7 +238,12 @@ async def root(request: Request):
 
 @app.get("/health", tags=["Health"], summary="Health check")
 async def health():
-    return {"status": "ok", "version": settings.APP_VERSION}
+    return {
+        "service": "AI Study Portal Backend",
+        "name": "AI Study Portal Backend",
+        "status": "ok",
+        "version": settings.APP_VERSION
+    }
 
 @app.get("/404", tags=["Health"], include_in_schema=False)
 async def not_found_page():

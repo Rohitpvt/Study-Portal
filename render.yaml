@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: intel-ai-backend
+    name: ai-study-portal-backend
     env: python
     region: singapore # Adjust based on target audience
     buildCommand: "pip install -r requirements.txt"
