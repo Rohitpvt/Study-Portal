@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { 
   Crown, Users, ShieldCheck, GraduationCap, Code2, 
   Search, Filter, ChevronDown, Check, X, AlertTriangle,
-  RefreshCw, ArrowUpDown, Trash2, BookOpenCheck
+  RefreshCw, ArrowUpDown, Trash2, BookOpenCheck, Download,
+  CheckSquare, Square
 } from 'lucide-react';
 import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
@@ -23,6 +24,11 @@ export default function ProfileControl() {
   const [pendingChanges, setPendingChanges] = useState({}); // { user_id: new_role }
   const [confirmModal, setConfirmModal] = useState(null); // { userId, userName, oldRole, newRole }
   const [deleteModal, setDeleteModal] = useState(null); // { userId, userName, userEmail }
+
+  // Multi-selection states
+  const [selectedUserIds, setSelectedUserIds] = useState(new Set());
+  const [batchDeleteModalOpen, setBatchDeleteModalOpen] = useState(false);
+  const [batchDeleting, setBatchDeleting] = useState(false);
 
   // Fetch data
   const fetchData = async () => {
@@ -132,6 +138,106 @@ export default function ProfileControl() {
     }
   };
 
+  // ── Multi-selection & Batch Actions ──────────────────────────────────────────
+  const selectableUsers = useMemo(() => {
+    return filteredUsers.filter(u => u.role?.toUpperCase() !== 'DEVELOPER');
+  }, [filteredUsers]);
+
+  const isAllSelected = selectableUsers.length > 0 && selectableUsers.every(u => selectedUserIds.has(u.id));
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedUserIds(new Set());
+    } else {
+      const next = new Set();
+      selectableUsers.forEach(u => next.add(u.id));
+      setSelectedUserIds(next);
+    }
+  };
+
+  const toggleSelectUser = (id) => {
+    setSelectedUserIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const clearSelection = () => {
+    setSelectedUserIds(new Set());
+  };
+
+  const handleBulkExportCSV = () => {
+    const selectedUsers = users.filter(u => selectedUserIds.has(u.id));
+    if (selectedUsers.length === 0) return;
+
+    const headers = ['Full Name', 'Display Name', 'Email', 'Role', 'Roll No', 'Course', 'Department', 'Joined Date'];
+    const rows = selectedUsers.map(u => [
+      `"${(u.full_name || '').replace(/"/g, '""')}"`,
+      `"${(u.display_name || '').replace(/"/g, '""')}"`,
+      `"${(u.email || '').replace(/"/g, '""')}"`,
+      `"${(u.role || '').replace(/"/g, '""')}"`,
+      `"${(u.roll_no || '').replace(/"/g, '""')}"`,
+      `"${(u.course || '').replace(/"/g, '""')}"`,
+      `"${(u.department || '').replace(/"/g, '""')}"`,
+      `"${u.created_at ? new Date(u.created_at).toLocaleDateString() : ''}"`,
+    ]);
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `study_portal_users_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    success(`Exported ${selectedUsers.length} user(s) to CSV.`);
+  };
+
+  const handleBulkExportJSON = () => {
+    const selectedUsers = users.filter(u => selectedUserIds.has(u.id));
+    if (selectedUsers.length === 0) return;
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(selectedUsers, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `study_portal_users_${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    success(`Exported ${selectedUsers.length} user(s) to JSON.`);
+  };
+
+  const executeBatchDelete = async () => {
+    if (selectedUserIds.size === 0) return;
+    setBatchDeleting(true);
+
+    try {
+      const idsArray = Array.from(selectedUserIds);
+      const res = await api.post('/developer/users/batch-delete', { user_ids: idsArray });
+      const deletedCount = res.data.deleted_count || idsArray.length;
+      success(`Successfully deleted ${deletedCount} user(s).`);
+      setUsers(prev => prev.filter(u => !selectedUserIds.has(u.id)));
+      setSelectedUserIds(new Set());
+      setBatchDeleteModalOpen(false);
+
+      // Refresh stats
+      const statsRes = await api.get('/developer/stats');
+      setStats(statsRes.data);
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Batch deletion failed.';
+      toastError(msg);
+    } finally {
+      setBatchDeleting(false);
+    }
+  };
+
   const getRoleBadge = (role) => {
     const r = role?.toUpperCase();
     if (r === 'DEVELOPER') return { color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800', label: 'Developer (Protected)', icon: Crown };
@@ -232,10 +338,71 @@ export default function ProfileControl() {
         </div>
       </div>
 
+      {/* ── BULK ACTION TOOLBAR ─────────────────────────────────── */}
+      {selectedUserIds.size > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-[2rem] glass dark:bg-slate-900/90 border border-indigo-200 dark:border-indigo-800/50 shadow-2xl animate-in fade-in slide-in-from-top-3">
+          <div className="flex items-center gap-3">
+            <span className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-black tracking-wide shadow-md shadow-indigo-600/20">
+              {selectedUserIds.size} Selected
+            </span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+              of {selectableUsers.length} selectable users
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleBulkExportCSV}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all shadow-sm interactive-scale"
+              title="Export selected users to CSV"
+            >
+              <Download className="w-3.5 h-3.5 text-indigo-500" />
+              Export CSV
+            </button>
+            <button
+              onClick={handleBulkExportJSON}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all shadow-sm interactive-scale"
+              title="Export selected users to JSON"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-500" />
+              Export JSON
+            </button>
+            <button
+              onClick={() => setBatchDeleteModalOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-black shadow-lg shadow-red-500/20 transition-all interactive-scale"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete Selected ({selectedUserIds.size})
+            </button>
+            <button
+              onClick={clearSelection}
+              className="p-2.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              title="Clear selection"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── USER TABLE ────────────────────────────────────────────── */}
       <div className="glass dark:bg-[#0a0a0a] rounded-[2rem] border border-white/60 dark:border-white/5 overflow-hidden shadow-xl">
         {/* Table Header */}
-        <div className="hidden lg:grid grid-cols-[2fr_2fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 px-8 py-4 bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800/50">
+        <div className="hidden lg:grid grid-cols-[48px_2fr_2fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 px-8 py-4 bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800/50 items-center">
+          <div className="flex items-center justify-center">
+            <button
+              onClick={toggleSelectAll}
+              disabled={selectableUsers.length === 0}
+              className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                isAllSelected 
+                  ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' 
+                  : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-indigo-400'
+              }`}
+              title={isAllSelected ? "Deselect All" : "Select All"}
+            >
+              {isAllSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+            </button>
+          </div>
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">User</span>
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email</span>
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Roll No.</span>
@@ -274,7 +441,26 @@ export default function ProfileControl() {
               const isChanging = changingRole === user.id;
 
               return (
-                <div key={user.id} className={`lg:grid lg:grid-cols-[2fr_2fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 px-8 py-5 items-center hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors ${isChanging ? 'opacity-60 pointer-events-none' : ''}`}>
+                <div key={user.id} className={`lg:grid lg:grid-cols-[48px_2fr_2fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 px-8 py-5 items-center hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors ${isChanging ? 'opacity-60 pointer-events-none' : ''}`}>
+                  {/* Checkbox */}
+                  <div className="flex items-center justify-start lg:justify-center mb-2 lg:mb-0">
+                    {isDev ? (
+                      <span className="w-5 h-5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 cursor-not-allowed opacity-40" title="Developer accounts cannot be bulk selected" />
+                    ) : (
+                      <button
+                        onClick={() => toggleSelectUser(user.id)}
+                        className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                          selectedUserIds.has(user.id)
+                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
+                            : 'border-slate-300 dark:border-slate-600 hover:border-indigo-400 bg-white dark:bg-slate-800'
+                        }`}
+                        title={selectedUserIds.has(user.id) ? "Deselect User" : "Select User"}
+                      >
+                        {selectedUserIds.has(user.id) && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                      </button>
+                    )}
+                  </div>
+
                   {/* User Info */}
                   <div className="flex items-center gap-3">
                     <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
@@ -447,6 +633,65 @@ export default function ProfileControl() {
                 className="flex-1 py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-2xl text-sm font-black text-white shadow-xl shadow-red-500/20 transition-all interactive-scale"
               >
                 Permanently Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── BATCH DELETE MODAL ────────────────────────────────────── */}
+      {batchDeleteModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => !batchDeleting && setBatchDeleteModalOpen(false)} />
+          <div className="relative glass dark:bg-[#0a0a0a] rounded-[2rem] p-8 max-w-lg w-full border border-red-500/30 shadow-[0_0_50px_rgba(239,68,68,0.15)] animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-2xl">
+                <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">Batch Delete Users</h3>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Permanently delete {selectedUserIds.size} selected account(s).</p>
+              </div>
+            </div>
+
+            <div className="glass dark:bg-slate-900/50 rounded-2xl p-5 mb-6 space-y-3 border border-red-500/20 max-h-56 overflow-y-auto custom-scrollbar">
+              <p className="text-xs font-bold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4" /> This action cannot be undone
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                All associated classrooms, assignments, submissions, and records for these users will be permanently purged.
+              </p>
+              <div className="space-y-1 pt-2 border-t border-slate-200 dark:border-slate-800">
+                {users.filter(u => selectedUserIds.has(u.id)).map(u => (
+                  <div key={u.id} className="flex items-center justify-between text-xs py-1">
+                    <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[200px]">{u.display_name || u.full_name}</span>
+                    <span className="text-slate-400 truncate max-w-[180px]">{u.email}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                disabled={batchDeleting}
+                onClick={() => setBatchDeleteModalOpen(false)}
+                className="flex-1 py-3 px-4 glass rounded-2xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-all border border-white/60 dark:border-white/5 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={batchDeleting}
+                onClick={executeBatchDelete}
+                className="flex-1 py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-2xl text-sm font-black text-white shadow-xl shadow-red-500/20 transition-all interactive-scale disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {batchDeleting ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Purging...
+                  </>
+                ) : (
+                  `Purge ${selectedUserIds.size} Accounts`
+                )}
               </button>
             </div>
           </div>

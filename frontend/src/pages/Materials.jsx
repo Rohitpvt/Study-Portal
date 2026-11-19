@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import api from '../services/api';
-import { Download, UploadIcon, Search, Filter, X, Star, Lock, SlidersHorizontal, ChevronDown, Eye, Trash2, RefreshCw } from 'lucide-react';
+import { Download, UploadIcon, Search, Filter, X, Star, Lock, SlidersHorizontal, ChevronDown, Eye, Trash2, RefreshCw, Check, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { ACADEMIC_DATA, CATEGORIES, SEMESTERS } from '../constants/academicData';
@@ -16,6 +16,12 @@ export default function Materials() {
   const { success, error: toastError, info } = useNotification();
   const [fetchError, setFetchError] = useState(null);
   const [materials, setMaterials] = useState([]);
+
+  // Multi-selection for Admin & Developer
+  const [selectedMaterialIds, setSelectedMaterialIds] = useState(new Set());
+  const [batchDeleteModalOpen, setBatchDeleteModalOpen] = useState(false);
+  const [batchDeleting, setBatchDeleting] = useState(false);
+  const [batchDownloading, setBatchDownloading] = useState(false);
 
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState('');
@@ -166,6 +172,67 @@ export default function Materials() {
         next.delete(materialId);
         return next;
       });
+    }
+  };
+
+  const isPrivileged = ['admin', 'developer'].includes(role);
+  const isAllSelected = materials.length > 0 && materials.every(m => selectedMaterialIds.has(m.id));
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedMaterialIds(new Set());
+    } else {
+      setSelectedMaterialIds(new Set(materials.map(m => m.id)));
+    }
+  };
+
+  const toggleSelectMaterial = (id) => {
+    setSelectedMaterialIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const clearMaterialSelection = () => setSelectedMaterialIds(new Set());
+
+  const handleBatchDownload = async () => {
+    const selectedList = materials.filter(m => selectedMaterialIds.has(m.id));
+    if (selectedList.length === 0) return;
+    setBatchDownloading(true);
+    info(`Preparing download of ${selectedList.length} asset(s)...`);
+
+    for (let i = 0; i < selectedList.length; i++) {
+      const m = selectedList[i];
+      if (m.integrity_status === 'missing_file' || m.integrity_status === 'corrupted_file') {
+        continue;
+      }
+      await handleDownload(m.id);
+      if (i < selectedList.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 600));
+      }
+    }
+    setBatchDownloading(false);
+    success(`Triggered downloads for ${selectedList.length} asset(s).`);
+  };
+
+  const executeBatchDelete = async () => {
+    if (selectedMaterialIds.size === 0) return;
+    setBatchDeleting(true);
+    try {
+      const ids = Array.from(selectedMaterialIds);
+      await api.post('/materials/batch-delete', { material_ids: ids });
+      success(`Successfully purged ${ids.length} material(s).`);
+      setSelectedMaterialIds(new Set());
+      setBatchDeleteModalOpen(false);
+      fetchMaterials();
+    } catch (err) {
+      console.error('Batch delete failed:', err);
+      const msg = err.response?.data?.detail || 'Failed to purge selected materials.';
+      toastError(msg);
+    } finally {
+      setBatchDeleting(false);
     }
   };
 
@@ -575,7 +642,7 @@ export default function Materials() {
 
       {/* ── Results ───────────────────────────────────────────────────────── */}
       <div className="glass-card shadow-2xl border-0 p-8 md:p-10">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
           <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter flex items-center gap-4">
             Curated Assets
           </h2>
@@ -585,6 +652,52 @@ export default function Materials() {
             </div>
           )}
         </div>
+
+        {/* Bulk Action Bar for Privileged Users */}
+        {isPrivileged && selectedMaterialIds.size > 0 && (
+          <div className="mb-8 p-5 rounded-[2rem] bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-800/60 flex flex-wrap items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-200 shadow-lg shadow-indigo-500/5">
+            <div className="flex items-center gap-4">
+              <span className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-sm font-black shadow-md shadow-indigo-500/30">
+                {selectedMaterialIds.size}
+              </span>
+              <div>
+                <p className="text-xs font-black uppercase tracking-wider text-indigo-950 dark:text-indigo-200">
+                  {selectedMaterialIds.size} {selectedMaterialIds.size === 1 ? 'Asset' : 'Assets'} Selected
+                </p>
+                <p className="text-[11px] font-semibold text-indigo-600/80 dark:text-indigo-400">
+                  Execute bulk actions across selected library documents
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 flex-wrap">
+              <button
+                onClick={handleBatchDownload}
+                disabled={batchDownloading}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold shadow-sm transition-all interactive-scale disabled:opacity-50"
+                title="Download selected materials"
+              >
+                <Download className={`w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 ${batchDownloading ? 'animate-bounce' : ''}`} />
+                {batchDownloading ? 'Downloading...' : 'Download Selected'}
+              </button>
+              <button
+                onClick={() => setBatchDeleteModalOpen(true)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-black shadow-lg shadow-red-500/20 transition-all interactive-scale"
+                title="Delete selected materials"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete Selected ({selectedMaterialIds.size})
+              </button>
+              <button
+                onClick={clearMaterialSelection}
+                className="p-2.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-all"
+                title="Clear selection"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {isFetching && materials.length === 0 ? (
           <MaterialsSkeleton />
@@ -605,7 +718,23 @@ export default function Materials() {
               <table className="min-w-full divide-y divide-white/20 dark:divide-slate-800">
                 <thead className="bg-slate-900/5 dark:bg-slate-800/10">
                   <tr>
-                    <th className="py-6 pl-8 pr-4 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Title</th>
+                    {isPrivileged && (
+                      <th className="py-6 pl-8 pr-2 w-14 text-center">
+                        <button
+                          onClick={toggleSelectAll}
+                          disabled={materials.length === 0}
+                          className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                            isAllSelected
+                              ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
+                              : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-indigo-400'
+                          }`}
+                          title={isAllSelected ? "Deselect All" : "Select All"}
+                        >
+                          {isAllSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        </button>
+                      </th>
+                    )}
+                    <th className={`py-6 ${isPrivileged ? 'pl-2' : 'pl-8'} pr-4 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]`}>Title</th>
                     <th className="px-4 py-6 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Course & Subject</th>
                     <th className="px-4 py-6 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Semester</th>
                     <th className="px-8 py-6 text-right text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">Actions</th>
@@ -614,7 +743,22 @@ export default function Materials() {
                 <tbody className="divide-y divide-white/20 dark:divide-slate-800">
                   {materials.map((m, idx) => (
                     <tr key={m.id} className={`hover:bg-white/40 dark:hover:bg-slate-800/20 transition-all group animate-fade-in-up stagger-${(idx % 5) + 1}`}>
-                      <td className="py-6 pl-8 pr-4">
+                      {isPrivileged && (
+                        <td className="py-6 pl-8 pr-2 w-14 text-center">
+                          <button
+                            onClick={() => toggleSelectMaterial(m.id)}
+                            className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                              selectedMaterialIds.has(m.id)
+                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
+                                : 'border-slate-300 dark:border-slate-600 hover:border-indigo-400 bg-white dark:bg-slate-800'
+                            }`}
+                            title={selectedMaterialIds.has(m.id) ? "Deselect" : "Select"}
+                          >
+                            {selectedMaterialIds.has(m.id) && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                          </button>
+                        </td>
+                      )}
+                      <td className={`py-6 ${isPrivileged ? 'pl-2' : 'pl-8'} pr-4`}>
                         <div className="flex flex-col">
                            <div className="flex items-center gap-3">
                                <span className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight">{m.title}</span>
@@ -714,38 +858,53 @@ export default function Materials() {
               {materials.map((m, idx) => (
                 <div key={m.id} className={`glass-card shadow-xl border-white/40 dark:border-slate-800 p-6 interactive-scale relative overflow-hidden group animate-fade-in-up stagger-${(idx % 5) + 1}`}>
                   <div className="flex items-start justify-between gap-4 relative z-10">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                         <span className="text-[10px] font-black uppercase tracking-widest bg-white/50 dark:bg-slate-800/60 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full border border-white/60 dark:border-slate-700">
-                           {CATEGORIES.find(c => c.id === m.category)?.name || m.category}
-                         </span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight truncate uppercase tracking-tighter">{m.title}</h3>
-                        {m.integrity_status !== 'available' && (
-                          <div className="flex flex-col gap-1">
-                            <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border uppercase tracking-tighter shrink-0 ${
-                              m.integrity_status === 'missing_file' ? 'bg-red-500/10 text-red-500 border-red-200 dark:border-red-900/30' : 
-                              m.integrity_status === 'corrupted_file' ? 'bg-rose-500/10 text-rose-600 border-rose-200 dark:border-rose-900/30' :
-                              'bg-amber-500/10 text-amber-500 border-amber-200 dark:border-amber-900/30'
-                            }`}>
-                              {m.integrity_status === 'missing_file' ? 'Missing' : 
-                               m.integrity_status === 'corrupted_file' ? 'Corrupted' : 
-                               m.integrity_status === 'pending' ? 'Pending' : 'Invalid'}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      {['admin', 'developer'].includes(role) && m.integrity_status !== 'available' && m.integrity_message && (
-                        <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 italic mt-1 leading-tight">
-                          {m.integrity_message}
-                        </p>
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      {isPrivileged && (
+                        <button
+                          onClick={() => toggleSelectMaterial(m.id)}
+                          className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all shrink-0 mt-1 ${
+                            selectedMaterialIds.has(m.id)
+                              ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
+                              : 'border-slate-300 dark:border-slate-600 hover:border-indigo-400 bg-white dark:bg-slate-800'
+                          }`}
+                          title={selectedMaterialIds.has(m.id) ? "Deselect" : "Select"}
+                        >
+                          {selectedMaterialIds.has(m.id) && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        </button>
                       )}
-                      <p className="text-xs text-slate-400 dark:text-slate-500 font-bold mt-2 flex items-center gap-2">
-                        <span className="text-indigo-600 dark:text-indigo-400">Sem {m.semester}</span>
-                        <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>
-                        <span className="truncate">{m.subject}</span>
-                      </p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1.5">
+                           <span className="text-[10px] font-black uppercase tracking-widest bg-white/50 dark:bg-slate-800/60 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full border border-white/60 dark:border-slate-700">
+                             {CATEGORIES.find(c => c.id === m.category)?.name || m.category}
+                           </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight truncate uppercase tracking-tighter">{m.title}</h3>
+                          {m.integrity_status !== 'available' && (
+                            <div className="flex flex-col gap-1">
+                              <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border uppercase tracking-tighter shrink-0 ${
+                                m.integrity_status === 'missing_file' ? 'bg-red-500/10 text-red-500 border-red-200 dark:border-red-900/30' : 
+                                m.integrity_status === 'corrupted_file' ? 'bg-rose-500/10 text-rose-600 border-rose-200 dark:border-rose-900/30' :
+                                'bg-amber-500/10 text-amber-500 border-amber-200 dark:border-amber-900/30'
+                              }`}>
+                                {m.integrity_status === 'missing_file' ? 'Missing' : 
+                                 m.integrity_status === 'corrupted_file' ? 'Corrupted' : 
+                                 m.integrity_status === 'pending' ? 'Pending' : 'Invalid'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {['admin', 'developer'].includes(role) && m.integrity_status !== 'available' && m.integrity_message && (
+                          <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 italic mt-1 leading-tight">
+                            {m.integrity_message}
+                          </p>
+                        )}
+                        <p className="text-xs text-slate-400 dark:text-slate-500 font-bold mt-2 flex items-center gap-2">
+                          <span className="text-indigo-600 dark:text-indigo-400">Sem {m.semester}</span>
+                          <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>
+                          <span className="truncate">{m.subject}</span>
+                        </p>
+                      </div>
                     </div>
                     <button
                       className={`flex-shrink-0 p-3 rounded-2xl transition-all shadow-sm ${favoriteIds.has(m.id) ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-500 dark:text-amber-400 shadow-amber-50 dark:shadow-none' : 'bg-white/60 dark:bg-slate-800 glass text-slate-300 dark:text-slate-600 hover:text-amber-500'}`}
@@ -828,6 +987,65 @@ export default function Materials() {
           </div>
         )}
       </div>
+
+      {/* ── BATCH DELETE MODAL ────────────────────────────────────── */}
+      {batchDeleteModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => !batchDeleting && setBatchDeleteModalOpen(false)} />
+          <div className="relative glass dark:bg-[#0a0a0a] rounded-[2rem] p-8 max-w-lg w-full border border-red-500/30 shadow-[0_0_50px_rgba(239,68,68,0.15)] animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-2xl">
+                <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">Batch Delete Assets</h3>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Permanently delete {selectedMaterialIds.size} selected library asset(s).</p>
+              </div>
+            </div>
+
+            <div className="glass dark:bg-slate-900/50 rounded-2xl p-5 mb-6 space-y-3 border border-red-500/20 max-h-56 overflow-y-auto custom-scrollbar">
+              <p className="text-xs font-bold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4" /> This action cannot be undone
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                The selected files will be permanently purged from cloud storage and search indexes.
+              </p>
+              <div className="space-y-1 pt-2 border-t border-slate-200 dark:border-slate-800">
+                {materials.filter(m => selectedMaterialIds.has(m.id)).map(m => (
+                  <div key={m.id} className="flex items-center justify-between text-xs py-1">
+                    <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[260px]">{m.title}</span>
+                    <span className="text-slate-400 truncate text-[11px]">{m.course} (Sem {m.semester})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                disabled={batchDeleting}
+                onClick={() => setBatchDeleteModalOpen(false)}
+                className="flex-1 py-3 px-4 glass rounded-2xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-all border border-white/60 dark:border-white/5 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={batchDeleting}
+                onClick={executeBatchDelete}
+                className="flex-1 py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-2xl text-sm font-black text-white shadow-xl shadow-red-500/20 transition-all interactive-scale disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {batchDeleting ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Purging...
+                  </>
+                ) : (
+                  `Purge ${selectedMaterialIds.size} Assets`
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

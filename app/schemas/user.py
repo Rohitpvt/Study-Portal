@@ -84,3 +84,9 @@ class RoleChangeRequest(BaseModel):
         if normalized not in allowed:
             raise ValueError(f"Role must be one of: {', '.join(sorted(allowed))}")
         return normalized
+
+
+class BatchUserDeleteRequest(BaseModel):
+    """Payload for POST /developer/users/batch-delete."""
+    user_ids: list[str]
+

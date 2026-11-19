@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 
 from app.core.dependencies import AdminUser, CurrentUser, DBSession
 from app.models.material import Category
-from app.schemas.material import MaterialOut, PaginatedMaterials
+from app.schemas.material import MaterialOut, PaginatedMaterials, BatchMaterialDeleteRequest
 from app.services import material_service
 
 router = APIRouter(prefix="/materials", tags=["Materials"])
@@ -88,6 +88,29 @@ async def upload_material(
     background_tasks.add_task(run_index_update_task, result.id)
 
     return result
+
+
+@router.post("/batch-delete", summary="Batch delete materials (admin)")
+async def batch_delete_materials(
+    payload: BatchMaterialDeleteRequest,
+    db: DBSession,
+    current_user: AdminUser,
+    background_tasks: BackgroundTasks
+):
+    """Permanently delete multiple materials and synchronize AI indexes and storage."""
+    deleted_ids = []
+    for mat_id in payload.material_ids:
+        try:
+            await material_service.delete_material(mat_id, db, background_tasks=background_tasks)
+            deleted_ids.append(mat_id)
+        except Exception:
+            pass
+    await db.commit()
+    return {
+        "detail": f"Successfully deleted {len(deleted_ids)} material(s).",
+        "deleted_count": len(deleted_ids),
+        "deleted_ids": deleted_ids
+    }
 
 
 @router.delete("/{material_id}", status_code=204, summary="Remove a material (admin)")

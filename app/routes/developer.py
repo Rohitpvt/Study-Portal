@@ -21,7 +21,7 @@ from app.models.audit import AuditLog
 from app.models.chat import ChatSession, ChatMessage
 from app.models.contribution import Contribution
 from app.models.material import Material
-from app.schemas.user import RoleChangeRequest, UserListOut
+from app.schemas.user import RoleChangeRequest, UserListOut, BatchUserDeleteRequest
 
 logger = logging.getLogger("developer_routes")
 
@@ -248,3 +248,125 @@ async def delete_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete user profile: {str(e)}"
         )
+
+
+@router.post(
+    "/users/batch-delete",
+    summary="Batch delete users (Developer-only)",
+)
+async def batch_delete_users(
+    payload: BatchUserDeleteRequest,
+    db: DBSession,
+    current_dev: DeveloperUser,
+):
+    """Permanently delete multiple users in a single operation."""
+    if not payload.user_ids:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No user IDs provided.")
+
+    deleted_ids = []
+    deleted_emails = []
+
+    try:
+        for uid in payload.user_ids:
+            if uid == current_dev.id:
+                continue
+
+            result = await db.execute(select(User).where(User.id == uid))
+            target_user = result.scalar_one_or_none()
+            if not target_user or target_user.role == Role.DEVELOPER:
+                continue
+
+            # 1. Clean up Classroom comments
+            await db.execute(delete(ClassroomComment).where((ClassroomComment.sender_id == uid) | (ClassroomComment.recipient_id == uid)))
+
+            # 2. Clean up Submissions
+            await db.execute(delete(AssignmentSubmission).where(AssignmentSubmission.student_id == uid))
+            await db.execute(update(AssignmentSubmission).where(AssignmentSubmission.graded_by == uid).values(graded_by=None))
+
+            # 3. Clean up Classroom Memberships
+            await db.execute(delete(ClassroomMember).where(ClassroomMember.user_id == uid))
+
+            # 4. Assignments created by this user
+            user_assign_ids = (await db.execute(select(ClassroomAssignment.id).where(ClassroomAssignment.created_by == uid))).scalars().all()
+            if user_assign_ids:
+                await db.execute(delete(AssignmentAttachment).where(AssignmentAttachment.assignment_id.in_(user_assign_ids)))
+                await db.execute(delete(AssignmentSubmission).where(AssignmentSubmission.assignment_id.in_(user_assign_ids)))
+                await db.execute(delete(ClassroomComment).where(ClassroomComment.assignment_id.in_(user_assign_ids)))
+                await db.execute(delete(ClassroomAssignment).where(ClassroomAssignment.id.in_(user_assign_ids)))
+
+            # 5. Announcements and Materials added in classrooms
+            await db.execute(delete(ClassroomAnnouncement).where(ClassroomAnnouncement.created_by == uid))
+            await db.execute(delete(ClassroomMaterial).where(ClassroomMaterial.added_by == uid))
+
+            # 6. Classrooms created by this user
+            created_class_ids = (await db.execute(select(Classroom.id).where(Classroom.created_by_teacher_id == uid))).scalars().all()
+            if created_class_ids:
+                c_assign_ids = (await db.execute(select(ClassroomAssignment.id).where(ClassroomAssignment.classroom_id.in_(created_class_ids)))).scalars().all()
+                if c_assign_ids:
+                    await db.execute(delete(AssignmentAttachment).where(AssignmentAttachment.assignment_id.in_(c_assign_ids)))
+                    await db.execute(delete(AssignmentSubmission).where(AssignmentSubmission.assignment_id.in_(c_assign_ids)))
+                    await db.execute(delete(ClassroomComment).where(ClassroomComment.assignment_id.in_(c_assign_ids)))
+                    await db.execute(delete(ClassroomAssignment).where(ClassroomAssignment.id.in_(c_assign_ids)))
+
+                await db.execute(delete(ClassroomMember).where(ClassroomMember.classroom_id.in_(created_class_ids)))
+                await db.execute(delete(ClassroomComment).where(ClassroomComment.classroom_id.in_(created_class_ids)))
+                await db.execute(delete(ClassroomAnnouncement).where(ClassroomAnnouncement.classroom_id.in_(created_class_ids)))
+                await db.execute(delete(ClassroomMaterial).where(ClassroomMaterial.classroom_id.in_(created_class_ids)))
+                await db.execute(delete(ClassroomTopic).where(ClassroomTopic.classroom_id.in_(created_class_ids)))
+                await db.execute(delete(Classroom).where(Classroom.id.in_(created_class_ids)))
+
+            # 7. Notifications, Favorites, Audit Logs
+            await db.execute(delete(Notification).where(Notification.user_id == uid))
+            await db.execute(delete(Favorite).where(Favorite.user_id == uid))
+            await db.execute(delete(AuditLog).where(AuditLog.user_id == uid))
+
+            # 8. Chat sessions & messages
+            user_chat_ids = (await db.execute(select(ChatSession.id).where(ChatSession.user_id == uid))).scalars().all()
+            if user_chat_ids:
+                await db.execute(delete(ChatMessage).where(ChatMessage.session_id.in_(user_chat_ids)))
+                await db.execute(delete(ChatSession).where(ChatSession.id.in_(user_chat_ids)))
+
+            # 9. Materials & Contributions
+            user_mat_ids = (await db.execute(select(Material.id).where(Material.uploader_id == uid))).scalars().all()
+            if user_mat_ids:
+                await db.execute(delete(ClassroomMaterial).where(ClassroomMaterial.material_id.in_(user_mat_ids)))
+                await db.execute(delete(AssignmentAttachment).where(AssignmentAttachment.material_id.in_(user_mat_ids)))
+                await db.execute(delete(Favorite).where(Favorite.material_id.in_(user_mat_ids)))
+                await db.execute(delete(Material).where(Material.uploader_id == uid))
+
+            await db.execute(delete(Contribution).where(Contribution.contributor_id == uid))
+
+            # 10. Delete the user
+            deleted_emails.append(target_user.email)
+            await db.delete(target_user)
+            deleted_ids.append(uid)
+
+        await db.commit()
+
+        logger.info(f"[BATCH_USER_DELETION] Developer '{current_dev.email}' deleted {len(deleted_ids)} users: {deleted_emails}")
+
+        try:
+            from app.services.audit_service import log_action
+            await log_action(
+                current_dev,
+                "BATCH_USER_DELETION",
+                f"Batch deleted {len(deleted_ids)} user(s): {', '.join(deleted_emails)}",
+                db,
+            )
+            await db.commit()
+        except Exception as e:
+            logger.warning(f"[BATCH_USER_DELETION] Audit log write failed: {e}")
+
+        return {
+            "detail": f"Successfully deleted {len(deleted_ids)} user(s).",
+            "deleted_count": len(deleted_ids),
+            "deleted_ids": deleted_ids
+        }
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"[BATCH_USER_DELETION] Batch deletion failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Batch user deletion failed: {str(e)}"
+        )
+

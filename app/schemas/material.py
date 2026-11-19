@@ -68,3 +68,9 @@ class PaginatedMaterials(BaseModel):
     page: int
     page_size: int
     items: List[MaterialOut]
+
+
+class BatchMaterialDeleteRequest(BaseModel):
+    """Payload for POST /materials/batch-delete."""
+    material_ids: List[str]
+
