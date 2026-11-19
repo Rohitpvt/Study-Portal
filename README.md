@@ -2,6 +2,22 @@
 
 > A production-grade, full-stack academic resource hub for Christ University students and faculty — built with **FastAPI**, **React (Vite + Tailwind CSS)**, and an **AI-powered RAG engine** for intelligent syllabus querying.
 
+[![Frontend Deployment](https://img.shields.io/badge/Vercel-Live_App-black?logo=vercel)](https://study-portal-final-123.vercel.app)
+[![Backend API](https://img.shields.io/badge/Render-FastAPI_Backend-46E3B7?logo=render)](https://intel-ai-backend-zk22.onrender.com)
+[![API Docs](https://img.shields.io/badge/Swagger-API_Docs-85EA2D?logo=swagger)](https://intel-ai-backend-zk22.onrender.com/docs)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
+---
+
+## 🌐 Live Deployments
+
+| Component | Platform | URL | Status |
+| :--- | :--- | :--- | :--- |
+| **Frontend Portal** | Vercel | [study-portal-final-123.vercel.app](https://study-portal-final-123.vercel.app) | `Live (200 OK)` |
+| **Backend API** | Render | [intel-ai-backend-zk22.onrender.com](https://intel-ai-backend-zk22.onrender.com) | `Live (200 OK)` |
+| **Interactive API Docs** | Render / Swagger | [intel-ai-backend-zk22.onrender.com/docs](https://intel-ai-backend-zk22.onrender.com/docs) | `Live (200 OK)` |
+| **Health Check Endpoint** | Render (via Proxy) | [study-portal-final-123.vercel.app/health](https://study-portal-final-123.vercel.app/health) | `Live (200 OK)` |
+
 ---
 
 ## 🗂️ Table of Contents
@@ -70,11 +86,14 @@ The AI Study Portal is a collaborative academic library that allows students to 
 | Auth Decode | jwt-decode |
 
 ### Infrastructure
-| Concern | Current | Production Target |
+| Concern | Environment | Technology & Details |
 | :--- | :--- | :--- |
-| Database | SQLite (`christ_uni_dev.db`) | PostgreSQL |
-| File Storage | Local `uploads/` directory | AWS S3 / GCS |
-| Deployment | Local dev (uvicorn + Vite) | Docker / Cloud Run |
+| Database | Dev / Prod | SQLite (`christ_uni_dev.db`) locally; PostgreSQL in cloud |
+| File Storage | Cloud S3 | AWS S3 (`christ-study-platform-aiproject-2026`) + Presigned Streaming |
+| Frontend Hosting | Production | **Vercel** (`study-portal-final-123.vercel.app`) with edge SPA rewrites |
+| Backend Hosting | Production | **Render** (`intel-ai-backend-zk22.onrender.com`) running FastAPI + Uvicorn |
+| API Architecture | Reverse Proxy | Vercel same-origin reverse proxy (`/api/*` and `/health`) eliminating cross-site CORS blocks |
+| Observability | Cloud | Sentry performance monitoring + Umami privacy-first analytics |
 
 ---
 
@@ -366,6 +385,19 @@ app.add_middleware(SessionMiddleware, ...)   # 3rd
 ---
 
 ## Changelog
+
+### v3.5 — Production Cloud Stabilization & Same-Origin Reverse Proxy *(November 2026)*
+- **Vercel Same-Origin Reverse Proxy**:
+  - Implemented `/api/:path*` and `/health` edge rewrites in `frontend/vercel.json`.
+  - Updated frontend `api.js` to route via `${window.location.origin}/api/v1` in production.
+  - Fully eliminated cross-site third-party blocking from privacy browsers (Brave Shields, Safari ITP, Adblockers).
+- **Backend /404 Infinite Redirect Loop Elimination**:
+  - Added explicit `@app.get("/")` root handler redirecting browser requests directly to Swagger documentation (`/docs`).
+  - Added dedicated `@app.get("/404")` endpoint returning clean JSON without redirect recursion.
+  - Fixed `custom_http_exception_handler` to redirect unknown browser paths safely to the production frontend portal.
+- **Render Cold-Start UX**:
+  - Extended health check grace period to 90 seconds to match Render free-tier cold-start windows.
+  - Implemented an animated "Waking up Cloud Server..." banner screen with live reconnection polling.
 
 ### v3.0 — Mobile-First Responsive Overhaul *(March 2026)*
 - **Materials page**: Complete mobile-first redesign

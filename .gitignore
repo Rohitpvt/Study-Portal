@@ -116,3 +116,9 @@ scratch/test_s3.py
 scratch/test_material_proxy.py
 scratch/find_pdf.py
 scratch/check_material_paths.py
+
+# Antigravity Understand-Anything Knowledge Graph
+.ua/
+
+# Temporary / Local debug files
+frontend/start-server.mjs
