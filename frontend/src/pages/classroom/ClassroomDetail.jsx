@@ -175,15 +175,15 @@ const ClassroomDetail = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="mb-8 sm:mb-10">
-        <div className="p-1.5 glass dark:bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-white/10 flex items-center gap-1 overflow-x-auto scrollbar-hide shadow-lg shadow-black/5 dark:shadow-none">
+      <div className="w-full flex justify-center mb-8 sm:mb-10">
+        <div className="p-1.5 glass dark:bg-[#0c0d12]/90 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-white/10 inline-flex items-center justify-center gap-1 sm:gap-1.5 overflow-x-auto scrollbar-hide shadow-lg shadow-black/5 dark:shadow-none max-w-full">
           {tabs.filter(t => !t.hidden).map(tab => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 whitespace-nowrap shrink-0 interactive-scale ${
+                className={`flex items-center gap-2 px-3.5 sm:px-4.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 whitespace-nowrap shrink-0 interactive-scale ${
                   isActive
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-white/5'
