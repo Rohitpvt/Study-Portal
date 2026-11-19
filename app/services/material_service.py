@@ -4,17 +4,20 @@ app/services/material_service.py
 Business logic for fetching, uploading, and searching study materials.
 """
 
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 
-from fastapi import HTTPException, UploadFile, status
+from fastapi import BackgroundTasks, HTTPException, UploadFile, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.background.ai_tasks import run_index_update_task
+from app.core.config import settings
 from app.models.material import Category, Material, MaterialIntegrityStatus
 from app.models.base import generate_uuid
 from app.models.user import User, Role
 from app.schemas.material import MaterialCreate, PaginatedMaterials
-from app.utils.file_handler import get_storage
+from app.utils.file_handler import get_storage, LocalStorage
 
 
 async def upload_material(
@@ -45,13 +48,9 @@ async def upload_material(
     except Exception as e:
         import logging
         logging.getLogger(__name__).warning(f"Storage failed: {e}. Falling back to LocalStorage.")
-        from app.utils.file_handler import LocalStorage
-        from app.core.config import settings
+        await file.seek(0)
         storage = LocalStorage(base_dir=settings.UPLOAD_DIR)
         stored = await storage.upload_file(file, folder=payload.category.value)
-
-    from app.models.material import MaterialIntegrityStatus
-    from datetime import datetime
 
     material = Material(
         id=generate_uuid(),
@@ -61,7 +60,7 @@ async def upload_material(
         course=payload.course,
         semester=payload.semester,
         category=payload.category,
-        file_path=stored.get("path"), # fallback
+        file_path=stored.get("path"),
         file_key=stored.get("file_key"),
         file_url=stored.get("file_url"),
         file_name=stored.get("file_name"),
@@ -69,8 +68,8 @@ async def upload_material(
         file_type=stored.get("content_type"),
         uploader_id=uploader.id,
         is_approved=True,
-        integrity_status=MaterialIntegrityStatus.available, # New uploads are assumed available
-        last_reconciliation_at=datetime.utcnow()
+        integrity_status=MaterialIntegrityStatus.available,
+        last_reconciliation_at=datetime.now(timezone.utc)
     )
     db.add(material)
     await db.flush()
@@ -218,17 +217,14 @@ async def update_material_integrity(
     db: AsyncSession
 ) -> None:
     """Updates the integrity status and message for a material (used by background worker)."""
-    from datetime import datetime
     result = await db.execute(select(Material).where(Material.id == material_id))
     material = result.scalar_one_or_none()
     if material:
         material.integrity_status = status
         material.integrity_message = message
-        material.last_reconciliation_at = datetime.utcnow()
+        material.last_reconciliation_at = datetime.now(timezone.utc)
         await db.flush()
 
-
-from fastapi import BackgroundTasks
 
 async def delete_material(material_id: str, db: AsyncSession, background_tasks: Optional[BackgroundTasks] = None) -> None:
     """Soft-delete by marking is_approved=False (admin only) and removing from AI index."""
@@ -276,9 +272,6 @@ async def get_material_health_stats(db: AsyncSession):
     Aggregation for Admin Health Dashboard.
     Returns counts by integrity status and recent broken items.
     """
-    from app.models.material import MaterialIntegrityStatus
-    from datetime import datetime, timedelta
-
     # 1. Total counts by status
     status_query = select(Material.integrity_status, func.count()).group_by(Material.integrity_status)
     status_res = await db.execute(status_query)
@@ -315,7 +308,7 @@ async def get_material_health_stats(db: AsyncSession):
         "processing_failed": failed,
         "status_distribution": status_counts,
         "recent_issues": recent_issues,
-        "last_checked": datetime.utcnow().isoformat()
+        "last_checked": datetime.now(timezone.utc).isoformat()
     }
 
 
@@ -324,17 +317,12 @@ async def redo_material_pipeline(material_id: str, db: AsyncSession, background_
     Forces a rerun of the AI ingestion pipeline for a specific material.
     Updates the material's retry stats and resets status to pending.
     """
-    from app.models.material import MaterialIntegrityStatus
-    from app.background.ai_tasks import run_index_update_task
-    from datetime import datetime, timezone
-
     result = await db.execute(select(Material).where(Material.id == material_id))
     material = result.scalar_one_or_none()
     
     if not material:
         raise HTTPException(status_code=404, detail="Material not found.")
 
-    # Reset status and update retry counters
     material.integrity_status = MaterialIntegrityStatus.pending
     material.integrity_message = "Re-indexing requested by admin. Pipeline queued..."
     material.last_pipeline_retry_at = datetime.now(timezone.utc)
@@ -342,84 +330,6 @@ async def redo_material_pipeline(material_id: str, db: AsyncSession, background_
     
     await db.commit()
 
-    # Trigger background indexing
-    background_tasks.add_task(run_index_update_task, material_id)
-    
-    return {"status": "success", "message": "Pipeline rerun triggered.", "retry_count": material.pipeline_retry_count}
-
-
-async def get_material_health_stats(db: AsyncSession):
-    """
-    Aggregation for Admin Health Dashboard.
-    Returns counts by integrity status and recent broken items.
-    """
-    from app.models.material import MaterialIntegrityStatus
-    from datetime import datetime, timedelta
-
-    # 1. Total counts by status
-    status_query = select(Material.integrity_status, func.count()).group_by(Material.integrity_status)
-    status_res = await db.execute(status_query)
-    status_counts = {s.value: 0 for s in MaterialIntegrityStatus}
-    for status_val, count in status_res:
-        status_counts[status_val.value] = count
-
-    # 2. Total active materials
-    total_query = select(func.count(Material.id)).where(Material.is_approved == True)
-    total_res = await db.execute(total_query)
-    total_materials = total_res.scalar() or 0
-
-    # 3. Recent issues (broken items)
-    issues_query = select(Material).where(
-        Material.integrity_status != MaterialIntegrityStatus.available,
-        Material.is_approved == True
-    ).order_by(Material.last_reconciliation_at.desc()).limit(10)
-    issues_res = await db.execute(issues_query)
-    recent_issues = list(issues_res.scalars().all())
-
-    # 4. Metrics
-    healthy = status_counts.get(MaterialIntegrityStatus.available.value, 0)
-    missing = status_counts.get(MaterialIntegrityStatus.missing_file.value, 0)
-    corrupted = status_counts.get(MaterialIntegrityStatus.corrupted_file.value, 0)
-    failed = status_counts.get(MaterialIntegrityStatus.processing_failed.value, 0) + \
-             status_counts.get(MaterialIntegrityStatus.indexing_failed.value, 0)
-    
-    return {
-        "total": total_materials,
-        "healthy": healthy,
-        "broken": total_materials - healthy,
-        "missing": missing,
-        "corrupted": corrupted,
-        "processing_failed": failed,
-        "status_distribution": status_counts,
-        "recent_issues": recent_issues,
-        "last_checked": datetime.utcnow().isoformat()
-    }
-
-
-async def redo_material_pipeline(material_id: str, db: AsyncSession, background_tasks: BackgroundTasks):
-    """
-    Forces a rerun of the AI ingestion pipeline for a specific material.
-    Updates the material's retry stats and resets status to pending.
-    """
-    from app.models.material import MaterialIntegrityStatus
-    from app.background.ai_tasks import run_index_update_task
-    from datetime import datetime, timezone
-
-    result = await db.execute(select(Material).where(Material.id == material_id))
-    material = result.scalar_one_or_none()
-    
-    if not material:
-        raise HTTPException(status_code=404, detail="Material not found.")
-
-    # Reset status and update retry counters
-    material.integrity_status = MaterialIntegrityStatus.pending
-    material.integrity_message = "Re-indexing requested by admin. Pipeline queued..."
-    material.last_pipeline_retry_at = datetime.now(timezone.utc)
-    material.pipeline_retry_count += 1
-    
-    await db.commit()
-
-    # Trigger background indexing
     background_tasks.add_task(run_index_update_task, material_id)
     
     return {"status": "success", "message": "Pipeline rerun triggered.", "retry_count": material.pipeline_retry_count}

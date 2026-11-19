@@ -26,13 +26,20 @@ test_engine = create_async_engine(
     poolclass=NullPool
 )
 TestingSessionLocal = async_sessionmaker(
-    autocommit=False, autoflush=False, bind=test_engine, class_=AsyncSession
+    autocommit=False, autoflush=False, bind=test_engine, class_=AsyncSession, expire_on_commit=False
 )
 
 
 # Disable rate limiting during tests
 from main import limiter
 limiter.enabled = False
+
+from starlette.background import BackgroundTasks
+
+@pytest_asyncio.fixture(autouse=True)
+def mock_background_tasks(monkeypatch):
+    """Prevent asynchronous background worker threads from clashing with the test SQLite engine."""
+    monkeypatch.setattr(BackgroundTasks, "add_task", lambda self, func, *args, **kwargs: None)
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_db():
@@ -54,10 +61,16 @@ async def db_session():
         yield session
 
 @pytest_asyncio.fixture
-async def client(db_session):
-    """Unauthenticated httpx client sharing the direct DB session."""
+async def client():
+    """Unauthenticated httpx client with isolated DB session per request."""
     async def _override():
-        yield db_session
+        async with TestingSessionLocal() as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
     
     app.dependency_overrides[get_db] = _override
     transport = ASGITransport(app=app)
@@ -67,15 +80,16 @@ async def client(db_session):
 
 
 @pytest_asyncio.fixture
-async def auth_client(client, db_session):
+async def auth_client(client):
     """Authenticated httpx client (student role)."""
     email = "test.student@christuniversity.in"
-    password = os.getenv("ADMIN_TEST_PASSWORD", "dummy")
+    password = os.getenv("ADMIN_TEST_PASSWORD", "TestPassword123!")
     
     # Register user
     await client.post("/api/v1/auth/register", json={
         "email": email,
         "full_name": "Test Student",
+        "roll_no": "2447101",
         "password": password
     })
     
@@ -94,27 +108,28 @@ async def auth_client(client, db_session):
 
 
 @pytest_asyncio.fixture
-async def admin_client(client, db_session):
+async def admin_client(client):
     """Authenticated httpx client (admin role)."""
     from app.models.user import User, Role
     from sqlalchemy import select
 
     email = "admin@christuniversity.in"
-    password = os.getenv("ADMIN_TEST_PASSWORD", "dummy")
+    password = os.getenv("ADMIN_TEST_PASSWORD", "TestPassword123!")
     
     # 1. Register as normal student
     await client.post("/api/v1/auth/register", json={
         "email": email,
         "full_name": "System Admin",
+        "roll_no": "2447100",
         "password": password
     })
     
     # 2. Manually promote to admin in DB
-    result = await db_session.execute(select(User).where(User.email == email))
-    user = result.scalar_one()
-    user.role = Role.ADMIN
-    await db_session.commit()
-    await db_session.refresh(user)
+    async with TestingSessionLocal() as session:
+        result = await session.execute(select(User).where(User.email == email))
+        user = result.scalar_one()
+        user.role = Role.ADMIN
+        await session.commit()
     
     # 3. Login
     resp = await client.post("/api/v1/auth/login", data={"username": email, "password": password})

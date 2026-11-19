@@ -26,7 +26,7 @@ async def test_list_materials_success(auth_client):
 @pytest.mark.asyncio
 async def test_upload_material(admin_client):
     files = {"file": ("test.pdf", b"PDF document content body", "application/pdf")}
-    data = {"title": "Math Notes", "subject": "Math", "category": "notes", "semester": 2, "course": "BCA"}
+    data = {"title": "Math Notes", "subject": "Math", "category": "NOTES", "semester": 2, "course": "BCA"}
     
     resp = await admin_client.post("/api/v1/materials", files=files, data=data)
     assert resp.status_code == 201

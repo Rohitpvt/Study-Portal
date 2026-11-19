@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from app.models.classroom import CommentVisibility, CommentStatus
 
 class ClassroomCommentBase(BaseModel):
@@ -32,11 +32,10 @@ class ClassroomCommentOut(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ClassroomCommentThread(ClassroomCommentOut):
     replies: List["ClassroomCommentThread"] = []
 
 # Necessary for recursive model
-ClassroomCommentThread.update_forward_refs()
+ClassroomCommentThread.model_rebuild()

@@ -153,7 +153,6 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # ── Middlewares ─────────────────────────────────────────────────────────────
-# ── Middlewares ─────────────────────────────────────────────────────────────
 # ── Sentry Tagging Middleware ────────────────────────────────────────────────
 @app.middleware("http")
 async def sentry_tagging_middleware(request, call_next):
@@ -169,11 +168,8 @@ async def sentry_tagging_middleware(request, call_next):
     elif path.startswith("/api/v1/favorites"): subsystem = "favorites"
     elif path.startswith("/api/v1/classrooms"): subsystem = "classroom"
     
-    with sentry_sdk.configure_scope() as scope:
-        scope.set_tag("subsystem", subsystem)
-        scope.set_tag("endpoint", path)
-        # Role will be set inside the auth dependency if possible, or we can try to peek at the token here
-        # But peaked auth is risky/slow. Better to set role in the actual routes or a shared dependency.
+    sentry_sdk.set_tag("subsystem", subsystem)
+    sentry_sdk.set_tag("endpoint", path)
     
     return await call_next(request)
 

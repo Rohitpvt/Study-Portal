@@ -4,7 +4,7 @@ app/services/classroom_service.py
 Logic for classroom creation, joining, and management.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 import random
 import string
 from typing import List, Optional, Tuple
@@ -12,6 +12,16 @@ from sqlalchemy import select, func, and_, or_, delete
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
+
+
+def _is_past_due(due_at: Optional[datetime], now_utc: Optional[datetime] = None) -> bool:
+    """Safely compares due_at with current time regardless of SQLite naive vs Postgres aware timestamps."""
+    if not due_at:
+        return False
+    if now_utc is None:
+        now_utc = datetime.now(timezone.utc)
+    target = due_at if due_at.tzinfo is not None else due_at.replace(tzinfo=timezone.utc)
+    return target < now_utc
 
 from app.models.classroom import (
     Classroom, ClassroomMember, ClassroomTopic, ClassroomMaterial, 
@@ -949,7 +959,7 @@ class ClassroomService:
         returned_count = len([s for s in all_submissions if s.status == SubmissionStatus.RETURNED])
 
         # Dynamic Missing Calculation
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         missing_count = 0
         student_ids = [s.user_id for s in students]
         student_submission_map = {} # student_id -> {assignment_id: submission}
@@ -966,7 +976,7 @@ class ClassroomService:
             student_attention_map[student_id] = {"missing": 0, "late": 0, "marks": []}
 
         for assignment in published_assignments:
-            is_past_due = assignment.due_at and assignment.due_at < now
+            is_past_due = _is_past_due(assignment.due_at, now)
             missing_for_this_assignment = 0
             
             for student_id in student_ids:
@@ -1061,7 +1071,7 @@ class ClassroomService:
                 reason = "Low average score."
             
             # Missing rate should only consider assignments that are actually past due
-            past_due_in_topic = [a for a in published_assignments if a.topic_id == t_id and a.due_at and a.due_at < now]
+            past_due_in_topic = [a for a in published_assignments if a.topic_id == t_id and _is_past_due(a.due_at, now)]
             total_expected = total_students * len(past_due_in_topic)
             
             if total_expected > 0:
@@ -1139,5 +1149,5 @@ class ClassroomService:
                 "private_doubts_count": len(open_doubts) + len(resolved_doubts)
             },
             "ai_insight_summary": " ".join(insights),
-            "generated_at": datetime.utcnow()
+            "generated_at": datetime.now(timezone.utc)
         }

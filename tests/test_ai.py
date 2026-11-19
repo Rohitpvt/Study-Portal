@@ -10,9 +10,12 @@ from app.ai.reviewer import gpt_review
 
 
 @pytest.mark.asyncio
-async def test_plagiarism_check_mock(db_session):
-    """Verify the FAISS substitution mock plagiarism logic returns bounds."""
-    score = await run_check("Some sample text for the test.", db_session)
+async def test_plagiarism_check_mock():
+    """Verify the internal similarity check returns valid bounds."""
+    result = await run_check("Some sample text for the test.")
+    assert isinstance(result, dict)
+    assert "plagiarism_score" in result
+    score = result["plagiarism_score"]
     assert isinstance(score, float)
     assert 0.0 <= score <= 1.0
 

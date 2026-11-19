@@ -5,19 +5,23 @@ Handles the full contribution lifecycle:
   submit → AI review (background) → admin decision → publish as Material
 """
 
+import logging
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import BackgroundTasks, HTTPException, UploadFile, status
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from datetime import datetime
+from app.core.config import settings
 from app.models.contribution import Contribution, ContributionStatus, ProcessingStatus, FinalRecommendation
 from app.models.material import Category, Material
 from app.models.user import User
 from app.models.base import generate_uuid
 from app.schemas.contribution import ContributionCreate, PaginatedContributions, ReviewDecision
-from app.utils.file_handler import get_storage
+from app.utils.file_handler import get_storage, LocalStorage
+
+logger = logging.getLogger(__name__)
 
 
 async def submit_contribution(
@@ -35,10 +39,8 @@ async def submit_contribution(
     try:
         stored = await storage.upload_file(file, folder="contributions")
     except Exception as e:
-        import logging
-        logging.getLogger(__name__).warning(f"Storage failed: {e}. Falling back to LocalStorage.")
-        from app.utils.file_handler import LocalStorage
-        from app.core.config import settings
+        logger.warning(f"Storage failed: {e}. Falling back to LocalStorage.")
+        await file.seek(0)
         storage = LocalStorage(base_dir=settings.UPLOAD_DIR)
         stored = await storage.upload_file(file, folder="contributions")
 
@@ -153,7 +155,7 @@ async def review_contribution(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already rejected.")
 
     contribution.admin_notes = decision.admin_notes
-    contribution.status_updated_at = datetime.utcnow()
+    contribution.status_updated_at = datetime.now(timezone.utc)
 
     if decision.approved:
         contribution.status = ContributionStatus.APPROVED

@@ -13,7 +13,8 @@ async def test_register_success(client):
     payload = {
         "email": "new.user@christuniversity.in",
         "full_name": "New User",
-        "password": os.getenv("ADMIN_TEST_PASSWORD", "dummy")
+        "roll_no": "2447102",
+        "password": "StrongPassword1!"
     }
     resp = await client.post("/api/v1/auth/register", json=payload)
     assert resp.status_code == 201
@@ -25,7 +26,8 @@ async def test_register_invalid_domain(client):
     payload = {
         "email": "fake.user@gmail.com",
         "full_name": "Fake User",
-        "password": os.getenv("ADMIN_TEST_PASSWORD", "dummy")
+        "roll_no": "2447103",
+        "password": "StrongPassword1!"
     }
     resp = await client.post("/api/v1/auth/register", json=payload)
     assert resp.status_code == 400
@@ -37,10 +39,11 @@ async def test_login_success(client):
     payload = {
         "email": "login.user@christuniversity.in",
         "full_name": "Login User",
+        "roll_no": "2447104",
         "password": "StrongPassword1!"
     }
     r = await client.post("/api/v1/auth/register", json=payload)
-    print("REG:", r.json())
+    assert r.status_code == 201
     
     resp = await client.post(
         "/api/v1/auth/login", 
