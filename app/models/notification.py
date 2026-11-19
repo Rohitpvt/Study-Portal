@@ -42,7 +42,7 @@ class Notification(Base, TimestampMixin):
     is_read:        Mapped[bool] = mapped_column(Boolean, default=False, index=True)
 
     # Relationships
-    user      = relationship("User", backref="notifications")
+    user      = relationship("User", backref="notifications", passive_deletes=True)
     classroom = relationship("Classroom")
     assignment = relationship("ClassroomAssignment")
 

@@ -81,7 +81,7 @@ class Classroom(Base, TimestampMixin):
     updated_at:     Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    creator     = relationship("User", backref="created_classrooms")
+    creator     = relationship("User", backref="created_classrooms", passive_deletes=True)
     memberships = relationship("ClassroomMember", back_populates="classroom", cascade="all, delete-orphan")
     topics      = relationship("ClassroomTopic", back_populates="classroom", cascade="all, delete-orphan", order_by="ClassroomTopic.sort_order")
     materials   = relationship("ClassroomMaterial", back_populates="classroom", cascade="all, delete-orphan")
@@ -104,7 +104,7 @@ class ClassroomMember(Base, TimestampMixin):
     joined_at:    Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    user      = relationship("User", backref="classroom_participations")
+    user      = relationship("User", backref="classroom_participations", passive_deletes=True)
     classroom = relationship("Classroom", back_populates="memberships")
 
     __table_args__ = (

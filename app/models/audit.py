@@ -15,4 +15,4 @@ class AuditLog(Base):
     description: Mapped[str] = mapped_column(Text, nullable=True)
     timestamp:   Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, server_default=func.now())
 
-    user = relationship("User", backref="audit_logs")
+    user = relationship("User", backref="audit_logs", passive_deletes=True)
