@@ -29,6 +29,8 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
         "http://localhost:5176",
         "http://127.0.0.1:5176",
+        "https://ai-studyportal.vercel.app",
+        "https://ai-study-portal-app.vercel.app",
         "https://study-portal-final-123.vercel.app"
     ]
 
@@ -44,6 +46,10 @@ class Settings(BaseSettings):
             "http://127.0.0.1:5174",
             "http://localhost:5176",
             "http://127.0.0.1:5176",
+            "https://ai-studyportal.vercel.app",
+            "https://ai-studyportal.vercel.app/",
+            "https://ai-study-portal-app.vercel.app",
+            "https://ai-study-portal-app.vercel.app/",
             "https://study-portal-final-123.vercel.app",
             "https://study-portal-final-123.vercel.app/",
             "https://study-portal-final.vercel.app",
