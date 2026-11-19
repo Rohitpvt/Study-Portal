@@ -31,14 +31,23 @@ const AttachAssignmentMaterialModal = ({
   };
 
   useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
     if (isOpen) fetchMaterials();
   }, [isOpen, search]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 modal-contain" role="dialog" aria-modal="true" aria-labelledby="attach-material-title">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-md modal-backdrop-contain" onClick={onClose} aria-hidden="true" />
       
       <div className="relative w-full max-w-2xl glass dark:bg-[#0a0a0a] rounded-[3rem] border border-white/60 dark:border-white/5 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col max-h-[80vh]">
         {/* Header */}
@@ -47,9 +56,9 @@ const AttachAssignmentMaterialModal = ({
               <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
                  <Plus className="w-6 h-6" />
               </div>
-              <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Attach Material</h2>
+              <h2 id="attach-material-title" className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Attach Material</h2>
            </div>
-           <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl text-slate-400">
+           <button onClick={onClose} aria-label="Close dialog" className="p-2 hover:bg-white/5 rounded-xl text-slate-400">
               <X className="w-6 h-6" />
            </button>
         </div>

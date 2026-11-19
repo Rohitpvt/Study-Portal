@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, GraduationCap, Palette, Layout, Hash } from 'lucide-react';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
@@ -16,6 +16,21 @@ const CreateClassroomModal = ({ isOpen, onClose, onSuccess }) => {
     banner_variant: 'blue'
   });
   const [createdClassroom, setCreatedClassroom] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (createdClassroom) {
+          handleCloseSuccess();
+        } else {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, createdClassroom]);
 
   const bannerOptions = [
     { id: 'blue',   color: 'bg-blue-600' },
@@ -49,13 +64,13 @@ const CreateClassroomModal = ({ isOpen, onClose, onSuccess }) => {
 
   if (createdClassroom) {
     return (
-      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 modal-contain" role="dialog" aria-modal="true" aria-labelledby="created-classroom-title">
+        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm modal-backdrop-contain" onClick={handleCloseSuccess} aria-hidden="true" />
         <div className="relative w-full max-w-md glass dark:bg-[#0a0a0a] rounded-[3rem] shadow-2xl border border-white/60 dark:border-white/5 p-10 text-center animate-in zoom-in duration-300">
           <div className="w-20 h-20 bg-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-500/20">
             <GraduationCap className="w-10 h-10 text-white" />
           </div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-2">Classroom Created!</h2>
+          <h2 id="created-classroom-title" className="text-3xl font-black text-slate-900 dark:text-white mb-2">Classroom Created!</h2>
           <p className="text-slate-500 font-bold mb-8">Share this code with your students to let them join.</p>
           
           <div className="bg-slate-100 dark:bg-white/5 rounded-3xl p-6 mb-10 border border-slate-200 dark:border-white/10">
@@ -75,8 +90,8 @@ const CreateClassroomModal = ({ isOpen, onClose, onSuccess }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-contain" role="dialog" aria-modal="true" aria-labelledby="create-classroom-title">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm modal-backdrop-contain" onClick={onClose} aria-hidden="true" />
       
       <div className="relative w-full max-w-lg glass dark:bg-[#0a0a0a] rounded-[2.5rem] shadow-2xl border border-white/60 dark:border-white/5 overflow-hidden animate-in fade-in zoom-in duration-300">
         <div className="p-8">
@@ -85,9 +100,9 @@ const CreateClassroomModal = ({ isOpen, onClose, onSuccess }) => {
               <div className="p-3 bg-indigo-500 rounded-2xl shadow-lg shadow-indigo-500/20">
                 <GraduationCap className="w-6 h-6 text-white" />
               </div>
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white">New Classroom</h2>
+              <h2 id="create-classroom-title" className="text-2xl font-black text-slate-900 dark:text-white">New Classroom</h2>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors">
+            <button onClick={onClose} aria-label="Close dialog" className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors">
               <X className="w-5 h-5 text-slate-400" />
             </button>
           </div>

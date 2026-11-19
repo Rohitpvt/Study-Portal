@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Hash, ChevronRight } from 'lucide-react';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
@@ -7,6 +7,15 @@ const JoinClassroomModal = ({ isOpen, onClose, onSuccess }) => {
   const { success, error } = useNotification();
   const [loading, setLoading] = useState(false);
   const [joinCode, setJoinCode] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,8 +37,8 @@ const JoinClassroomModal = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-contain" role="dialog" aria-modal="true" aria-labelledby="join-classroom-title">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm modal-backdrop-contain" onClick={onClose} aria-hidden="true" />
       
       <div className="relative w-full max-w-md glass dark:bg-[#0a0a0a] rounded-[2.5rem] shadow-2xl border border-white/60 dark:border-white/5 overflow-hidden animate-in fade-in zoom-in duration-300">
         <div className="p-8">
@@ -38,9 +47,9 @@ const JoinClassroomModal = ({ isOpen, onClose, onSuccess }) => {
               <div className="p-3 bg-amber-500 rounded-2xl shadow-lg shadow-amber-500/20">
                 <Hash className="w-6 h-6 text-white" />
               </div>
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white">Join Class</h2>
+              <h2 id="join-classroom-title" className="text-2xl font-black text-slate-900 dark:text-white">Join Class</h2>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors">
+            <button onClick={onClose} aria-label="Close dialog" className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors">
               <X className="w-5 h-5 text-slate-400" />
             </button>
           </div>

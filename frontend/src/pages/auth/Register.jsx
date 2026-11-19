@@ -227,13 +227,16 @@ export default function Register() {
         <form className="space-y-6" onSubmit={handleRegister}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">First Name</label>
+              <label htmlFor="register-firstName" className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">First Name</label>
               <div className="relative group/input">
                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
                   <User className="w-5 h-5" />
                 </div>
                 <input
+                    id="register-firstName"
+                    name="given-name"
                     type="text"
+                    autoComplete="given-name"
                     value={formData.firstName}
                     onChange={(e) => setFormData({...formData, firstName: e.target.value})}
                     className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
@@ -244,13 +247,16 @@ export default function Register() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Last Name</label>
+              <label htmlFor="register-lastName" className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Last Name</label>
               <div className="relative group/input">
                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
                   <User className="w-5 h-5" />
                 </div>
                 <input
+                    id="register-lastName"
+                    name="family-name"
                     type="text"
+                    autoComplete="family-name"
                     value={formData.lastName}
                     onChange={(e) => setFormData({...formData, lastName: e.target.value})}
                     className="glass dark:bg-slate-800/40 block w-full pl-14 pr-5 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
@@ -262,7 +268,7 @@ export default function Register() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">
+            <label htmlFor="register-email" className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">
               {isStudent ? 'Academic Email' : 'Email Address'}
             </label>
             <div className="relative group/input flex gap-2">
@@ -271,7 +277,10 @@ export default function Register() {
                   <Mail className="w-5 h-5" />
                 </div>
                 <input
+                  id="register-email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   value={formData.email}
                   disabled={otpVerified}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -300,14 +309,18 @@ export default function Register() {
 
           {otpSent && !otpVerified && (
             <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Enter OTP Code</label>
+              <label htmlFor="register-otp" className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Enter OTP Code</label>
               <div className="relative group/input flex gap-2">
                 <div className="relative flex-1">
                   <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-emerald-600 dark:group-focus-within/input:text-emerald-400 transition-colors">
                     <KeyRound className="w-5 h-5" />
                   </div>
                   <input
+                    id="register-otp"
+                    name="one-time-code"
                     type="text"
+                    autoComplete="one-time-code"
+                    inputMode="numeric"
                     maxLength={6}
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value)}
@@ -338,12 +351,14 @@ export default function Register() {
           {/* Roll Number — only for Students */}
           {isStudent && (
             <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Admission / Roll Number</label>
+              <label htmlFor="register-roll" className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Admission / Roll Number</label>
               <div className="relative group/input">
                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
                   <ShieldPlus className="w-5 h-5" />
                 </div>
                 <input
+                  id="register-roll"
+                  name="roll_no"
                   type="text"
                   value={formData.roll_no}
                   onChange={(e) => setFormData({...formData, roll_no: e.target.value})}
@@ -356,13 +371,16 @@ export default function Register() {
           )}
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Security Token</label>
+            <label htmlFor="register-password" className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Security Token</label>
             <div className="relative group/input">
               <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
                 <Lock className="w-5 h-5" />
               </div>
               <input
+                id="register-password"
+                name="new-password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
                 className="glass dark:bg-slate-800/40 block w-full pl-14 pr-12 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"
@@ -380,13 +398,16 @@ export default function Register() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">RE-ENTER PASSWORD</label>
+            <label htmlFor="register-confirmPassword" className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">RE-ENTER PASSWORD</label>
             <div className="relative group/input">
               <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-600 dark:group-focus-within/input:text-indigo-400 transition-colors">
                 <Lock className="w-5 h-5" />
               </div>
               <input
+                id="register-confirmPassword"
+                name="new-password"
                 type={showConfirmPassword ? "text" : "password"}
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="glass dark:bg-slate-800/40 block w-full pl-14 pr-12 py-4 border-white/60 dark:border-slate-700/50 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/30 transition-all shadow-sm"

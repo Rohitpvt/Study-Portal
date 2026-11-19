@@ -76,7 +76,7 @@ export default function Dashboard() {
                  </div>
                  <div className="text-center md:text-left">
                     <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-md">
-                       Happy Birthday, {user.display_name || user.full_name.split(' ')[0]}! 🎂
+                       Happy Birthday, {user.display_name || user.full_name?.split(' ')[0] || 'Scholar'}! 🎂
                     </h2>
                     <p className="text-white/90 font-bold mt-2 text-lg drop-shadow-sm flex items-center justify-center md:justify-start gap-2">
                        Wishing you a spectacular year of academic excellence! <Sparkles className="w-5 h-5 text-amber-200" />
@@ -109,7 +109,7 @@ export default function Dashboard() {
             <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
               Welcome back, <br/>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-500 dark:from-indigo-400 dark:to-blue-300">
-                {user.full_name.split(' ')[0]}
+                {user.full_name?.split(' ')[0] || user.display_name || user.email?.split('@')[0] || 'Scholar'}
               </span>
             </h1>
             <div className="mt-4">

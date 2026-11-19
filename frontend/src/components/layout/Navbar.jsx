@@ -96,6 +96,27 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [handleClickOutside]);
 
+  // ── Route Change & Keyboard Escape Handling ───────────────────────────────
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setIsMoreOpen(false);
+    setIsRoleOpen(false);
+    setIsProfileOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsMoreOpen(false);
+        setIsRoleOpen(false);
+        setIsProfileOpen(false);
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     info("Cloud session synchronized and terminated.");

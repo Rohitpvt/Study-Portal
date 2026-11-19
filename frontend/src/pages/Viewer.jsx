@@ -294,6 +294,44 @@ export default function DocumentViewer() {
     }
   };
 
+  // ── Keyboard Shortcuts (Arrows for Page Turn, +/- for Zoom, Escape for Search) ──
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't intercept when user is typing in an input or textarea
+      if (['INPUT', 'TEXTAREA'].includes(e.target?.tagName)) {
+        if (e.key === 'Escape') {
+          clearSearch();
+          e.target.blur();
+        }
+        return;
+      }
+
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        e.preventDefault();
+        changePage(1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        changePage(-1);
+      } else if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        handleZoom(0.1);
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        handleZoom(-0.1);
+      } else if (e.key === 'Escape') {
+        if (isSearchOpen) {
+          clearSearch();
+        } else if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+          setIsFullscreen(false);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [numPages, isSearchOpen, viewMode]);
+
   // ── Search Logic ──────────────────────────────────────────────────────────
   const extractPageText = useCallback(async (pageNum) => {
     if (pageTextCache.current[pageNum]) return pageTextCache.current[pageNum];

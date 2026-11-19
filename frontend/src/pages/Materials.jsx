@@ -62,9 +62,9 @@ export default function Materials() {
   const fetchMaterials = (pageArg) => {
     const page = typeof pageArg === 'number' ? pageArg : currentPage;
     setIsFetching(true);
-    console.log("Filters:", courseFilter, subjectFilter);
     const params = new URLSearchParams();
-    if (searchQuery.trim()) params.append('search', searchQuery);
+    const activeSearch = debouncedSearch ? debouncedSearch.trim() : '';
+    if (activeSearch) params.append('search', activeSearch);
     if (courseFilter) params.append('course', courseFilter);
     if (subjectFilter) params.append('subject', subjectFilter);
     if (semesterFilter) params.append('semester', parseInt(semesterFilter));
@@ -176,11 +176,19 @@ export default function Materials() {
 
   const isFirstMount = useRef(true);
 
+  // Reset to page 1 whenever filters or search term change
+  useEffect(() => {
+    if (isFirstMount.current) return;
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [debouncedSearch, courseFilter, subjectFilter, semesterFilter, categoryFilter, sortBy]);
+
   // Fetch when filters/search/page changes automatically without duplicating
   useEffect(() => {
     if (isFirstMount.current) {
         isFirstMount.current = false;
-        fetchMaterials(currentPage);
+        fetchMaterials(1);
         return;
     }
     

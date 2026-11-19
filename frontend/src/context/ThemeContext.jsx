@@ -19,10 +19,21 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     const root = window.document.documentElement;
+    let meta = document.querySelector('meta[name="color-scheme"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = 'color-scheme';
+      document.head.appendChild(meta);
+    }
+
     if (theme === 'dark') {
       root.classList.add('dark');
+      root.style.colorScheme = 'dark';
+      meta.content = 'dark';
     } else {
       root.classList.remove('dark');
+      root.style.colorScheme = 'light';
+      meta.content = 'light';
     }
     localStorage.setItem('theme', theme);
   }, [theme]);

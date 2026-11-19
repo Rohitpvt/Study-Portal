@@ -325,7 +325,7 @@ export default function Chat() {
                             value={editTitle}
                             onChange={(e) => setEditTitle(e.target.value)}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleRename(s.id);
+                              if (e.key === 'Enter' && !e.nativeEvent?.isComposing && e.keyCode !== 229) handleRename(s.id);
                               if (e.key === 'Escape') setEditingId(null);
                             }}
                             onBlur={() => handleRename(s.id)}

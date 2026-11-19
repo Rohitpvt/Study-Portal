@@ -28,6 +28,15 @@ const CreateAssignmentModal = ({
   const [driveAttachments, setDriveAttachments] = useState([]);
   const [isDrivePickerOpen, setIsDrivePickerOpen] = useState(false);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   const handleDriveSelect = (files) => {
     setDriveAttachments([...driveAttachments, ...files]);
     setIsDrivePickerOpen(false);
@@ -97,8 +106,8 @@ const CreateAssignmentModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={onClose} />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-contain" role="dialog" aria-modal="true" aria-labelledby="create-assignment-title">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-xl modal-backdrop-contain" onClick={onClose} aria-hidden="true" />
       
       <div className="relative w-full max-w-3xl glass dark:bg-[#0a0a0a] rounded-[3rem] border border-white/60 dark:border-white/5 overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-300">
         <form onSubmit={handleSubmit} className="flex flex-col h-[90vh] max-h-[850px]">
@@ -109,7 +118,7 @@ const CreateAssignmentModal = ({
                   <FileText className="w-6 h-6" />
                </div>
                <div>
-                  <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  <h2 id="create-assignment-title" className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                     {assignment ? 'Edit Assignment' : 'New Assignment'}
                   </h2>
                   <p className="text-sm font-bold text-slate-500">Define tasks, deadlines, and AI rules.</p>
@@ -118,6 +127,7 @@ const CreateAssignmentModal = ({
             <button 
               type="button" 
               onClick={onClose}
+              aria-label="Close dialog"
               className="p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-all text-slate-400"
             >
               <X className="w-6 h-6" />

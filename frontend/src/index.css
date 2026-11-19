@@ -203,3 +203,39 @@ mark.pdf-search-highlight.pdf-search-active {
 .custom-scrollbar-horizontal::-webkit-scrollbar-thumb {
   @apply bg-slate-700 rounded-full hover:bg-slate-600 transition-colors;
 }
+
+/* ── Modern Web Smoothness & Accessibility ────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Modal and dialog scroll containment to prevent background scroll-chaining */
+dialog:modal,
+[role="dialog"],
+.modal-contain {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop,
+.modal-backdrop-contain {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+

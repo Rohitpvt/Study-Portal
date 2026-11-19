@@ -22,6 +22,15 @@ const AssignmentDetailModal = ({
 }) => {
   const [activeSubTab, setActiveSubTab] = React.useState('instructions');
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !assignment) return null;
 
   const getDueStatus = () => {
@@ -39,8 +48,8 @@ const AssignmentDetailModal = ({
   const dueStatus = getDueStatus();
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4">
-      <div className="absolute inset-0 bg-black/90 backdrop-blur-2xl" onClick={onClose} />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 modal-contain" role="dialog" aria-modal="true" aria-labelledby="assignment-modal-title">
+      <div className="absolute inset-0 bg-black/90 backdrop-blur-2xl modal-backdrop-contain" onClick={onClose} aria-hidden="true" />
       
       <div className="relative w-full h-full sm:h-[90vh] sm:max-h-[900px] sm:max-w-5xl glass dark:bg-[#0a0a0a] sm:rounded-[4rem] border-0 sm:border border-white/60 dark:border-white/5 overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-500 flex flex-col">
         {/* Header */}
@@ -60,7 +69,7 @@ const AssignmentDetailModal = ({
                     {assignment.points} Pts
                  </div>
               </div>
-              <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tighter max-w-2xl leading-tight">
+              <h2 id="assignment-modal-title" className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tighter max-w-2xl leading-tight">
                 {assignment.title}
               </h2>
               <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-bold text-slate-500">
